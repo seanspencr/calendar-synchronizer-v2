@@ -1,4 +1,4 @@
-import { Text, View, TextInput, TouchableOpacity, Alert, Button } from "react-native";
+import { Text, View, Input, AlertDialog, Button, useToastController } from "tamagui";
 import { useState, useEffect } from "react";
 import * as WebBrowser from "expo-web-browser";
 
@@ -9,7 +9,6 @@ import { useGoogleAuthCode } from "../hooks/useGoogleAuthCode";
 import { useMicrosoftLogin } from "../hooks/useMicrosoftLogin";
 import { useGoogleCodeLogin } from "../hooks/useGoogleCodeLogin";
 import { useLogin } from "../hooks/useLogin";
-import { body, h1, textInput } from "../styles/textStyles";
 import { pagePath } from "../lib/constants";
 
 export default function Index() {
@@ -24,7 +23,7 @@ export default function Index() {
   const [gooogleRequest, googleResponse, googlePromptAsync] = useGoogleAuthCode();
   const [microsoftRequest, microsoftResponse, microsoftPromptAsync] = useMicrosoftLogin()
 
-  const getUserInfoWithGoogle = async (token) => {
+  const getUserInfoWithGoogle = async (token : any) => {
     //absent token
     if (!token) return;
     //present token
@@ -42,13 +41,13 @@ export default function Index() {
     } catch (error) {
       console.error(
         "Failed to fetch user data:",
-        googleResponse.status,
-        googleResponse.statusText
+        googleResponse!.status,
+        googleResponse!.statusText
       );
     }
   };
 
-  const getCalendarEvents = async (token) => {
+  const getCalendarEvents = async (token : any) => {
     const res = await fetch(
       "https://www.googleapis.com/calendar/v3/calendars/primary/events",
       {
@@ -105,10 +104,10 @@ export default function Index() {
     } else if (googleResponse?.type === "success") {
       // If no user information is found and the response type is "success" (assuming response is defined),
       // call getUserInfo with the access token from the response
-      getUserInfoWithGoogle(googleResponse.authentication.accessToken);
+      getUserInfoWithGoogle(googleResponse!.authentication.accessToken);
     }
 
-    getCalendarEvents(googleResponse.authentication.accessToken);
+    getCalendarEvents(googleResponse!.authentication.accessToken);
   } catch (error) {
     // Handle any errors that occur during AsyncStorage retrieval or other operations
     console.error("Error retrieving user data from AsyncStorage:", error);
@@ -118,7 +117,7 @@ export default function Index() {
 //add it to a useEffect with response as a dependency 
 
 
-const fetchMicrosoftUserData = async (token) => {
+const fetchMicrosoftUserData = async (token : string) => {
   try {
     const response = await fetch("https://graph.microsoft.com/oidc/userinfo", {
       headers: { Authorization: `Bearer ${token}` },
@@ -142,7 +141,7 @@ async function fetchCalendarMicrosoft(token : string){
       console.log("Microsoft calendar events:", data);
 }
 
-const exchangeCodeForToken = async (microsoftResponse) => {
+const exchangeCodeForToken = async (microsoftResponse : any) => {
       if(microsoftRequest == null || microsoftRequest.codeVerifier === undefined || microsoftRequest.codeVerifier === null ) {
         console.error("Code verifier is undefined. Cannot exchange code for token.");
         return;
@@ -200,34 +199,28 @@ console.log("userInfo:", JSON.stringify(userInfo))
   const [password, setPassword] = useState("");
   const {login, isLoading, response} = useLogin()
 
+  const toast = useToastController()
+
   function handleLogin(){
     try{
       login({username : username, password : password});
-      Alert.alert("Login successful", "testingr");
+      toast.show("Login successful", { message: "You have been logged in successfully." });
     }catch(error){
-      Alert.alert("Login Failed", JSON.stringify(error));
+      toast.show("Login Failed", { message: JSON.stringify(error) });
     }
   }
 
   useEffect(() => {
   if (response) {
-    Alert.alert("Login successful", JSON.stringify(response));
+    toast.show("Login successful", { message: JSON.stringify(response) });
     window.alert("Login successful: " + JSON.stringify(response));
     console.log("Login response:", response);
   }
 }, [response]);
   
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        paddingHorizontal: 20,
-        backgroundColor: "#f5f5f5",
-      }}
-    >
-      <Text style={h1}>
+    <View>
+      <Text>
         Login
       </Text>
 
@@ -259,44 +252,26 @@ console.log("userInfo:", JSON.stringify(userInfo))
         )
       } */}
 
-      <TextInput
-        style={{
-          ...body,
-          width: "100%",
-          borderWidth: 1,
-          borderColor: "#ccc",
-          padding: 12,
-          marginBottom: 15,
-          borderRadius: 8,
-          backgroundColor: "#fff",
-        }}
+      <Input
         placeholder="Username"
         value={username}
         onChangeText={setUsername}
       />
 
-      <TextInput
-        style={textInput}
+      <Input
         placeholder="Password"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
       />
 
-      <TouchableOpacity
+      <Button
         onPress={handleLogin}
-        style={{
-          width: "100%",
-          backgroundColor: "#007AFF",
-          padding: 12,
-          borderRadius: 8,
-          alignItems: "center",
-        }}
       >
-        <Text style={{ color: "#fff", fontSize: 16, fontWeight: "bold" }}>
+        <Text>
           Login
         </Text>
-      </TouchableOpacity>
+      </Button>
 
       <View
         style={{
@@ -306,11 +281,11 @@ console.log("userInfo:", JSON.stringify(userInfo))
           marginTop: 20,
         }}
       >
-        <Button title="Login with credential" onPress={()=>{handleLogin()}}></Button>
-        <Button title= "register with google (rial)" onPress={()=>{googlePromptAsync()}}/>
-        <Button onPress={() => router.push(pagePath.fromRoot.registerScreen)} title="Navigate to register screen" />
-        <Button onPress={() => router.push(pagePath.fromRoot.dashboard)} title="Navigate to main screen" />
-        <Button title= "sign in with microsoft" onPress={()=>{microsoftPromptAsync()}}/>
+        <Button onPress={()=>{handleLogin()}}>Login with credential</Button>
+        <Button onPress={()=>{googlePromptAsync()}}>register with google (rial)</Button>
+        <Button onPress={() => router.push(pagePath.fromRoot.registerScreen)}>Go to Register Screen</Button>
+        <Button onPress={() => router.push(pagePath.fromRoot.dashboard)}>Navigate to main screen</Button>
+        <Button onPress={()=>{microsoftPromptAsync()}}>sign in with microsoft</Button>
 
       </View>
       <Link href={pagePath.fromRoot.registerScreen}>Go to Register Screen</Link>
