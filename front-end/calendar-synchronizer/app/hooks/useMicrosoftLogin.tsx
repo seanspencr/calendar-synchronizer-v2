@@ -17,7 +17,7 @@ export function useMicrosoftLogin(){
 
     const redirectUri = AuthSession.makeRedirectUri();
      console.log("useMicrosoftLogin :  Redirect URI:", redirectUri);
-    const [microsoftRequest, microsoftResponse, microsoftPromptAsync] = AuthSession.useAuthRequest(
+    return AuthSession.useAuthRequest(
         {
           clientId: microsoftConfig.CLIENT_ID!,
           redirectUri: redirectUri,
@@ -26,7 +26,4 @@ export function useMicrosoftLogin(){
         },
         microsoftConfig.discovery
       );
-
-    return [microsoftRequest, microsoftResponse, microsoftPromptAsync];
-
 }

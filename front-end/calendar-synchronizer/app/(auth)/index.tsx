@@ -3,11 +3,14 @@ import { useState, useEffect } from "react";
 import * as WebBrowser from "expo-web-browser";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRouter } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import React from "react";
 import { useGoogleAuthCode } from "../hooks/useGoogleAuthCode";
 import { useMicrosoftLogin } from "../hooks/useMicrosoftLogin";
 import { useGoogleCodeLogin } from "../hooks/useGoogleCodeLogin";
+import { useLogin } from "../hooks/useLogin";
+import { body, h1, textInput } from "../styles/textStyles";
+import { pagePath } from "../lib/constants";
 
 export default function Index() {
   WebBrowser.maybeCompleteAuthSession();
@@ -195,19 +198,24 @@ console.log("userInfo:", JSON.stringify(userInfo))
   const API_URL = `${process.env.EXPO_PUBLIC_BACKEND_URL}:${process.env.EXPO_PUBLIC_BACKEND_PORT}`;   
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const {login, isLoading, response} = useLogin()
 
-  const handleLogin = () => {
-    fetch(`${API_URL}/users`).then(res => res.json()).then(
-      data => {
-      console.log(data);
-      Alert.alert("Success", JSON.stringify(data));
-    }).catch(err => {
-      console.error(err);
-      Alert.alert("Error", "Login failed!");
-    });
-  };
+  function handleLogin(){
+    try{
+      login({username : username, password : password});
+      Alert.alert("Login successful", "testingr");
+    }catch(error){
+      Alert.alert("Login Failed", JSON.stringify(error));
+    }
+  }
 
-
+  useEffect(() => {
+  if (response) {
+    Alert.alert("Login successful", JSON.stringify(response));
+    window.alert("Login successful: " + JSON.stringify(response));
+    console.log("Login response:", response);
+  }
+}, [response]);
   
   return (
     <View
@@ -219,7 +227,7 @@ console.log("userInfo:", JSON.stringify(userInfo))
         backgroundColor: "#f5f5f5",
       }}
     >
-      <Text style={{ fontSize: 24, fontWeight: "bold", marginBottom: 30 }}>
+      <Text style={h1}>
         Login
       </Text>
 
@@ -253,6 +261,7 @@ console.log("userInfo:", JSON.stringify(userInfo))
 
       <TextInput
         style={{
+          ...body,
           width: "100%",
           borderWidth: 1,
           borderColor: "#ccc",
@@ -267,15 +276,7 @@ console.log("userInfo:", JSON.stringify(userInfo))
       />
 
       <TextInput
-        style={{
-          width: "100%",
-          borderWidth: 1,
-          borderColor: "#ccc",
-          padding: 12,
-          marginBottom: 20,
-          borderRadius: 8,
-          backgroundColor: "#fff",
-        }}
+        style={textInput}
         placeholder="Password"
         value={password}
         onChangeText={setPassword}
@@ -297,11 +298,22 @@ console.log("userInfo:", JSON.stringify(userInfo))
         </Text>
       </TouchableOpacity>
 
-      <Button title= "register with google (rial)" onPress={()=>{googlePromptAsync()}}/>
-      <Button onPress={() => router.push("/(auth)/loginScreen")} title="Navigate to login screen" />
-      <Button onPress={() => router.push("/(main)/dashboard")} title="Navigate to main screen" />
-      <Button title= "sign in with microsoft" onPress={()=>{microsoftPromptAsync()}}/>
+      <View
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr 1fr",
+          width: "100%",
+          marginTop: 20,
+        }}
+      >
+        <Button title="Login with credential" onPress={()=>{handleLogin()}}></Button>
+        <Button title= "register with google (rial)" onPress={()=>{googlePromptAsync()}}/>
+        <Button onPress={() => router.push(pagePath.fromRoot.registerScreen)} title="Navigate to register screen" />
+        <Button onPress={() => router.push(pagePath.fromRoot.dashboard)} title="Navigate to main screen" />
+        <Button title= "sign in with microsoft" onPress={()=>{microsoftPromptAsync()}}/>
 
+      </View>
+      <Link href={pagePath.fromRoot.registerScreen}>Go to Register Screen</Link>
     </View>
   );
 }
