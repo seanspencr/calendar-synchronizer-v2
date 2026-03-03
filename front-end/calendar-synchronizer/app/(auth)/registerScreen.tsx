@@ -1,8 +1,7 @@
-import {View, TextInput} from "react-native";
 import { body, textInput } from "../styles/textStyles";
 import { useEffect, useState } from "react";
-import { Text ,Button, Form, Spinner, AnimatePresence, YStack} from "tamagui";
-
+import { Text ,Button, Form, Spinner, AnimatePresence, YStack, View, Input} from "tamagui";
+import React from "react";
 export default function RegisterScreen() {
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
@@ -24,21 +23,19 @@ export default function RegisterScreen() {
     return (
         <View>
             <Text>Register Screen</Text>
-            <TextInput 
-                style={textInput}
+            <Input
                 placeholder="Username"
                 value={username}
                 onChangeText={setUsername}
                 >
-            </TextInput>
-            <TextInput 
-                style={textInput}
+            </Input>
+            <Input
                 placeholder="Password"
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={true}
                 >
-            </TextInput>
+            </Input>
                     <Form
             items="center"
             gap="$2"
