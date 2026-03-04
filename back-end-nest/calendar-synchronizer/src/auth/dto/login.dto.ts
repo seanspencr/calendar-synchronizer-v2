@@ -11,4 +11,10 @@ export class LoginDto{
 export class LoginResponseDto{
     @ApiProperty()
     accessToken : string;
+    @ApiProperty()
+    email : string;
+    @ApiProperty()
+    userid : string;
+    @ApiProperty()
+    username : string;
 }

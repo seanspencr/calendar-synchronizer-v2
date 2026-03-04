@@ -7,8 +7,10 @@ configuration.ts
 docs/AppApi.md
 docs/AuthApi.md
 docs/CreateUserDto.md
+docs/GoogleAuthDto.md
 docs/LoginDto.md
-docs/MicrosoftRegisterDto.md
+docs/LoginResponseDto.md
+docs/MicrosoftAuthDto.md
 docs/SchedulesApi.md
 docs/UsersApi.md
 git_push.sh

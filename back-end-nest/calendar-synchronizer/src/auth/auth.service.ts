@@ -6,7 +6,8 @@ import { UsersService } from 'src/users/users.service';
 import axios from 'axios';
 import { GoogleTokenResponse } from './dto/googleToken.dto';
 import { usersModel } from 'src/generated/prisma/models';
-import { MicrosoftRegisterDto } from './dto/microsoftRegister.dto';
+import { MicrosoftAuthDto } from './dto/microsoftAuth.dto';
+import { AccessTokenPayload } from './dto/accessToken.dto';
 
 @Injectable()
 export class AuthService {
@@ -18,7 +19,7 @@ export class AuthService {
     }
 
     
-    public async login({username, password}: {username: string, password: string}){
+    public async login({username, password}: {username: string, password: string}) : Promise<AccessTokenPayload>{
         let user : usersModel | undefined | null = await this.databaseService.users.findFirst({
             where: {
                 username: username
@@ -34,23 +35,41 @@ export class AuthService {
         }
 
         
-        return user;
+        return {email : user.email, userId : user.email, username : user.username!};
     }
 
     public async register(createUserDto : CreateUserDto){
         return this.userService.create(createUserDto);
     }
 
-    public async registerMicrosoftUser(email : string, microsoft_refresh_token : string, username : string){
-        this.userService.createOauthUser({
+    public async authMicrosoftUser(email : string, microsoft_refresh_token : string, username : string) : Promise<AccessTokenPayload>{
+        
+        let existingUser = await this.userService.findOauthUser(email);
+
+        if(existingUser){
+            return {
+                email : existingUser.email,
+                userId : existingUser.email,
+                username : existingUser.username!
+            };
+        }
+        
+        let newUser = await this.userService.createOauthUser({
             email : email,
             microsoft_refresh_token: microsoft_refresh_token,
             username : username,
             password : "null"
-        })
+        });
+
+        
+        return {
+            email : newUser.email,
+            userId : newUser.email,
+            username : newUser.username!
+        };
     }
 
-    public async registerGoogleUser(googleAuthCode : string,  codeVerifier: string, redirectUri: string){
+    public async authGoogleUser(googleAuthCode : string,  codeVerifier: string, redirectUri: string) : Promise<AccessTokenPayload>{
         // handle token exchange dan get refresh token (gara2 gw google clound consolenya buat web pdhl hrsnya bisa auto)
         const api_url = "https://oauth2.googleapis.com/token";
         const params = new URLSearchParams();
@@ -72,11 +91,6 @@ export class AuthService {
             console.log("Google token response:", tokenResponse);
 
 
-            const refreshToken = tokenResponse.refresh_token;
-            if(!refreshToken){
-                throw new UnauthorizedException("Failed to obtain refresh token from Google");
-            }
-
             // get user info from google
             const userInfoResponse = await axios.get("https://www.googleapis.com/oauth2/v2/userinfo", {
                 headers: {
@@ -85,13 +99,36 @@ export class AuthService {
             });
             console.log("Google user info response:", userInfoResponse.data);
             const { email, name } = userInfoResponse.data;
+
+            // if exist
+            let existing = await this.userService.findOauthUser(email);
+            if(existing){
+                return {
+                    email : existing.email,
+                    userId : existing.email,
+                    username : existing.username!
+                };
+            }
+
+            // klo gaada, daftarin baru
+            const refreshToken = tokenResponse.refresh_token;
+            if(!refreshToken){
+                throw new UnauthorizedException("Failed to obtain refresh token from Google");
+            }
             
-            return this.userService.createOauthUser({
+            let newUser = await this.userService.createOauthUser({
                 email: email,
                 password: "null",
                 username: name,
                 google_refresh_token: refreshToken
             });
+            
+            return {
+                email : newUser.email,
+                userId : newUser.email,
+                username : newUser.username!
+            };
+
             
         }catch(error){
             console.error("Error exchanging code for token:", error.response.data);

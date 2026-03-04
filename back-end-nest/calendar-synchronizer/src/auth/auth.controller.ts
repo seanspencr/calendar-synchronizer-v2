@@ -1,9 +1,12 @@
 import { Controller, Get, Post, Req, Res, UseGuards, HttpException, Body, HttpCode } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LoginDto } from './dto/login.dto';
+import { LoginDto, LoginResponseDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
 import { AuthGuard } from '@nestjs/passport';
-import { MicrosoftRegisterDto } from './dto/microsoftRegister.dto';
+import { MicrosoftAuthDto } from './dto/microsoftAuth.dto';
+import { GoogleAuthDto } from './dto/googleAuth.dto';
+import { ApiResponse } from '@nestjs/swagger';
+
 
 @Controller('auth')
 export class AuthController {
@@ -27,42 +30,58 @@ export class AuthController {
     //ambil user, return bearer
     @Post("/login")
     @HttpCode(200)
-    async login(@Body() loginDto: LoginDto, @Res() res){
-        const user = await this.authService.login(loginDto);
+    @ApiResponse({ status: 200, description: 'User found', type: LoginResponseDto })
+    async login(@Body() loginDto: LoginDto, @Res({passthrough: true}) res) : Promise<LoginResponseDto>{
+        const tokenPayload = await this.authService.login(loginDto);
 
-        if (!user) {
+        if (!tokenPayload) {
             throw new HttpException('Invalid credentials', 401);
         }
         
-        const token = await this.jwtService.signAsync(user);
+        const token = await this.jwtService.signAsync(tokenPayload);
         res.cookie('authorization', token, {
                 httpOnly: true,
                 expires: new Date(new Date().getTime() + 60 * 10 * 1000),
             });
 
-        return res.send(user);
+        return {accessToken : token, email : tokenPayload.email, userid : tokenPayload.userId, username : tokenPayload.username} as LoginResponseDto;
     }        
 
     // NOTE : Ini gara2 gw daftarin di google console sebagai web, jadinya perlu PKCE manual
-    @Post("/register/google")
-    async registerGoogleUser(@Body() body: {authCode: string, codeVerifier: string, redirectUri: string}){
+    @HttpCode(200)
+    @Post("/google")
+    @ApiResponse({ status: 200, description: 'User found', type: LoginResponseDto })
+    async registerGoogleUser(@Body() body: GoogleAuthDto, @Req() req, @Res({passthrough: true}) res) : Promise<LoginResponseDto>{
         const googleAuthCode = body.authCode;
         const codeVerifier = body.codeVerifier;
         const redirectUri = body.redirectUri;
         if(!googleAuthCode || !codeVerifier || !redirectUri){
             throw new HttpException("auth_code, code_verifier, and redirect_uri are required", 400);
         }
-        return this.authService.registerGoogleUser(googleAuthCode, codeVerifier, redirectUri);
+        let tokenPayload = await this.authService.authGoogleUser(googleAuthCode, codeVerifier, redirectUri);
+        let token = await this.jwtService.signAsync(tokenPayload);
+        res.cookie('authorization', token, {
+                httpOnly: true,
+                expires: new Date(new Date().getTime() + 60 * 10 * 1000),
+            });
+        return { accessToken : token, email : tokenPayload.email, userid : tokenPayload.userId, username : tokenPayload.username } as LoginResponseDto;
     }
 
 
-    @HttpCode(201)
-    @Post("register/microsoft")
-    async registerMicrosoftUser(@Body() body: MicrosoftRegisterDto){
+    @HttpCode(200)
+    @Post("microsoft")
+    @ApiResponse({ status: 200, description: 'User found', type: LoginResponseDto })
+    async registerMicrosoftUser(@Body() body: MicrosoftAuthDto, @Req() req, @Res({passthrough: true}) res) : Promise<LoginResponseDto>{
         if(!body.email || !body.microsoft_refresh_token || !body.username){
             throw new HttpException("auth_code, code_verifier, and redirect_uri are required", 400);
         }
-        return this.authService.registerMicrosoftUser(body.email, body.microsoft_refresh_token, body.username);
+        let tokenPayload = await this.authService.authMicrosoftUser(body.email, body.microsoft_refresh_token, body.username);
+        let token = await this.jwtService.signAsync(tokenPayload);
+        res.cookie('authorization', token, {
+                httpOnly: true,
+                expires: new Date(new Date().getTime() + 60 * 10 * 1000),
+            });
+        return { accessToken : token, email : tokenPayload.email, userid : tokenPayload.userId, username : tokenPayload.username } as LoginResponseDto;
     }
 
     @Get("register/google/callback")

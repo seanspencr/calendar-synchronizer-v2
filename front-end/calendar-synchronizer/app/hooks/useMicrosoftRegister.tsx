@@ -1,97 +1,76 @@
-import { useEffect, useState } from "react";
-import { useMicrosoftLogin } from "./useMicrosoftLogin";
-import axios from "axios";
-import { AuthApi, Configuration } from "../api-client";
-import { microsoftConfig, redirectUri } from "../lib/microsoftConfig";
+import { useEffect, useState, useCallback } from 'react';
+import { MicrosoftService } from '../services/microsoftService';
+import { StorageService } from '../services/storageService';
+import { authApi } from '../services/apiService';
+import { Platform } from 'react-native';
+import { microsoftConfig, redirectUri } from '../lib/microsoftConfig';
+import * as AuthSession from 'expo-auth-session';
+
+export function useMicrosoftRegister() {
+
+  const [microsoftRequest, microsoftResponse, promptAsync] = AuthSession.useAuthRequest(
+        {
+          clientId: microsoftConfig.CLIENT_ID!,
+          redirectUri: redirectUri,
+          scopes: ['openid', 'profile', 'email', 'Calendars.Read', 'offline_access'],
+          responseType: AuthSession.ResponseType.Code,
+        },
+        microsoftConfig.discovery
+      );
 
 
-const configuration = new Configuration({
-        basePath : `${process.env.EXPO_PUBLIC_BACKEND_URL}:${process.env.EXPO_PUBLIC_BACKEND_PORT}`
-    });
-const apiInstance = new AuthApi(configuration);
+  const [registerResponse, setRegisterResponse] = useState<any>(null);
+  const [isLoadingMicrosoft, setIsLoading] = useState(false);
+  const [errorMsg, setError] = useState<string | null>(null);
 
-export function useMicrosoftRegister(){
-    const [microsoftRequest, microsoftResponse, microsoftPromptAsync] = useMicrosoftLogin()
-    const [registerResponse, setRegisterResponse] = useState<any>()
-    const [isLoadingMicrosoft, setIsLoading] = useState<boolean>(false)
+  const register = useCallback(async () => {
+    if (!microsoftResponse || !microsoftRequest?.codeVerifier) return;
+
+    try {
+      setIsLoading(true);
+      setError(null);
 
 
-    async function fetchMicrosoftUserData(token : string) : Promise<{email : string, givenName : string, familyName : string}>{
-    
-        const response = await fetch("https://graph.microsoft.com/oidc/userinfo", {
-        headers: { Authorization: `Bearer ${token}` },
-        });
-        const user = await response.json();
+      console.log('Microsoft auth response:', microsoftResponse);
+      // 1. Exchange code for tokens
+      const { accessToken, refreshToken } = await MicrosoftService.exchangeCodeForToken(
+        microsoftResponse.params.code,
+        microsoftRequest.codeVerifier,
+      );
 
-        console.log("Microsoft user data:", user);
-        // setUserInfo(normalizedUser);
-        // await AsyncStorage.setItem("user", JSON.stringify(normalizedUser));
-        return {email : user.email, familyName : user.familyname, givenName : user.givenname}
-    };
+      // 2. Get user info from Microsoft
+      const { email, givenName, familyName } = await MicrosoftService.fetchUserData(accessToken);
 
-    
-    async function exchangeCodeForToken(microsoftResponse : any) : Promise<{accessToken : string, refreshToken : string}>{
-      if(microsoftRequest == null || microsoftRequest.codeVerifier === undefined || microsoftRequest.codeVerifier === null ) {
-        console.error("Code verifier is undefined. Cannot exchange code for token.");
-        throw new Error("Code verifier is undefined. Cannot exchange code for token.");
+      // 3. Register with backend
+      const response = await authApi.authControllerRegisterMicrosoftUser({
+        email,
+        microsoft_refresh_token: refreshToken,
+        username: `${givenName} ${familyName}`,
+      });
+
+      // 4. Persist tokens + user info locally
+      if(Platform.OS === "android"){
+          await StorageService.saveAccessToken(accessToken);
+          await StorageService.saveUserInfo({ email, givenName, familyName });
       }
-  
-        const { code } = microsoftResponse.params;
-        const response = await fetch(`https://login.microsoftonline.com/common/oauth2/v2.0/token`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({
-            client_id: microsoftConfig.CLIENT_ID,
-            code: code,
-            redirect_uri: redirectUri, // Must match EXACTLY what was sent in the request
-            grant_type: 'authorization_code',
-            code_verifier: microsoftRequest.codeVerifier, // Include the code verifier for PKCE
-            }).toString(),
-        });
 
-        const data = await response.json();
-        
-        if (data.access_token) {
-            // Now that you have the token, go get the user data!
-            fetchMicrosoftUserData(data.access_token);
-        }
+      setRegisterResponse(response);
 
-        return {accessToken : data.access_token, refreshToken : data.refresh_token}
-    };
+    } catch (err) {
 
+      const message = err instanceof Error ? err.message : 'Registration failed';
+      setError(message);
+      console.error('Microsoft registration error:', err);
 
-    async function register(microsoftResponse : any){
-         if(!microsoftResponse) return;
+    } finally {
 
-        let {accessToken, refreshToken} = await exchangeCodeForToken(microsoftResponse)
-        let {email, familyName, givenName} = await fetchMicrosoftUserData(accessToken);
-
-        apiInstance.authControllerRegisterMicrosoftUser({
-            email : email, microsoft_refresh_token : refreshToken, username : `${givenName} ${familyName}`
-        })
+      setIsLoading(false);
     }
+  }, [microsoftResponse, microsoftRequest]);
 
-    // if(googleAuthCode == null || googleAuthCode == undefined || googleAuthCode == "") return;
+  useEffect(() => {
+    register();
+  }, [register]);
 
-    //     console.log("Exchanging code for token with code:", code);
-    //     try {
-    //       const response = await axios.post(`${apiUrl}/auth/register/google`, { "authCode" : code, "codeVerifier" : codeVerifier , "redirectUri" : redirectUri});
-    //       return response.data; // Assuming the backend returns the token in the response body
-    //     } catch (error) {
-    //       console.error("Error exchanging code for token:", error);
-    //       throw error;
-    //     }
-    //   };
-    useEffect(()=>{
-        if(!microsoftResponse) return;
-        setIsLoading(true);
-       register(microsoftResponse)
-    }, [microsoftResponse])
-
-    useEffect(()=>{
-        if(!registerResponse) return;
-        setIsLoading(false);
-    },[registerResponse])
-
-    return {isLoadingMicrosoft, registerResponse, microsoftPromptAsync}
+  return { isLoadingMicrosoft, registerResponse, errorMsg, promptAsync };
 }

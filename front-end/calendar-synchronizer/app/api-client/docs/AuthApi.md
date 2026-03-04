@@ -7,8 +7,8 @@ All URIs are relative to *http://localhost*
 |[**authControllerGoogleAuthCallback**](#authcontrollergoogleauthcallback) | **GET** /auth/register/google/callback | |
 |[**authControllerLogin**](#authcontrollerlogin) | **POST** /auth/login | |
 |[**authControllerMe**](#authcontrollerme) | **GET** /auth/me | |
-|[**authControllerRegisterGoogleUser**](#authcontrollerregistergoogleuser) | **POST** /auth/register/google | |
-|[**authControllerRegisterMicrosoftUser**](#authcontrollerregistermicrosoftuser) | **POST** /auth/register/microsoft | |
+|[**authControllerRegisterGoogleUser**](#authcontrollerregistergoogleuser) | **POST** /auth/google | |
+|[**authControllerRegisterMicrosoftUser**](#authcontrollerregistermicrosoftuser) | **POST** /auth/microsoft | |
 
 # **authControllerGoogleAuthCallback**
 > authControllerGoogleAuthCallback()
@@ -54,7 +54,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **authControllerLogin**
-> authControllerLogin(loginDto)
+> LoginResponseDto authControllerLogin(loginDto)
 
 
 ### Example
@@ -85,7 +85,7 @@ const { status, data } = await apiInstance.authControllerLogin(
 
 ### Return type
 
-void (empty response body)
+**LoginResponseDto**
 
 ### Authorization
 
@@ -94,13 +94,13 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: application/json
- - **Accept**: Not defined
+ - **Accept**: application/json
 
 
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**200** |  |  -  |
+|**200** | User found |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -148,50 +148,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **authControllerRegisterGoogleUser**
-> authControllerRegisterGoogleUser()
-
-
-### Example
-
-```typescript
-import {
-    AuthApi,
-    Configuration
-} from './api';
-
-const configuration = new Configuration();
-const apiInstance = new AuthApi(configuration);
-
-const { status, data } = await apiInstance.authControllerRegisterGoogleUser();
-```
-
-### Parameters
-This endpoint does not have any parameters.
-
-
-### Return type
-
-void (empty response body)
-
-### Authorization
-
-No authorization required
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: Not defined
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**201** |  |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **authControllerRegisterMicrosoftUser**
-> authControllerRegisterMicrosoftUser(microsoftRegisterDto)
+> LoginResponseDto authControllerRegisterGoogleUser(googleAuthDto)
 
 
 ### Example
@@ -200,16 +157,16 @@ No authorization required
 import {
     AuthApi,
     Configuration,
-    MicrosoftRegisterDto
+    GoogleAuthDto
 } from './api';
 
 const configuration = new Configuration();
 const apiInstance = new AuthApi(configuration);
 
-let microsoftRegisterDto: MicrosoftRegisterDto; //
+let googleAuthDto: GoogleAuthDto; //
 
-const { status, data } = await apiInstance.authControllerRegisterMicrosoftUser(
-    microsoftRegisterDto
+const { status, data } = await apiInstance.authControllerRegisterGoogleUser(
+    googleAuthDto
 );
 ```
 
@@ -217,12 +174,12 @@ const { status, data } = await apiInstance.authControllerRegisterMicrosoftUser(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **microsoftRegisterDto** | **MicrosoftRegisterDto**|  | |
+| **googleAuthDto** | **GoogleAuthDto**|  | |
 
 
 ### Return type
 
-void (empty response body)
+**LoginResponseDto**
 
 ### Authorization
 
@@ -231,13 +188,64 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: application/json
- - **Accept**: Not defined
+ - **Accept**: application/json
 
 
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
-|**201** |  |  -  |
+|**200** | User found |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **authControllerRegisterMicrosoftUser**
+> LoginResponseDto authControllerRegisterMicrosoftUser(microsoftAuthDto)
+
+
+### Example
+
+```typescript
+import {
+    AuthApi,
+    Configuration,
+    MicrosoftAuthDto
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new AuthApi(configuration);
+
+let microsoftAuthDto: MicrosoftAuthDto; //
+
+const { status, data } = await apiInstance.authControllerRegisterMicrosoftUser(
+    microsoftAuthDto
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **microsoftAuthDto** | **MicrosoftAuthDto**|  | |
+
+
+### Return type
+
+**LoginResponseDto**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | User found |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

@@ -34,17 +34,22 @@ export class UsersService {
     const password = "null";
     createUserDto.password = password;
 
-    const existingUser = await this.dbService.users.findFirst({
-      where: {
-        username: createUserDto.email,
-      },
-    });
+    const existingUser = await this.findOauthUser(createUserDto.email);
 
     if (existingUser) {
       throw new UnprocessableEntityException("Email already registered, please login instead");
     }
     
     return this.dbService.users.create({data : createUserDto});
+  }
+
+  async findOauthUser(email: string) {
+    return this.dbService.users.findFirst({
+      where: {
+        email: email,
+        password: "null"
+      },
+    });
   }
 
   findAll() {
