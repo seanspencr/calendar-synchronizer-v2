@@ -9,7 +9,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "api-client": "npx openapi-generator-cli generate -i http://localhost:3001/api-json -g typescript-axios -o ./api-client --additional-properties=supportsES6=true,typescriptThreePlus=true"
+    "api-client": "npx @openapitools/openapi-generator-cli generate -i http://localhost:3001/api-json -g typescript-axios -o ./app/api-client --additional-properties=supportsES6=true,typescriptThreePlus=true"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
@@ -52,6 +52,7 @@
     "@types/react": "~19.1.0",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~10.0.0",
+    "openapi-generator-cli": "^1.0.0",
     "typescript": "~5.9.2"
   },
   "private": true

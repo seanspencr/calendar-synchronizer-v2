@@ -1,0 +1,5 @@
+{
+  "devDependencies": {
+    "@tamagui/cli": "^2.0.0-rc.22"
+  }
+}

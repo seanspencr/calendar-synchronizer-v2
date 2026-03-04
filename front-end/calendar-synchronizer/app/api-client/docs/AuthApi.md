@@ -8,6 +8,7 @@ All URIs are relative to *http://localhost*
 |[**authControllerLogin**](#authcontrollerlogin) | **POST** /auth/login | |
 |[**authControllerMe**](#authcontrollerme) | **GET** /auth/me | |
 |[**authControllerRegisterGoogleUser**](#authcontrollerregistergoogleuser) | **POST** /auth/register/google | |
+|[**authControllerRegisterMicrosoftUser**](#authcontrollerregistermicrosoftuser) | **POST** /auth/register/microsoft | |
 
 # **authControllerGoogleAuthCallback**
 > authControllerGoogleAuthCallback()
@@ -179,6 +180,57 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: Not defined
+ - **Accept**: Not defined
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**201** |  |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **authControllerRegisterMicrosoftUser**
+> authControllerRegisterMicrosoftUser(microsoftRegisterDto)
+
+
+### Example
+
+```typescript
+import {
+    AuthApi,
+    Configuration,
+    MicrosoftRegisterDto
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new AuthApi(configuration);
+
+let microsoftRegisterDto: MicrosoftRegisterDto; //
+
+const { status, data } = await apiInstance.authControllerRegisterMicrosoftUser(
+    microsoftRegisterDto
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **microsoftRegisterDto** | **MicrosoftRegisterDto**|  | |
+
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
  - **Accept**: Not defined
 
 

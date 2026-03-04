@@ -34,6 +34,11 @@ export interface LoginDto {
     'username': string;
     'password': string;
 }
+export interface MicrosoftRegisterDto {
+    'username': string;
+    'email': string;
+    'microsoft_refresh_token': string;
+}
 
 /**
  * AppApi - axios parameter creator
@@ -246,6 +251,39 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
                 options: localVarRequestOptions,
             };
         },
+        /**
+         * 
+         * @param {MicrosoftRegisterDto} microsoftRegisterDto 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        authControllerRegisterMicrosoftUser: async (microsoftRegisterDto: MicrosoftRegisterDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'microsoftRegisterDto' is not null or undefined
+            assertParamExists('authControllerRegisterMicrosoftUser', 'microsoftRegisterDto', microsoftRegisterDto)
+            const localVarPath = `/auth/register/microsoft`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(microsoftRegisterDto, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     }
 };
 
@@ -300,6 +338,18 @@ export const AuthApiFp = function(configuration?: Configuration) {
             const localVarOperationServerBasePath = operationServerMap['AuthApi.authControllerRegisterGoogleUser']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
+        /**
+         * 
+         * @param {MicrosoftRegisterDto} microsoftRegisterDto 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async authControllerRegisterMicrosoftUser(microsoftRegisterDto: MicrosoftRegisterDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.authControllerRegisterMicrosoftUser(microsoftRegisterDto, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.authControllerRegisterMicrosoftUser']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
     }
 };
 
@@ -341,6 +391,15 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
          */
         authControllerRegisterGoogleUser(options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.authControllerRegisterGoogleUser(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {MicrosoftRegisterDto} microsoftRegisterDto 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        authControllerRegisterMicrosoftUser(microsoftRegisterDto: MicrosoftRegisterDto, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.authControllerRegisterMicrosoftUser(microsoftRegisterDto, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -384,6 +443,16 @@ export class AuthApi extends BaseAPI {
      */
     public authControllerRegisterGoogleUser(options?: RawAxiosRequestConfig) {
         return AuthApiFp(this.configuration).authControllerRegisterGoogleUser(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {MicrosoftRegisterDto} microsoftRegisterDto 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public authControllerRegisterMicrosoftUser(microsoftRegisterDto: MicrosoftRegisterDto, options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).authControllerRegisterMicrosoftUser(microsoftRegisterDto, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

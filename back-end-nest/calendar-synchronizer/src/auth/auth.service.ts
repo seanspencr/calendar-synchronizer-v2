@@ -6,6 +6,7 @@ import { UsersService } from 'src/users/users.service';
 import axios from 'axios';
 import { GoogleTokenResponse } from './dto/googleToken.dto';
 import { usersModel } from 'src/generated/prisma/models';
+import { MicrosoftRegisterDto } from './dto/microsoftRegister.dto';
 
 @Injectable()
 export class AuthService {
@@ -40,8 +41,17 @@ export class AuthService {
         return this.userService.create(createUserDto);
     }
 
+    public async registerMicrosoftUser(email : string, microsoft_refresh_token : string, username : string){
+        this.userService.createOauthUser({
+            email : email,
+            microsoft_refresh_token: microsoft_refresh_token,
+            username : username,
+            password : "null"
+        })
+    }
+
     public async registerGoogleUser(googleAuthCode : string,  codeVerifier: string, redirectUri: string){
-        // handle token exchange dan get refresh token
+        // handle token exchange dan get refresh token (gara2 gw google clound consolenya buat web pdhl hrsnya bisa auto)
         const api_url = "https://oauth2.googleapis.com/token";
         const params = new URLSearchParams();
         params.append("code", googleAuthCode);

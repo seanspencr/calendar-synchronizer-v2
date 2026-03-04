@@ -10,6 +10,8 @@ import { useMicrosoftLogin } from "../hooks/useMicrosoftLogin";
 import { useGoogleCodeLogin } from "../hooks/useGoogleCodeLogin";
 import { useLogin } from "../hooks/useLogin";
 import { pagePath } from "../lib/constants";
+import * as AuthSession from "expo-auth-session";
+import { useMicrosoftRegister } from "../hooks/useMicrosoftRegister";
 
 export default function Index() {
   WebBrowser.maybeCompleteAuthSession();
@@ -21,8 +23,9 @@ export default function Index() {
 
 
   const [gooogleRequest, googleResponse, googlePromptAsync] = useGoogleAuthCode();
-  const [microsoftRequest, microsoftResponse, microsoftPromptAsync] = useMicrosoftLogin()
-
+  // const [microsoftRequest, microsoftResponse, microsoftPromptAsync] = useMicrosoftLogin()
+  
+  const {isLoadingMicrosoft, microsoftPromptAsync, registerResponse} = useMicrosoftRegister()
   const getUserInfoWithGoogle = async (token : any) => {
     //absent token
     if (!token) return;
@@ -114,24 +117,6 @@ export default function Index() {
   }
 };
 
-//add it to a useEffect with response as a dependency 
-
-
-const fetchMicrosoftUserData = async (token : string) => {
-  try {
-    const response = await fetch("https://graph.microsoft.com/oidc/userinfo", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const user = await response.json();
-
-    console.log("Microsoft user data:", user);
-    // setUserInfo(normalizedUser);
-    // await AsyncStorage.setItem("user", JSON.stringify(normalizedUser));
-    await fetchCalendarMicrosoft(token);
-  } catch (error) {
-    console.error("Failed to fetch Microsoft user data:", error);
-  }
-};
 
 async function fetchCalendarMicrosoft(token : string){
       let res = await fetch("https://graph.microsoft.com/v1.0/me/calendar/events", {
@@ -140,45 +125,6 @@ async function fetchCalendarMicrosoft(token : string){
       let data = await res.json();
       console.log("Microsoft calendar events:", data);
 }
-
-const exchangeCodeForToken = async (microsoftResponse : any) => {
-      if(microsoftRequest == null || microsoftRequest.codeVerifier === undefined || microsoftRequest.codeVerifier === null ) {
-        console.error("Code verifier is undefined. Cannot exchange code for token.");
-        return;
-      }
-  
-      try {
-        const { code } = microsoftResponse.params;
-        const response = await fetch(`https://login.microsoftonline.com/common/oauth2/v2.0/token`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: new URLSearchParams({
-            client_id: microsoftConfig.CLIENT_ID,
-            code: code,
-            redirect_uri: redirectUri, // Must match EXACTLY what was sent in the request
-            grant_type: 'authorization_code',
-            code_verifier: microsoftRequest.codeVerifier, // Include the code verifier for PKCE
-          }).toString(),
-        });
-
-        const data = await response.json();
-        
-        if (data.access_token) {
-          // Now that you have the token, go get the user data!
-          fetchMicrosoftUserData(data.access_token);
-        }
-      } catch (error) {
-        console.error("Token exchange failed:", error);
-      }
-    };
-
-useEffect(() => {
-  console.log("Microsoft response:", microsoftResponse);
-  if (microsoftResponse && microsoftResponse.type === 'success') {
-    exchangeCodeForToken(microsoftResponse);
-  }
-}, [microsoftResponse]);
-
 useEffect(() => {
   if(googleResponse == null || googleResponse == undefined) return;
   if(gooogleRequest == null || gooogleRequest == undefined) return;
@@ -285,7 +231,8 @@ console.log("userInfo:", JSON.stringify(userInfo))
         <Button onPress={()=>{googlePromptAsync()}}>register with google (rial)</Button>
         <Button onPress={() => router.push(pagePath.fromRoot.registerScreen)}>Go to Register Screen</Button>
         <Button onPress={() => router.push(pagePath.fromRoot.dashboard)}>Navigate to main screen</Button>
-        <Button onPress={()=>{microsoftPromptAsync()}}>sign in with microsoft</Button>
+        {/* <Button onPress={()=>{microsoftPromptAsync()}}>sign in with microsoft</Button> */}
+        <Button onPress={()=>{microsoftPromptAsync()}}>Register with microsoft</Button>
 
       </View>
       <Link href={pagePath.fromRoot.registerScreen}>Go to Register Screen</Link>

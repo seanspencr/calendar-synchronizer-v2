@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
 import { AuthGuard } from '@nestjs/passport';
+import { MicrosoftRegisterDto } from './dto/microsoftRegister.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -42,6 +43,7 @@ export class AuthController {
         return res.send(user);
     }        
 
+    // NOTE : Ini gara2 gw daftarin di google console sebagai web, jadinya perlu PKCE manual
     @Post("/register/google")
     async registerGoogleUser(@Body() body: {authCode: string, codeVerifier: string, redirectUri: string}){
         const googleAuthCode = body.authCode;
@@ -51,6 +53,16 @@ export class AuthController {
             throw new HttpException("auth_code, code_verifier, and redirect_uri are required", 400);
         }
         return this.authService.registerGoogleUser(googleAuthCode, codeVerifier, redirectUri);
+    }
+
+
+    @HttpCode(201)
+    @Post("register/microsoft")
+    async registerMicrosoftUser(@Body() body: MicrosoftRegisterDto){
+        if(!body.email || !body.microsoft_refresh_token || !body.username){
+            throw new HttpException("auth_code, code_verifier, and redirect_uri are required", 400);
+        }
+        return this.authService.registerMicrosoftUser(body.email, body.microsoft_refresh_token, body.username);
     }
 
     @Get("register/google/callback")

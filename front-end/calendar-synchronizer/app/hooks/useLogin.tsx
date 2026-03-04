@@ -9,7 +9,7 @@ import { Configuration } from "../api-client/configuration";
 
 
 const configuration = new Configuration({
-        basePath : "http://localhost:3001"
+        basePath : `${process.env.EXPO_PUBLIC_BACKEND_URL}:${process.env.EXPO_PUBLIC_BACKEND_PORT}`
     });
 const apiInstance = new AuthApi(configuration);
 
