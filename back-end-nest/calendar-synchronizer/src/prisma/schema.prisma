@@ -1,7 +1,8 @@
 generator client {
-  provider     = "prisma-client"
-  output       = "../generated/prisma"
-  moduleFormat = "cjs"
+  provider        = "prisma-client"
+  output          = "../generated/prisma"
+  previewFeatures = ["partialIndexes"]
+  moduleFormat    = "cjs"
 }
 
 datasource db {
@@ -33,9 +34,12 @@ model schedules {
   schedule_recurrence_id String?               @db.Uuid
   created_by             String                @db.Uuid
   schedule_provider      schedule_provider     @default(LOCAL)
+  external_event_id      String?
   users                  users                 @relation(fields: [created_by], references: [id], onDelete: Cascade)
   schedule_recurrences   schedule_recurrences? @relation(fields: [schedule_recurrence_id], references: [id], onDelete: Cascade)
 
+  @@unique([external_event_id, schedule_provider], map: "external_event_id_pair", where: raw("(external_event_id IS NOT NULL)"))
+  @@unique([external_event_id, schedule_provider])
   @@schema("calendar_synchronizer")
 }
 

@@ -9,4 +9,5 @@ export class CreateScheduleDto implements Partial<schedulesCreateInput> {
     end_time?: string | Date | undefined;
     schedule_provider?: schedule_provider;
     user_id: string;
+    external_event_id?: string | null | undefined;
 }

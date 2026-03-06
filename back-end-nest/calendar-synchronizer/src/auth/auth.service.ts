@@ -78,7 +78,7 @@ export class AuthService {
         if(existingUser){
             return {
                 email : existingUser.email,
-                userId : existingUser.email,
+                userId : existingUser.id,
                 username : existingUser.username!
             };
         }
@@ -90,7 +90,7 @@ export class AuthService {
         if(existingUser){
             return {
                 email : existingUser.email,
-                userId : existingUser.email,
+                userId : existingUser.id,
                 username : existingUser.username!
             };
         }

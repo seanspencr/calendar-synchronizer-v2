@@ -2,6 +2,7 @@ import { schedule_provider } from "src/generated/prisma/enums";
 import { schedulesModel } from "src/generated/prisma/models";
 
 export class ScheduleDto implements schedulesModel {
+    external_event_id: string | null;
     id: string;
     event: string | null;
     event_date: Date;
