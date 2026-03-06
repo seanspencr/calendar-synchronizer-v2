@@ -12,8 +12,12 @@ export function useMicrosoftRegister() {
         {
           clientId: microsoftConfig.CLIENT_ID!,
           redirectUri: redirectUri,
-          scopes: ['openid', 'profile', 'email', 'Calendars.Read', 'offline_access'],
+          scopes: ['openid', 'profile', 'email', 'https://graph.microsoft.com/Calendars.Read', 'offline_access'],
           responseType: AuthSession.ResponseType.Code,
+          usePKCE: false,
+          extraParams:{
+            prompt: 'consent'
+          }
         },
         microsoftConfig.discovery
       );
@@ -24,37 +28,30 @@ export function useMicrosoftRegister() {
   const [errorMsg, setError] = useState<string | null>(null);
 
   const register = useCallback(async () => {
-    if (!microsoftResponse || !microsoftRequest?.codeVerifier) return;
+
+    console.log(microsoftResponse)
+    if (!microsoftResponse) return;
 
     try {
       setIsLoading(true);
       setError(null);
 
 
-      console.log('Microsoft auth response:', microsoftResponse);
-      // 1. Exchange code for tokens
-      const { accessToken, refreshToken } = await MicrosoftService.exchangeCodeForToken(
+      console.log('Microsoft auth response:', JSON.stringify(microsoftResponse));
+
+      const response = await MicrosoftService.loginWithMicrosoftAuthCode(
         microsoftResponse.params.code,
         microsoftRequest.codeVerifier,
-      );
+        redirectUri
+      )
 
-      // 2. Get user info from Microsoft
-      const { email, givenName, familyName } = await MicrosoftService.fetchUserData(accessToken);
+      setRegisterResponse(response)
 
-      // 3. Register with backend
-      const response = await authApi.authControllerRegisterMicrosoftUser({
-        email,
-        microsoft_refresh_token: refreshToken,
-        username: `${givenName} ${familyName}`,
-      });
-
-      // 4. Persist tokens + user info locally
       if(Platform.OS === "android"){
-          await StorageService.saveAccessToken(accessToken);
-          await StorageService.saveUserInfo({ email, givenName, familyName });
+          await StorageService.saveAccessToken(registerResponse.accessToken);
+          // await StorageService.saveUserInfo({ email, givenName, familyName });
       }
 
-      setRegisterResponse(response);
 
     } catch (err) {
 

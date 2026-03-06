@@ -1,10 +1,21 @@
 import { ApiProperty } from "@nestjs/swagger";
 import {usersCreateInput} from "../../generated/prisma/models"
-export class MicrosoftAuthDto implements usersCreateInput{
+export class MicrosoftAuthDto{
     @ApiProperty()
-    username: string;
+    code: string;
+    // @ApiProperty()
+    // code_verifier: string;
     @ApiProperty()
+    redirect_uri: string;
+}
+
+export interface MicrosoftAccessTokenResponse {
+    access_token: string;
+    refresh_token: string;
+}
+
+export interface MicrosoftUser {
     email: string;
-    @ApiProperty()
-    microsoft_refresh_token: string;
+  givenname: string;
+  familyname: string;
 }

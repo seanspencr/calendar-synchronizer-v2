@@ -9,8 +9,8 @@ export const microsoftConfig = {
     
       discovery: {
          // Change the tenant ID variable to 'common'
-         authorizationEndpoint: `https://login.microsoftonline.com/common/oauth2/v2.0/authorize`,
-         tokenEndpoint: `https://login.microsoftonline.com/common/oauth2/v2.0/token`,
+         authorizationEndpoint: `https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize`,
+         tokenEndpoint: `https://login.microsoftonline.com/consumers/oauth2/v2.0/token`,
        },
 
 

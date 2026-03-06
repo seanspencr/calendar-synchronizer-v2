@@ -24,7 +24,7 @@ export function useGoogleRegister() {
         const redirectUri = gooogleRequest.redirectUri;
         
         try{
-            let loginResponse = await GoogleService.exchangeCodeForToken(code, codeVerifier!, redirectUri);
+            let loginResponse = await GoogleService.loginWithGoogleAuthCode(code, codeVerifier!, redirectUri);
             if(Platform.OS === "android"){
                 // simpen access token di secure storgae
                 await StorageService.saveAccessToken(loginResponse.accessToken);

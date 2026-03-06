@@ -14,6 +14,8 @@ export class MicrosoftScheduleService {
         
         if(!accessToken) {
             throw new Error("Failed to get Microsoft access token");
+        }else{
+            console.log("Microsoft access token:", accessToken);
         }
 
         const client = this.microsoftAuthService.getAuthenticatedClient(accessToken);

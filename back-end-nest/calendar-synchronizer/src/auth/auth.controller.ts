@@ -6,16 +6,22 @@ import { AuthGuard } from '@nestjs/passport';
 import { MicrosoftAuthDto } from './dto/microsoftAuth.dto';
 import { GoogleAuthDto } from './dto/googleAuth.dto';
 import { ApiResponse } from '@nestjs/swagger';
+import { GoogleAuthService } from './google-auth/google-auth.service';
+import { MicrosoftAuthService } from './microsoft-auth/microsoft-auth.service';
 
 
 @Controller('auth')
 export class AuthController {
     private authService: AuthService;
     private jwtService: JwtService;
+    private googleAuthService: GoogleAuthService;
+    private microsoftAuthService: MicrosoftAuthService;
 
-    constructor(authService: AuthService, jwtService: JwtService) {
+    constructor(authService: AuthService, jwtService: JwtService, googleAuthService: GoogleAuthService, microsoftAuthService: MicrosoftAuthService) {
         this.authService = authService;
         this.jwtService = jwtService;
+        this.googleAuthService = googleAuthService;
+        this.microsoftAuthService = microsoftAuthService;
     }
 
     // ambil bearer, return user
@@ -58,7 +64,7 @@ export class AuthController {
         if(!googleAuthCode || !codeVerifier || !redirectUri){
             throw new HttpException("auth_code, code_verifier, and redirect_uri are required", 400);
         }
-        let tokenPayload = await this.authService.authGoogleUser(googleAuthCode, codeVerifier, redirectUri);
+        let tokenPayload = await this.googleAuthService.authGoogleUser(googleAuthCode, codeVerifier, redirectUri);
         let token = await this.jwtService.signAsync(tokenPayload);
         res.cookie('authorization', token, {
                 httpOnly: true,
@@ -93,10 +99,10 @@ export class AuthController {
     @Post("/microsoft")
     @ApiResponse({ status: 200, description: 'User found', type: LoginResponseDto })
     async registerMicrosoftUser(@Body() body: MicrosoftAuthDto, @Req() req, @Res({passthrough: true}) res) : Promise<LoginResponseDto>{
-        if(!body.email || !body.microsoft_refresh_token || !body.username){
-            throw new HttpException("auth_code, code_verifier, and redirect_uri are required", 400);
+        if(!body.code || !body.redirect_uri){
+            throw new HttpException("auth_code and redirect_uri are required", 400);
         }
-        let tokenPayload = await this.authService.authMicrosoftUser(body.email, body.microsoft_refresh_token, body.username);
+        let tokenPayload = await this.microsoftAuthService.authMicrosoftUser(body.code, body.redirect_uri);
         let token = await this.jwtService.signAsync(tokenPayload);
         res.cookie('authorization', token, {
                 httpOnly: true,

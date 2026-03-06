@@ -2,7 +2,7 @@ import { LoginResponseDto } from "../api-client";
 import { authApi } from "./apiService";
 
 export const GoogleService = {
-  async exchangeCodeForToken(code: string, codeVerifier: string, redirectUri: string) : Promise<LoginResponseDto> {
+  async loginWithGoogleAuthCode(code: string, codeVerifier: string, redirectUri: string) : Promise<LoginResponseDto> {
     if (!code) throw new Error("Google auth code is required");
 
     console.log("Exchanging code for token with code:", code);

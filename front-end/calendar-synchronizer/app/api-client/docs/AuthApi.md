@@ -4,11 +4,115 @@ All URIs are relative to *http://localhost*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
+|[**authControllerDummyGoogleLogin**](#authcontrollerdummygooglelogin) | **POST** /auth/google/dummy | |
+|[**authControllerDummyMicrosoftLogin**](#authcontrollerdummymicrosoftlogin) | **POST** /auth/microsoft/dummy | |
 |[**authControllerGoogleAuthCallback**](#authcontrollergoogleauthcallback) | **GET** /auth/register/google/callback | |
 |[**authControllerLogin**](#authcontrollerlogin) | **POST** /auth/login | |
 |[**authControllerMe**](#authcontrollerme) | **GET** /auth/me | |
 |[**authControllerRegisterGoogleUser**](#authcontrollerregistergoogleuser) | **POST** /auth/google | |
 |[**authControllerRegisterMicrosoftUser**](#authcontrollerregistermicrosoftuser) | **POST** /auth/microsoft | |
+
+# **authControllerDummyGoogleLogin**
+> authControllerDummyGoogleLogin(dummyGoogleLoginDto)
+
+
+### Example
+
+```typescript
+import {
+    AuthApi,
+    Configuration,
+    DummyGoogleLoginDto
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new AuthApi(configuration);
+
+let dummyGoogleLoginDto: DummyGoogleLoginDto; //
+
+const { status, data } = await apiInstance.authControllerDummyGoogleLogin(
+    dummyGoogleLoginDto
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **dummyGoogleLoginDto** | **DummyGoogleLoginDto**|  | |
+
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: Not defined
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**201** |  |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **authControllerDummyMicrosoftLogin**
+> authControllerDummyMicrosoftLogin(dummyMicrosoftLoginDto)
+
+
+### Example
+
+```typescript
+import {
+    AuthApi,
+    Configuration,
+    DummyMicrosoftLoginDto
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new AuthApi(configuration);
+
+let dummyMicrosoftLoginDto: DummyMicrosoftLoginDto; //
+
+const { status, data } = await apiInstance.authControllerDummyMicrosoftLogin(
+    dummyMicrosoftLoginDto
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **dummyMicrosoftLoginDto** | **DummyMicrosoftLoginDto**|  | |
+
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: Not defined
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**201** |  |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **authControllerGoogleAuthCallback**
 > authControllerGoogleAuthCallback()

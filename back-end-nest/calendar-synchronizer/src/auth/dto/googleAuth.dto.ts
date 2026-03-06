@@ -8,3 +8,4 @@ export class GoogleAuthDto{
     @ApiProperty()
     redirectUri: string;
 }
+

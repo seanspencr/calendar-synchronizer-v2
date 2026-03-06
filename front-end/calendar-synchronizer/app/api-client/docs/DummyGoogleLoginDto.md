@@ -1,21 +1,19 @@
-# MicrosoftAuthDto
+# DummyGoogleLoginDto
 
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**code** | **string** |  | [default to undefined]
-**redirect_uri** | **string** |  | [default to undefined]
+**email** | **string** |  | [default to 'seanspencer280806@gmail.com']
 
 ## Example
 
 ```typescript
-import { MicrosoftAuthDto } from './api';
+import { DummyGoogleLoginDto } from './api';
 
-const instance: MicrosoftAuthDto = {
-    code,
-    redirect_uri,
+const instance: DummyGoogleLoginDto = {
+    email,
 };
 ```
 

@@ -30,6 +30,12 @@ export interface CreateUserDto {
     'google_refresh_token'?: object;
     'microsoft_refresh_token'?: object;
 }
+export interface DummyGoogleLoginDto {
+    'email': string;
+}
+export interface DummyMicrosoftLoginDto {
+    'email': string;
+}
 export interface GoogleAuthDto {
     'authCode': string;
     'codeVerifier': string;
@@ -46,9 +52,8 @@ export interface LoginResponseDto {
     'username': string;
 }
 export interface MicrosoftAuthDto {
-    'username': string;
-    'email': string;
-    'microsoft_refresh_token': string;
+    'code': string;
+    'redirect_uri': string;
 }
 
 /**
@@ -145,6 +150,72 @@ export class AppApi extends BaseAPI {
  */
 export const AuthApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
+        /**
+         * 
+         * @param {DummyGoogleLoginDto} dummyGoogleLoginDto 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        authControllerDummyGoogleLogin: async (dummyGoogleLoginDto: DummyGoogleLoginDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'dummyGoogleLoginDto' is not null or undefined
+            assertParamExists('authControllerDummyGoogleLogin', 'dummyGoogleLoginDto', dummyGoogleLoginDto)
+            const localVarPath = `/auth/google/dummy`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(dummyGoogleLoginDto, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {DummyMicrosoftLoginDto} dummyMicrosoftLoginDto 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        authControllerDummyMicrosoftLogin: async (dummyMicrosoftLoginDto: DummyMicrosoftLoginDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'dummyMicrosoftLoginDto' is not null or undefined
+            assertParamExists('authControllerDummyMicrosoftLogin', 'dummyMicrosoftLoginDto', dummyMicrosoftLoginDto)
+            const localVarPath = `/auth/microsoft/dummy`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(dummyMicrosoftLoginDto, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
         /**
          * 
          * @param {*} [options] Override http request option.
@@ -314,6 +385,30 @@ export const AuthApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
+         * @param {DummyGoogleLoginDto} dummyGoogleLoginDto 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async authControllerDummyGoogleLogin(dummyGoogleLoginDto: DummyGoogleLoginDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.authControllerDummyGoogleLogin(dummyGoogleLoginDto, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.authControllerDummyGoogleLogin']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {DummyMicrosoftLoginDto} dummyMicrosoftLoginDto 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async authControllerDummyMicrosoftLogin(dummyMicrosoftLoginDto: DummyMicrosoftLoginDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.authControllerDummyMicrosoftLogin(dummyMicrosoftLoginDto, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.authControllerDummyMicrosoftLogin']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -381,6 +476,24 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
     return {
         /**
          * 
+         * @param {DummyGoogleLoginDto} dummyGoogleLoginDto 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        authControllerDummyGoogleLogin(dummyGoogleLoginDto: DummyGoogleLoginDto, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.authControllerDummyGoogleLogin(dummyGoogleLoginDto, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {DummyMicrosoftLoginDto} dummyMicrosoftLoginDto 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        authControllerDummyMicrosoftLogin(dummyMicrosoftLoginDto: DummyMicrosoftLoginDto, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.authControllerDummyMicrosoftLogin(dummyMicrosoftLoginDto, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -429,6 +542,26 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
  * AuthApi - object-oriented interface
  */
 export class AuthApi extends BaseAPI {
+    /**
+     * 
+     * @param {DummyGoogleLoginDto} dummyGoogleLoginDto 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public authControllerDummyGoogleLogin(dummyGoogleLoginDto: DummyGoogleLoginDto, options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).authControllerDummyGoogleLogin(dummyGoogleLoginDto, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {DummyMicrosoftLoginDto} dummyMicrosoftLoginDto 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public authControllerDummyMicrosoftLogin(dummyMicrosoftLoginDto: DummyMicrosoftLoginDto, options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).authControllerDummyMicrosoftLogin(dummyMicrosoftLoginDto, options).then((request) => request(this.axios, this.basePath));
+    }
+
     /**
      * 
      * @param {*} [options] Override http request option.
@@ -612,6 +745,62 @@ export const SchedulesApiAxiosParamCreator = function (configuration?: Configura
         },
         /**
          * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        schedulesControllerSyncGoogleEvents: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/schedules/sync/google`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        schedulesControllerSyncMicrosoftEvents: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/schedules/sync/microsoft`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @param {string} id 
          * @param {object} body 
          * @param {*} [options] Override http request option.
@@ -705,6 +894,28 @@ export const SchedulesApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async schedulesControllerSyncGoogleEvents(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.schedulesControllerSyncGoogleEvents(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['SchedulesApi.schedulesControllerSyncGoogleEvents']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async schedulesControllerSyncMicrosoftEvents(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.schedulesControllerSyncMicrosoftEvents(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['SchedulesApi.schedulesControllerSyncMicrosoftEvents']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
          * @param {string} id 
          * @param {object} body 
          * @param {*} [options] Override http request option.
@@ -762,6 +973,22 @@ export const SchedulesApiFactory = function (configuration?: Configuration, base
         },
         /**
          * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        schedulesControllerSyncGoogleEvents(options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.schedulesControllerSyncGoogleEvents(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        schedulesControllerSyncMicrosoftEvents(options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.schedulesControllerSyncMicrosoftEvents(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
          * @param {string} id 
          * @param {object} body 
          * @param {*} [options] Override http request option.
@@ -814,6 +1041,24 @@ export class SchedulesApi extends BaseAPI {
      */
     public schedulesControllerRemove(id: string, options?: RawAxiosRequestConfig) {
         return SchedulesApiFp(this.configuration).schedulesControllerRemove(id, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public schedulesControllerSyncGoogleEvents(options?: RawAxiosRequestConfig) {
+        return SchedulesApiFp(this.configuration).schedulesControllerSyncGoogleEvents(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public schedulesControllerSyncMicrosoftEvents(options?: RawAxiosRequestConfig) {
+        return SchedulesApiFp(this.configuration).schedulesControllerSyncMicrosoftEvents(options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

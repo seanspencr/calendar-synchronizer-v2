@@ -7,6 +7,8 @@ configuration.ts
 docs/AppApi.md
 docs/AuthApi.md
 docs/CreateUserDto.md
+docs/DummyGoogleLoginDto.md
+docs/DummyMicrosoftLoginDto.md
 docs/GoogleAuthDto.md
 docs/LoginDto.md
 docs/LoginResponseDto.md
