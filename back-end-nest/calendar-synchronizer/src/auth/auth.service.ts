@@ -47,6 +47,10 @@ export class AuthService {
         let existingUser = await this.userService.findOauthUser(email);
 
         if(existingUser){
+            
+            let updated = await this.userService.updateOauthUserRefreshToken(existingUser.id, "microsoft", microsoft_refresh_token);
+            console.log("Updated Microsoft refresh token for existing user:", updated);
+
             return {
                 email : existingUser.email,
                 userId : existingUser.email,
@@ -67,6 +71,30 @@ export class AuthService {
             userId : newUser.email,
             username : newUser.username!
         };
+    }
+
+    public async dummyAuthMicrosoftUser(email : string) : Promise<AccessTokenPayload>{
+        let existingUser = await this.userService.findOauthUser(email);
+        if(existingUser){
+            return {
+                email : existingUser.email,
+                userId : existingUser.email,
+                username : existingUser.username!
+            };
+        }
+        throw new UnauthorizedException("User not found");
+    }
+
+    public async dummyAuthGoogleUser(email : string) : Promise<AccessTokenPayload>{
+        let existingUser = await this.userService.findOauthUser(email);
+        if(existingUser){
+            return {
+                email : existingUser.email,
+                userId : existingUser.email,
+                username : existingUser.username!
+            };
+        }
+        throw new UnauthorizedException("User not found");
     }
 
     public async authGoogleUser(googleAuthCode : string,  codeVerifier: string, redirectUri: string) : Promise<AccessTokenPayload>{

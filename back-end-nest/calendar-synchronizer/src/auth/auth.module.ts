@@ -7,37 +7,21 @@ import { DatabaseModule } from "../database/database.module";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { AuthController } from './auth.controller';
 import { UsersModule } from 'src/users/users.module';
+import { jwtConfig } from 'src/lib/jwt_config';
+import { MicrosoftAuthService } from './microsoft-auth/microsoft-auth.service';
+import { GoogleAuthService } from './google-auth/google-auth.service';
+import { Client } from '@microsoft/microsoft-graph-client';
 
 @Module({
   imports: [
     DatabaseModule,
     ConfigModule,
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => {
-        const privateKey = configService.get<string>('JWT_PRIVATE');
-        const publicKey = configService.get<string>('JWT_PUBLIC');
-
-        if (!privateKey || !publicKey) {
-          throw new Error('JWT_PRIVATE and JWT_PUBLIC must be defined in environment variables');
-        }
-
-        return {
-          privateKey: privateKey.replace(/\\n/g, '\n'),
-          publicKey: publicKey.replace(/\\n/g, '\n'),
-          signOptions: {
-            algorithm: 'RS256',
-            expiresIn: '1h',
-          },
-        };
-      },
-    }),
+    JwtModule.registerAsync(jwtConfig),
     PassportModule,
     UsersModule
   ],
-  providers: [AuthService, JwtStrategy],
-  exports: [AuthService],
+  providers: [AuthService, JwtStrategy, MicrosoftAuthService, GoogleAuthService],
+  exports: [AuthService, MicrosoftAuthService, GoogleAuthService],
   controllers: [AuthController],
 })
 export class AuthModule {}

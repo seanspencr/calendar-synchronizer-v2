@@ -52,6 +52,44 @@ export class UsersService {
     });
   }
 
+  async findById(id: string) {
+    return this.dbService.users.findUnique({
+      where: {
+        id: id
+      }});
+  };
+
+  async updateOauthUserRefreshToken(userid: string, provider: "google" | "microsoft", refresh_token: string) {
+
+    const user = await this.findById(userid);
+
+    if(!user) {
+      throw new UnprocessableEntityException("User not found");
+    }
+
+    if(provider === "google") {
+        return await this.dbService.users.update({
+            where: {
+              id: userid
+              }
+            , data: {
+                google_refresh_token: refresh_token
+            }
+        });
+    }else if(provider === "microsoft") {
+        return await this.dbService.users.update({
+            where: {
+                id: userid
+              }
+            , data: {
+                microsoft_refresh_token: refresh_token
+            }
+        });
+    }
+
+    throw new UnprocessableEntityException("Invalid provider");
+  }
+
   findAll() {
     return this.dbService.users.findMany();
   }

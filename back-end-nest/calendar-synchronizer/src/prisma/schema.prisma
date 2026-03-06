@@ -32,6 +32,7 @@ model schedules {
   created_at             DateTime              @default(now()) @db.Timestamp(6)
   schedule_recurrence_id String?               @db.Uuid
   created_by             String                @db.Uuid
+  schedule_provider      schedule_provider     @default(LOCAL)
   users                  users                 @relation(fields: [created_by], references: [id], onDelete: Cascade)
   schedule_recurrences   schedule_recurrences? @relation(fields: [schedule_recurrence_id], references: [id], onDelete: Cascade)
 
@@ -59,6 +60,14 @@ enum recurrence_period {
   WEEK
   MONTH
   YEAR
+
+  @@schema("calendar_synchronizer")
+}
+
+enum schedule_provider {
+  LOCAL
+  GOOGLE
+  MICROSOFT
 
   @@schema("calendar_synchronizer")
 }

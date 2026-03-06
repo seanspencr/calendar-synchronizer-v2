@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Req, Res, UseGuards, HttpException, Body, HttpCode } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { LoginDto, LoginResponseDto } from './dto/login.dto';
+import { DummyGoogleLoginDto, DummyMicrosoftLoginDto, LoginDto, LoginResponseDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
 import { AuthGuard } from '@nestjs/passport';
 import { MicrosoftAuthDto } from './dto/microsoftAuth.dto';
@@ -67,9 +67,30 @@ export class AuthController {
         return { accessToken : token, email : tokenPayload.email, userid : tokenPayload.userId, username : tokenPayload.username } as LoginResponseDto;
     }
 
+    @Post("/google/dummy")
+    async dummyGoogleLogin(@Body() body: DummyGoogleLoginDto, @Res({passthrough: true}) res) : Promise<LoginResponseDto>{
+        let tokenPayload = await this.authService.dummyAuthGoogleUser(body.email);
+        let token = await this.jwtService.signAsync(tokenPayload);
+        res.cookie('authorization', token, {
+            httpOnly: true,
+            expires: new Date(new Date().getTime() + 60 * 10 * 1000),
+        });
+        return { accessToken : token, email : tokenPayload.email, userid : tokenPayload.userId, username : tokenPayload.username } as LoginResponseDto;
+    }
+
+    @Post("/microsoft/dummy")
+    async dummyMicrosoftLogin(@Body() body: DummyMicrosoftLoginDto, @Res({passthrough: true}) res) : Promise<LoginResponseDto>{
+        const tokenPayload = await this.authService.dummyAuthMicrosoftUser(body.email);
+        const token = await this.jwtService.signAsync(tokenPayload);
+        res.cookie('authorization', token, {
+            httpOnly: true,
+            expires: new Date(new Date().getTime() + 60 * 10 * 1000),
+        });
+        return { accessToken : token, email : tokenPayload.email, userid : tokenPayload.userId, username : tokenPayload.username } as LoginResponseDto;
+    }
 
     @HttpCode(200)
-    @Post("microsoft")
+    @Post("/microsoft")
     @ApiResponse({ status: 200, description: 'User found', type: LoginResponseDto })
     async registerMicrosoftUser(@Body() body: MicrosoftAuthDto, @Req() req, @Res({passthrough: true}) res) : Promise<LoginResponseDto>{
         if(!body.email || !body.microsoft_refresh_token || !body.username){

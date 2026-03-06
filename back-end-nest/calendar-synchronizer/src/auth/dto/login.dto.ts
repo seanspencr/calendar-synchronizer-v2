@@ -8,6 +8,17 @@ export class LoginDto{
     password: string;
 }
 
+export class DummyMicrosoftLoginDto{
+    @ApiProperty({default: "sean.spencr@outlook.com"})
+    email : string;
+
+}
+
+export class DummyGoogleLoginDto{
+    @ApiProperty({default: "seanspencer280806@gmail.com"})
+    email : string;
+}
+
 export class LoginResponseDto{
     @ApiProperty()
     accessToken : string;
