@@ -5,7 +5,7 @@ import { AccessTokenPayload } from 'src/auth/dto/accessToken.dto';
 import { MicrosoftScheduleService } from './microsoft-schedule/microsoft-schedule.service';
 import { GoogleScheduleService } from './google-schedule/google-schedule.service';
 import { DatabaseService } from 'src/database/database.service';
-import { MicrosoftEvent } from './dto/microsoft-calendar.dto';
+import { MicrosoftEvent, MicrosoftGetEventResponse } from './dto/microsoft-calendar.dto';
 import { convertToUTC } from 'src/lib/timezone';
 import { schedule_provider } from 'src/generated/prisma/enums';
 import { GoogleCalendarEventsNormalized } from './dto/google-calendar-dto';
@@ -21,7 +21,7 @@ export class SchedulesService {
     return 'This action adds a new schedule';
   }
 
-  upsertMany(createScheduleDtos: CreateScheduleDto[]) {
+  upsertManyByExternalEventId(createScheduleDtos: CreateScheduleDto[]) {
     return Promise.all(
     createScheduleDtos.map((dto : CreateScheduleDto) => {
       console.log("Upserting schedule : ", dto.external_event_id, " from provider: ", dto.schedule_provider);
@@ -74,18 +74,19 @@ export class SchedulesService {
 
     let microsoftCalendarEvents = await this.microsoftScheduleService.getMicrosoftCalendarEvents(issuer.email);
 
-    let createScheduleDtos : CreateScheduleDto[] = microsoftCalendarEvents.value.map((event : MicrosoftEvent) => {
+    let createScheduleDtos : CreateScheduleDto[] = microsoftCalendarEvents.map((event : MicrosoftEvent) => {
       return {
         event: event.subject,
         event_date: convertToUTC(new Date(event.start.dateTime), event.start.timeZone),
         start_time: convertToUTC(new Date(event.start.dateTime), event.start.timeZone),
         end_time: convertToUTC(new Date(event.end.dateTime), event.end.timeZone),
         schedule_provider: schedule_provider.MICROSOFT,
-        user_id: issuer.userId
+        user_id: issuer.userId,
+        external_event_id: event.id,
       }
     });
 
-    return await this.upsertMany(createScheduleDtos);
+    return await this.upsertManyByExternalEventId(createScheduleDtos);
   }
 
   async syncGoogleEvents(issuer: AccessTokenPayload){
@@ -114,7 +115,7 @@ export class SchedulesService {
 
     console.log("Google Events to be upserted: ", createScheduleDtos);
 
-    return await this.upsertMany(createScheduleDtos);
+    return await this.upsertManyByExternalEventId(createScheduleDtos);
   }
 
 }

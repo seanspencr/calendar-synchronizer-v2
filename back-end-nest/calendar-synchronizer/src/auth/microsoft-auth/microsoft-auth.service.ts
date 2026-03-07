@@ -55,7 +55,7 @@ export class MicrosoftAuthService {
     getAuthenticatedClient(accessToken: string): Client {
         return Client.init({
             authProvider: async (done) => {
-                done(null, `Bearer ${accessToken}`);
+                done(null, `${accessToken}`);
             },
         });
     }

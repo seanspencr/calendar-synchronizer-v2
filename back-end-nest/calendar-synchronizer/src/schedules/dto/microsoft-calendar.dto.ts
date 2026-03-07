@@ -1,7 +1,4 @@
-export interface MicrosoftEmailAddress {
-  name: string;
-  address: string;
-}
+
 
 export interface MicrosoftEventBody {
   contentType: string;
@@ -13,17 +10,6 @@ export interface MicrosoftEventTime {
   timeZone: string;
 }
 
-export interface MicrosoftLocation {
-  displayName: string;
-  locationType: string;
-  uniqueIdType: string;
-  address: Record<string, any>;
-  coordinates: Record<string, any>;
-}
-
-export interface MicrosoftEventOrganizer {
-  emailAddress: MicrosoftEmailAddress;
-}
 
 export interface MicrosoftEvent {
   '@odata.etag': string;
@@ -33,12 +19,18 @@ export interface MicrosoftEvent {
   body: MicrosoftEventBody;
   start: MicrosoftEventTime;
   end: MicrosoftEventTime;
-  location: MicrosoftLocation;
-  attendees: any[];
-  organizer: MicrosoftEventOrganizer;
 }
 
-export interface MicrosoftCalendarResponse {
+export interface MicrosoftGetEventResponse {
   '@odata.context': string;
   value: MicrosoftEvent[];
+}
+
+export interface MicrosoftGetCalendarsResponse {
+    '@odata.context': string;
+    value: MicrosoftCalendar[];
+}
+
+export interface MicrosoftCalendar {
+    id: string;
 }

@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { MicrosoftCalendarResponse } from '../dto/microsoft-calendar.dto';
+import { MicrosoftCalendar, MicrosoftEvent, MicrosoftGetCalendarsResponse, MicrosoftGetEventResponse } from '../dto/microsoft-calendar.dto';
 import { MicrosoftAuthService } from 'src/auth/microsoft-auth/microsoft-auth.service';
 import { Client } from '@microsoft/microsoft-graph-client/lib/src/Client';
+import { ApiConsumes } from '@nestjs/swagger';
+import axios from 'axios';
 
 @Injectable()
 export class MicrosoftScheduleService {
@@ -9,7 +11,17 @@ export class MicrosoftScheduleService {
     constructor(private microsoftAuthService: MicrosoftAuthService) {}
     
 
-    async getMicrosoftCalendarEvents(email : string) : Promise<MicrosoftCalendarResponse> {
+    async getMicrosoftCalendars(accessToken: string) : Promise<MicrosoftGetCalendarsResponse>{
+
+        const client = this.microsoftAuthService.getAuthenticatedClient(accessToken);
+        let calendars = await client.api('/me/calendars')
+                    .select('id')
+                    .get();
+        console.log("Microsoft calendars response:", calendars);
+        return calendars;
+    }
+
+    async getMicrosoftCalendarEvents(email : string) : Promise<MicrosoftEvent[]> {
         const accessToken = await this.microsoftAuthService.getMicrosoftAccessToken(email);
         
         if(!accessToken) {
@@ -18,12 +30,30 @@ export class MicrosoftScheduleService {
             console.log("Microsoft access token:", accessToken);
         }
 
-        const client = this.microsoftAuthService.getAuthenticatedClient(accessToken);
-        let events = await client.api('/me/events')
-                    .select('subject,body,bodyPreview,organizer,attendees,start,end,location')
-                    .get();
+        let calendars : MicrosoftGetCalendarsResponse = await this.getMicrosoftCalendars(accessToken);
+
+        const events = await Promise.all(
+            calendars.value.map(async (calendar : MicrosoftCalendar) => {
+                let url = `https://graph.microsoft.com/v1.0/me/calendars/${calendar.id}/calendarView?startDateTime=2026-03-07T00:00:00Z&endDateTime=2026-04-07T00:00:00Z&$select=id,subject,body,start,end`
+                let response =await axios.get(url, {
+                    headers: {
+                        'Authorization': `Bearer ${accessToken}`
+                    }
+            });
+
+            return response.data as MicrosoftGetEventResponse;
+        }));
+
         console.log("Microsoft calendar events response:", events);
-        return events;
+        return events.flat().map((eventResponse : MicrosoftGetEventResponse) => eventResponse.value).flat();
+
+
+        // const client = this.microsoftAuthService.getAuthenticatedClient(accessToken);
+        // let events = await client.api('/me/events')
+        //             .select('subject,body,bodyPreview,organizer,attendees,start,end,location')
+        //             .get();
+        // console.log("Microsoft calendar events response:", events);
+        // return events;
         
 
         // return fetch("https://graph.microsoft.com/v1.0/me/events?$select=subject,body,bodyPreview,organizer,attendees,start,end,location", {
