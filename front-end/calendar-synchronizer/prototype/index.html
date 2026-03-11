@@ -1,0 +1,2127 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Aura Calendar</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #161920;
+    --surface2: #1e2230;
+    --border: rgba(255,255,255,0.07);
+    --accent: #6c8fff;
+    --accent2: #a78bff;
+    --accent3: #ff6b9d;
+    --text: #eef0f8;
+    --text-muted: #6b7280;
+    --text-soft: #9ca3af;
+    --green: #34d399;
+    --yellow: #fbbf24;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: #070910;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'Sora', sans-serif;
+  }
+
+  .phone {
+    width: 390px;
+    height: 844px;
+    background: var(--bg);
+    border-radius: 48px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 60px 120px rgba(0,0,0,0.8), inset 0 0 0 1px rgba(255,255,255,0.08);
+  }
+
+  /* ===================== SCREENS ===================== */
+  .screen {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.45s ease;
+  }
+
+  .screen.hidden-right {
+    transform: translateX(100%);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .screen.visible {
+    transform: translateX(0);
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .screen.hidden-left {
+    transform: translateX(-30%);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* ===================== SHARED ===================== */
+  .status-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 28px 0;
+    position: relative;
+    z-index: 10;
+  }
+
+  .status-time {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: 0.02em;
+  }
+
+  .status-icons { display: flex; gap: 6px; align-items: center; }
+  .status-icons svg { fill: var(--text); }
+
+  .bottom-nav {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 88px;
+    background: rgba(13, 15, 20, 0.97);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    padding: 12px 8px 0;
+    z-index: 20;
+  }
+
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 14px;
+    transition: all 0.2s;
+  }
+  .nav-item:active { background: var(--surface2); }
+  .nav-label { font-size: 10px; font-weight: 600; letter-spacing: 0.04em; }
+  .nav-item.active .nav-label { color: var(--accent); }
+  .nav-item:not(.active) .nav-label { color: var(--text-muted); }
+
+  /* ===================== HOME SCREEN ===================== */
+  #homeScreen { background: var(--bg); }
+  #homeScreen::before {
+    content: '';
+    position: absolute;
+    top: -100px; left: 50%;
+    transform: translateX(-50%);
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(108,143,255,0.15) 0%, transparent 70%);
+    pointer-events: none; z-index: 0;
+  }
+
+  .header {
+    padding: 20px 24px 0;
+    position: relative; z-index: 10;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    animation: fadeDown 0.6s ease both;
+  }
+  .header-left .greeting { font-size: 12px; color: var(--text-muted); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 500; }
+  .header-left .month-year { font-family: 'DM Serif Display', serif; font-size: 30px; color: var(--text); margin-top: 2px; letter-spacing: -0.02em; }
+  .header-left .month-year span { color: var(--accent); }
+
+  .avatar {
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 700; color: white;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(108,143,255,0.4);
+    flex-shrink: 0; margin-top: 6px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    user-select: none;
+  }
+  .avatar:active { transform: scale(0.9); box-shadow: 0 2px 10px rgba(108,143,255,0.3); }
+
+  .ai-chip {
+    margin: 16px 24px 0;
+    background: linear-gradient(135deg, rgba(108,143,255,0.12), rgba(167,139,255,0.08));
+    border: 1px solid rgba(108,143,255,0.2);
+    border-radius: 16px; padding: 12px 16px;
+    display: flex; align-items: center; gap: 10px;
+    cursor: pointer;
+    animation: fadeDown 0.6s 0.1s ease both;
+    transition: background 0.2s;
+    position: relative; z-index: 10;
+  }
+  .ai-chip:active { background: rgba(108,143,255,0.2); }
+  .ai-chip-icon {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    animation: pulse 2.5s ease infinite;
+  }
+  .ai-chip-text { flex: 1; }
+  .ai-chip-text .label { font-size: 11px; color: var(--accent); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+  .ai-chip-text .hint { font-size: 13px; color: var(--text-soft); margin-top: 1px; }
+  .ai-chip-arrow { color: var(--text-muted); font-size: 18px; }
+
+  .day-strip {
+    margin: 20px 24px 0;
+    animation: fadeDown 0.6s 0.15s ease both;
+    position: relative; z-index: 10;
+  }
+  .day-strip-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+  .day-strip-nav { display: flex; gap: 8px; }
+  .nav-btn {
+    width: 28px; height: 28px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; color: var(--text-soft); font-size: 12px; transition: all 0.2s;
+  }
+  .days-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .day-cell { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; padding: 8px 0; border-radius: 14px; transition: background 0.2s; }
+  .day-cell:active { background: var(--surface2); }
+  .day-name { font-size: 10px; color: var(--text-muted); font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; }
+  .day-num { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 14px; font-weight: 500; color: var(--text-soft); transition: all 0.2s; }
+  .day-cell.today .day-num { background: var(--accent); color: white; font-weight: 700; box-shadow: 0 4px 16px rgba(108,143,255,0.5); }
+  .day-cell.today .day-name { color: var(--accent); }
+  .day-dot { width: 5px; height: 5px; border-radius: 50%; opacity: 0; }
+  .day-cell.has-event .day-dot { opacity: 1; background: var(--accent3); }
+  .day-cell.today .day-dot { background: white; }
+
+  .view-tabs { display: flex; margin: 18px 24px 0; gap: 8px; animation: fadeDown 0.6s 0.2s ease both; position: relative; z-index: 10; }
+  .view-tab { flex: 1; padding: 8px; text-align: center; font-size: 12px; font-weight: 600; border-radius: 10px; cursor: pointer; transition: all 0.2s; color: var(--text-muted); letter-spacing: 0.03em; }
+  .view-tab.active { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+
+  .events-section { margin: 18px 24px 0; position: relative; z-index: 10; animation: fadeDown 0.6s 0.25s ease both; }
+  .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .section-title { font-size: 13px; font-weight: 700; color: var(--text); letter-spacing: 0.04em; text-transform: uppercase; }
+  .see-all { font-size: 12px; color: var(--accent); font-weight: 600; cursor: pointer; }
+  .events-scroll { display: flex; flex-direction: column; gap: 10px; max-height: 250px; overflow-y: auto; scrollbar-width: none; }
+  .events-scroll::-webkit-scrollbar { display: none; }
+  .event-card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 14px 16px; display: flex; align-items: center; gap: 14px; cursor: pointer; transition: all 0.2s; position: relative; overflow: hidden; }
+  .event-card:active { transform: scale(0.98); background: var(--surface2); }
+  .event-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; border-radius: 3px 0 0 3px; }
+  .event-card.blue::before { background: var(--accent); }
+  .event-card.purple::before { background: var(--accent2); }
+  .event-card.pink::before { background: var(--accent3); }
+  .event-card.green::before { background: var(--green); }
+  .event-time-col { display: flex; flex-direction: column; align-items: flex-end; min-width: 46px; }
+  .event-time { font-size: 12px; font-weight: 700; color: var(--text); line-height: 1.2; }
+  .event-ampm { font-size: 10px; color: var(--text-muted); font-weight: 500; }
+  .event-divider { width: 1px; height: 36px; background: var(--border); }
+  .event-info { flex: 1; }
+  .event-title { font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.3; }
+  .event-meta { font-size: 11px; color: var(--text-muted); margin-top: 3px; display: flex; align-items: center; gap: 6px; }
+  .event-tag { display: inline-flex; align-items: center; gap: 3px; padding: 2px 7px; border-radius: 6px; font-size: 10px; font-weight: 600; }
+  .event-tag.google { background: rgba(108,143,255,0.15); color: var(--accent); }
+  .event-tag.outlook { background: rgba(167,139,255,0.15); color: var(--accent2); }
+  .event-tag.local { background: rgba(52,211,153,0.15); color: var(--green); }
+  .event-tag.ai { background: rgba(255,107,157,0.12); color: var(--accent3); }
+
+  .fab {
+    position: absolute; bottom: 102px; right: 24px;
+    width: 52px; height: 52px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 8px 30px rgba(108,143,255,0.5);
+    z-index: 25; transition: transform 0.2s;
+  }
+  .fab:active { transform: scale(0.92); }
+
+  /* ===================== PROFILE SCREEN ===================== */
+  #profileScreen { background: var(--bg); overflow-y: auto; }
+
+  .profile-scroll {
+    height: 100%;
+    overflow-y: auto;
+    scrollbar-width: none;
+    padding-bottom: 100px;
+  }
+  .profile-scroll::-webkit-scrollbar { display: none; }
+
+  /* Hero section */
+  .profile-hero {
+    position: relative;
+    padding: 0 0 28px;
+    overflow: hidden;
+  }
+
+  .profile-hero-bg {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(160deg, rgba(108,143,255,0.18) 0%, rgba(167,139,255,0.1) 50%, transparent 100%);
+    pointer-events: none;
+  }
+
+  .profile-hero-bg::after {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, rgba(167,139,255,0.2) 0%, transparent 70%);
+  }
+
+  .profile-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px 0;
+    position: relative; z-index: 10;
+  }
+
+  .back-btn {
+    width: 38px; height: 38px;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text);
+    font-size: 18px;
+    user-select: none;
+  }
+  .back-btn:active { background: var(--surface2); transform: scale(0.92); }
+
+  .topbar-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.02em;
+  }
+
+  .edit-btn {
+    width: 38px; height: 38px;
+    background: rgba(108,143,255,0.12);
+    border: 1px solid rgba(108,143,255,0.2);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .edit-btn:active { background: rgba(108,143,255,0.25); }
+
+  /* Profile card */
+  .profile-card {
+    margin: 20px 24px 0;
+    position: relative; z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: fadeUp 0.5s 0.05s ease both;
+  }
+
+  .profile-avatar-wrap {
+    position: relative;
+    margin-bottom: 16px;
+  }
+
+  .profile-avatar {
+    width: 88px; height: 88px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Serif Display', serif;
+    font-size: 34px; color: white;
+    box-shadow: 0 8px 40px rgba(108,143,255,0.5);
+    border: 3px solid rgba(108,143,255,0.3);
+  }
+
+  .profile-badge {
+    position: absolute;
+    bottom: 2px; right: 2px;
+    width: 24px; height: 24px;
+    background: linear-gradient(135deg, var(--accent3), #ff8cc8);
+    border-radius: 50%;
+    border: 2px solid var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+  }
+
+  .profile-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 26px;
+    color: var(--text);
+    letter-spacing: -0.02em;
+    margin-bottom: 4px;
+  }
+
+  .profile-email {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+
+  /* Plan badge */
+  .plan-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: linear-gradient(135deg, rgba(108,143,255,0.15), rgba(167,139,255,0.1));
+    border: 1px solid rgba(108,143,255,0.25);
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.04em;
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 20px 24px 0;
+    animation: fadeUp 0.5s 0.1s ease both;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 14px 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .stat-card:active { background: var(--surface2); transform: scale(0.97); }
+
+  .stat-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 24px;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-num.accent { color: var(--accent); }
+  .stat-num.purple { color: var(--accent2); }
+  .stat-num.pink { color: var(--accent3); }
+
+  .stat-label {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  /* Connected accounts */
+  .section-block {
+    margin: 20px 24px 0;
+    animation: fadeUp 0.5s 0.15s ease both;
+  }
+
+  .section-block-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    padding-left: 4px;
+  }
+
+  .account-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .account-card:active { background: var(--surface2); }
+
+  .account-icon {
+    width: 40px; height: 40px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-size: 18px;
+  }
+  .account-icon.google { background: rgba(66,133,244,0.15); }
+  .account-icon.outlook { background: rgba(0,120,212,0.15); }
+
+  .account-info { flex: 1; }
+  .account-name { font-size: 14px; font-weight: 600; color: var(--text); }
+  .account-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  .account-status {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .account-status.connected { color: var(--green); }
+  .account-status.disconnected { color: var(--text-muted); }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .account-status.connected .status-dot { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .account-status.disconnected .status-dot { background: var(--text-muted); }
+
+  /* Settings list */
+  .settings-list {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    overflow: hidden;
+  }
+
+  .setting-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 15px 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+    border-bottom: 1px solid var(--border);
+  }
+  .setting-row:last-child { border-bottom: none; }
+  .setting-row:active { background: var(--surface2); }
+
+  .setting-icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-size: 16px;
+  }
+
+  .setting-text { flex: 1; }
+  .setting-name { font-size: 14px; font-weight: 500; color: var(--text); }
+  .setting-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  .setting-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  /* Toggle switch */
+  .toggle {
+    width: 42px; height: 24px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  .toggle.on { background: rgba(108,143,255,0.4); border-color: rgba(108,143,255,0.4); }
+  .toggle-knob {
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 16px; height: 16px;
+    background: var(--text-muted);
+    border-radius: 50%;
+    transition: transform 0.3s, background 0.3s;
+  }
+  .toggle.on .toggle-knob { transform: translateX(18px); background: var(--accent); }
+
+  /* Value badge */
+  .value-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: var(--surface2);
+    color: var(--text-soft);
+  }
+
+  /* AI Usage */
+  .ai-usage-card {
+    background: linear-gradient(135deg, rgba(108,143,255,0.1), rgba(167,139,255,0.07));
+    border: 1px solid rgba(108,143,255,0.2);
+    border-radius: 18px;
+    padding: 16px;
+  }
+
+  .ai-usage-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .ai-usage-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .ai-dot-icon {
+    width: 26px; height: 26px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+  }
+
+  .ai-usage-pct {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent);
+    font-family: 'DM Serif Display', serif;
+  }
+
+  .progress-bar {
+    width: 100%;
+    height: 6px;
+    background: rgba(255,255,255,0.07);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 3px;
+    transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 0%;
+  }
+
+  .ai-usage-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  /* Logout */
+  .logout-btn {
+    margin: 16px 24px 0;
+    background: rgba(255,107,107,0.08);
+    border: 1px solid rgba(255,107,107,0.18);
+    border-radius: 18px;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    animation: fadeUp 0.5s 0.3s ease both;
+  }
+  .logout-btn:active { background: rgba(255,107,107,0.15); }
+  .logout-text { font-size: 14px; font-weight: 600; color: #ff6b6b; letter-spacing: 0.02em; }
+
+  /* Version tag */
+  .version-tag {
+    text-align: center;
+    font-size: 11px;
+    color: var(--text-muted);
+    padding: 14px;
+    letter-spacing: 0.04em;
+  }
+
+  /* ===================== TASK DETAIL OVERLAY ===================== */
+  .task-overlay-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0);
+    z-index: 50;
+    pointer-events: none;
+    transition: background 0.4s ease;
+    border-radius: 48px;
+  }
+  .task-overlay-backdrop.open {
+    background: rgba(0,0,0,0.65);
+    pointer-events: all;
+  }
+
+  .task-detail-sheet {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: #13151c;
+    border-radius: 32px 32px 0 0;
+    border-top: 1px solid rgba(108,143,255,0.15);
+    z-index: 51;
+    transform: translateY(100%);
+    transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1);
+    max-height: 92%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .task-detail-sheet.open {
+    transform: translateY(0);
+  }
+
+  /* Drag handle */
+  .sheet-handle {
+    display: flex;
+    justify-content: center;
+    padding: 12px 0 4px;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+  .sheet-handle-bar {
+    width: 36px; height: 4px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 2px;
+  }
+
+  /* Sheet header */
+  .sheet-header {
+    padding: 4px 20px 16px;
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .sheet-event-banner {
+    background: linear-gradient(135deg, rgba(108,143,255,0.15) 0%, rgba(108,143,255,0.05) 100%);
+    border: 1px solid rgba(108,143,255,0.2);
+    border-radius: 20px;
+    padding: 16px 18px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .sheet-event-banner::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 4px;
+    background: linear-gradient(180deg, var(--accent), var(--accent2));
+    border-radius: 4px 0 0 4px;
+  }
+
+  .sheet-event-banner::after {
+    content: '';
+    position: absolute;
+    top: -30px; right: -30px;
+    width: 120px; height: 120px;
+    background: radial-gradient(circle, rgba(108,143,255,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .banner-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .banner-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(108,143,255,0.18);
+    border: 1px solid rgba(108,143,255,0.25);
+    border-radius: 8px;
+    padding: 4px 9px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .banner-close {
+    width: 28px; height: 28px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .banner-close:active { background: rgba(255,255,255,0.12); }
+
+  .banner-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: var(--text);
+    letter-spacing: -0.01em;
+    margin-bottom: 10px;
+    line-height: 1.2;
+  }
+
+  .banner-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .meta-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 8px;
+    padding: 5px 10px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-soft);
+  }
+
+  /* Sheet body scroll */
+  .sheet-body {
+    flex: 1;
+    overflow-y: auto;
+    scrollbar-width: none;
+    padding: 0 20px 24px;
+  }
+  .sheet-body::-webkit-scrollbar { display: none; }
+
+  /* Section heading */
+  .detail-section-title {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin: 18px 0 10px;
+    padding-left: 2px;
+  }
+
+  /* Checklist */
+  .checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+  }
+  .check-item:active { background: var(--surface2); transform: scale(0.99); }
+  .check-item.done { opacity: 0.6; }
+
+  .check-box {
+    width: 20px; height: 20px;
+    border-radius: 6px;
+    border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+    transition: all 0.25s;
+    background: transparent;
+  }
+  .check-item.done .check-box {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .check-text { flex: 1; }
+  .check-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.4;
+    transition: color 0.2s;
+  }
+  .check-item.done .check-label {
+    color: var(--text-muted);
+    text-decoration: line-through;
+  }
+  .check-sublabel {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* AI suggestion card */
+  .ai-suggestion {
+    background: linear-gradient(135deg, rgba(167,139,255,0.1), rgba(108,143,255,0.06));
+    border: 1px solid rgba(167,139,255,0.2);
+    border-radius: 16px;
+    padding: 14px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .ai-suggest-icon {
+    width: 30px; height: 30px;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-size: 13px;
+  }
+
+  .ai-suggest-text { flex: 1; }
+  .ai-suggest-label { font-size: 10px; font-weight: 700; color: var(--accent2); letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 4px; }
+  .ai-suggest-body { font-size: 12px; color: var(--text-soft); line-height: 1.5; }
+
+  /* Participants */
+  .participants-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .participant-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 8px 12px;
+    transition: background 0.2s;
+    cursor: pointer;
+  }
+  .participant-chip:active { background: var(--surface2); }
+
+  .part-avatar {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: white;
+    flex-shrink: 0;
+  }
+  .part-name { font-size: 12px; font-weight: 500; color: var(--text); }
+  .part-role { font-size: 10px; color: var(--text-muted); }
+
+  /* Notes */
+  .notes-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 14px;
+    font-size: 13px;
+    color: var(--text-soft);
+    line-height: 1.6;
+  }
+
+  /* Progress indicator */
+  .task-progress-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 6px;
+  }
+  .task-progress-bar {
+    flex: 1;
+    height: 5px;
+    background: rgba(255,255,255,0.07);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .task-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 3px;
+    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 0%;
+  }
+  .task-progress-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    min-width: 32px;
+    text-align: right;
+  }
+
+  /* Sheet footer */
+  .sheet-footer {
+    padding: 12px 20px 20px;
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+    border-top: 1px solid var(--border);
+    background: #13151c;
+  }
+
+  .btn-secondary {
+    flex: 1;
+    padding: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-soft);
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+    font-family: 'Sora', sans-serif;
+  }
+  .btn-secondary:active { background: var(--surface2); }
+
+  .btn-primary {
+    flex: 2;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none;
+    border-radius: 16px;
+    font-size: 13px;
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+    font-family: 'Sora', sans-serif;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    box-shadow: 0 6px 24px rgba(108,143,255,0.35);
+  }
+  .btn-primary:active { transform: scale(0.97); box-shadow: 0 3px 12px rgba(108,143,255,0.25); }
+
+  /* ===================== ANIMATIONS ===================== */
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(108,143,255,0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(108,143,255,0); }
+  }
+
+  /* ===================== TASK DETAIL SCREEN ===================== */
+  #taskScreen {
+    background: var(--bg);
+    transform: translateY(100%);
+    opacity: 1;
+    transition: transform 0.48s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  #taskScreen.visible {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  #taskScreen.hidden-bottom {
+    transform: translateY(100%);
+    opacity: 1;
+    pointer-events: none;
+  }
+
+  .task-scroll {
+    height: 100%;
+    overflow-y: auto;
+    scrollbar-width: none;
+    padding-bottom: 110px;
+  }
+  .task-scroll::-webkit-scrollbar { display: none; }
+
+  /* Task Hero */
+  .task-hero {
+    position: relative;
+    padding-bottom: 24px;
+    overflow: hidden;
+  }
+
+  .task-hero-bg {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(150deg, rgba(108,143,255,0.2) 0%, rgba(108,143,255,0.05) 60%, transparent 100%);
+    pointer-events: none;
+  }
+
+  .task-hero-orb {
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 180px; height: 180px;
+    background: radial-gradient(circle, rgba(108,143,255,0.22) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .task-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px 0;
+    position: relative; z-index: 10;
+  }
+
+  .task-more-btn {
+    width: 38px; height: 38px;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    gap: 3px;
+  }
+  .task-more-btn span {
+    width: 4px; height: 4px;
+    background: var(--text-soft);
+    border-radius: 50%;
+    display: block;
+  }
+  .task-more-btn:active { background: var(--surface2); }
+
+  .task-hero-content {
+    padding: 20px 24px 0;
+    position: relative; z-index: 10;
+  }
+
+  .task-source-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px;
+    background: rgba(108,143,255,0.12);
+    border: 1px solid rgba(108,143,255,0.2);
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: 0.04em;
+    margin-bottom: 14px;
+  }
+
+  .task-main-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px;
+    color: var(--text);
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: 6px;
+  }
+
+  .task-subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+
+  /* Time badge row */
+  .task-time-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .time-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .time-chip .chip-icon { font-size: 14px; }
+  .time-chip .chip-label { font-size: 10px; color: var(--text-muted); font-weight: 500; }
+  .time-chip-inner { display: flex; flex-direction: column; gap: 1px; }
+
+  /* Progress circle */
+  .task-progress-section {
+    margin: 20px 24px 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 18px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    animation: fadeUp 0.5s 0.05s ease both;
+  }
+
+  .progress-ring-wrap {
+    position: relative;
+    width: 72px; height: 72px;
+    flex-shrink: 0;
+  }
+
+  .progress-ring-svg {
+    transform: rotate(-90deg);
+  }
+
+  .progress-ring-bg {
+    fill: none;
+    stroke: rgba(255,255,255,0.06);
+    stroke-width: 6;
+  }
+
+  .progress-ring-fill {
+    fill: none;
+    stroke: url(#ringGrad);
+    stroke-width: 6;
+    stroke-linecap: round;
+    stroke-dasharray: 201;
+    stroke-dashoffset: 201;
+    transition: stroke-dashoffset 1.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .progress-ring-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .progress-ring-pct {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .progress-ring-sub {
+    font-size: 9px;
+    color: var(--text-muted);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+
+  .progress-info { flex: 1; }
+  .progress-label { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .progress-sub { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+  .progress-badge {
+    padding: 4px 10px;
+    background: rgba(52,211,153,0.12);
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--green);
+    margin-top: 8px;
+    display: inline-block;
+  }
+
+  /* Checklist */
+  .task-section {
+    margin: 16px 24px 0;
+    animation: fadeUp 0.5s 0.1s ease both;
+  }
+
+  .task-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    padding-left: 2px;
+  }
+
+  .checklist {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .check-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+  }
+
+  .check-item:active { background: var(--surface2); transform: scale(0.99); }
+
+  .check-item.done {
+    border-color: rgba(52,211,153,0.2);
+    background: rgba(52,211,153,0.04);
+  }
+
+  .check-box {
+    width: 22px; height: 22px;
+    border-radius: 7px;
+    border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+    transition: all 0.25s;
+    background: transparent;
+  }
+
+  .check-item.done .check-box {
+    background: var(--green);
+    border-color: var(--green);
+    box-shadow: 0 2px 10px rgba(52,211,153,0.35);
+  }
+
+  .check-tick {
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .check-item.done .check-tick { opacity: 1; }
+
+  .check-content { flex: 1; }
+
+  .check-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.4;
+    transition: color 0.2s;
+  }
+
+  .check-item.done .check-title {
+    color: var(--text-muted);
+    text-decoration: line-through;
+    text-decoration-color: rgba(107,114,128,0.5);
+  }
+
+  .check-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 3px;
+    line-height: 1.5;
+  }
+
+  .check-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 600;
+    margin-top: 6px;
+  }
+
+  .check-tag.prep { background: rgba(108,143,255,0.12); color: var(--accent); }
+  .check-tag.action { background: rgba(255,107,157,0.12); color: var(--accent3); }
+  .check-tag.review { background: rgba(167,139,255,0.12); color: var(--accent2); }
+  .check-tag.optional { background: rgba(107,114,128,0.15); color: var(--text-muted); }
+
+  /* Participants */
+  .participants-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 2px;
+  }
+
+  .participant-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px 6px 6px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-soft);
+  }
+
+  .participant-avatar {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px;
+    font-weight: 700;
+    color: white;
+  }
+
+  .more-participants {
+    width: 30px; height: 30px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  /* AI Insight card */
+  .ai-insight-card {
+    background: linear-gradient(135deg, rgba(108,143,255,0.1), rgba(167,139,255,0.07));
+    border: 1px solid rgba(108,143,255,0.2);
+    border-radius: 18px;
+    padding: 16px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .ai-insight-icon {
+    width: 34px; height: 34px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    animation: pulse 3s ease infinite;
+  }
+
+  .ai-insight-text { flex: 1; }
+  .ai-insight-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+  .ai-insight-body {
+    font-size: 13px;
+    color: var(--text-soft);
+    line-height: 1.6;
+  }
+  .ai-insight-body strong { color: var(--text); font-weight: 600; }
+
+  /* Join button */
+  .join-btn-wrap {
+    margin: 20px 24px 0;
+    animation: fadeUp 0.5s 0.28s ease both;
+  }
+
+  .join-btn {
+    width: 100%;
+    padding: 17px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+    border: none;
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    font-family: 'Sora', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: white;
+    letter-spacing: 0.02em;
+    box-shadow: 0 8px 30px rgba(108,143,255,0.4);
+    transition: all 0.2s;
+  }
+  .join-btn:active { transform: scale(0.97); box-shadow: 0 4px 16px rgba(108,143,255,0.3); }
+
+  .join-btn-secondary {
+    width: 100%;
+    margin-top: 10px;
+    padding: 15px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    font-family: 'Sora', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-soft);
+    transition: all 0.2s;
+  }
+  .join-btn-secondary:active { background: var(--surface2); }
+
+  /* Overlay dim */
+  .screen-dim {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0);
+    pointer-events: none;
+    z-index: 15;
+    transition: background 0.45s ease;
+  }
+  .screen-dim.active {
+    background: rgba(0,0,0,0.4);
+    pointer-events: all;
+  }
+</style>
+</head>
+<body>
+
+<div class="phone">
+
+  <!-- ============ HOME SCREEN ============ -->
+  <div class="screen visible" id="homeScreen">
+
+    <div class="status-bar">
+      <span class="status-time">9:41</span>
+      <div class="status-icons">
+        <svg width="16" height="12" viewBox="0 0 16 12"><rect x="0" y="3" width="3" height="9" rx="1" opacity="0.4"/><rect x="4.5" y="2" width="3" height="10" rx="1" opacity="0.6"/><rect x="9" y="0" width="3" height="12" rx="1" opacity="0.8"/><rect x="13.5" y="0" width="2.5" height="12" rx="1"/></svg>
+        <svg width="16" height="12" viewBox="0 0 24 12"><path d="M12 2.4C8.8 2.4 5.9 3.7 3.8 5.8L2 4C4.5 1.5 8.1 0 12 0s7.5 1.5 10 4l-1.8 1.8C18.1 3.7 15.2 2.4 12 2.4z" opacity="0.4"/><path d="M12 7.2c-1.9 0-3.6.8-4.8 2L5.4 7.4C7 5.8 9.4 4.8 12 4.8s5 1 6.6 2.6l-1.8 1.8c-1.2-1.2-2.9-2-4.8-2z" opacity="0.7"/><circle cx="12" cy="12" r="2"/></svg>
+        <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="3" stroke="white" stroke-width="1.5" fill="none" opacity="0.5"/><rect x="22.5" y="3.5" width="2" height="5" rx="1" fill="white" opacity="0.5"/><rect x="1.5" y="2.5" width="16" height="7" rx="2" fill="white"/></svg>
+      </div>
+    </div>
+
+    <div class="header">
+      <div class="header-left">
+        <div class="greeting">Selamat Pagi ☀️</div>
+        <div class="month-year"><span>Maret</span> 2026</div>
+      </div>
+      <div class="avatar" id="avatarBtn" onclick="goToProfile()">R</div>
+    </div>
+
+    <div class="ai-chip">
+      <div class="ai-chip-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z" fill="white"/>
+          <circle cx="19" cy="5" r="2" fill="rgba(255,255,255,0.6)"/>
+          <circle cx="5" cy="19" r="1.5" fill="rgba(255,255,255,0.4)"/>
+        </svg>
+      </div>
+      <div class="ai-chip-text">
+        <div class="label">AI Assistant</div>
+        <div class="hint">Kamu punya 3 agenda hari ini</div>
+      </div>
+      <div class="ai-chip-arrow">›</div>
+    </div>
+
+    <div class="day-strip">
+      <div class="day-strip-header">
+        <div style="font-size:13px; color:var(--text-soft); font-weight:500;">Minggu ini</div>
+        <div class="day-strip-nav">
+          <div class="nav-btn">‹</div>
+          <div class="nav-btn">›</div>
+        </div>
+      </div>
+      <div class="days-row">
+        <div class="day-cell"><div class="day-name">Min</div><div class="day-num">1</div><div class="day-dot"></div></div>
+        <div class="day-cell has-event"><div class="day-name">Sen</div><div class="day-num">2</div><div class="day-dot"></div></div>
+        <div class="day-cell has-event"><div class="day-name">Sel</div><div class="day-num">3</div><div class="day-dot"></div></div>
+        <div class="day-cell has-event"><div class="day-name">Rab</div><div class="day-num">4</div><div class="day-dot"></div></div>
+        <div class="day-cell today"><div class="day-name">Kam</div><div class="day-num">5</div><div class="day-dot"></div></div>
+        <div class="day-cell"><div class="day-name">Jum</div><div class="day-num">6</div><div class="day-dot"></div></div>
+        <div class="day-cell"><div class="day-name">Sab</div><div class="day-num">7</div><div class="day-dot"></div></div>
+      </div>
+    </div>
+
+    <div class="view-tabs">
+      <div class="view-tab active">Hari</div>
+      <div class="view-tab" onclick="switchTab(this)">Minggu</div>
+      <div class="view-tab" onclick="switchTab(this)">Bulan</div>
+      <div class="view-tab" onclick="switchTab(this)">Agenda</div>
+    </div>
+
+    <div class="events-section">
+      <div class="section-header">
+        <div class="section-title">Kamis, 5 Mar</div>
+        <div class="see-all">Lihat Semua</div>
+      </div>
+      <div class="events-scroll">
+        <div class="event-card blue" onclick="goToTask()" style="cursor:pointer;">
+          <div class="event-time-col"><div class="event-time">08:30</div><div class="event-ampm">AM</div></div>
+          <div class="event-divider"></div>
+          <div class="event-info">
+            <div class="event-title">Standup Meeting</div>
+            <div class="event-meta"><span>📍 Google Meet</span><span class="event-tag google">Google</span></div>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;opacity:0.4"><path d="M9 18L15 12L9 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="event-card purple">
+          <div class="event-time-col"><div class="event-time">10:00</div><div class="event-ampm">AM</div></div>
+          <div class="event-divider"></div>
+          <div class="event-info">
+            <div class="event-title">Review Sprint Q1</div>
+            <div class="event-meta"><span>⏱ 1 jam</span><span class="event-tag outlook">Outlook</span></div>
+          </div>
+        </div>
+        <div class="event-card pink">
+          <div class="event-time-col"><div class="event-time">01:00</div><div class="event-ampm">PM</div></div>
+          <div class="event-divider"></div>
+          <div class="event-info">
+            <div class="event-title">Lunch dengan Tim Design</div>
+            <div class="event-meta"><span>📍 Kopi Kenangan SCBD</span><span class="event-tag local">Lokal</span></div>
+          </div>
+        </div>
+        <div class="event-card green">
+          <div class="event-time-col"><div class="event-time">03:30</div><div class="event-ampm">PM</div></div>
+          <div class="event-divider"></div>
+          <div class="event-info">
+            <div class="event-title">⚡ AI: Reminder Deadline</div>
+            <div class="event-meta"><span>Otomatis dari AI</span><span class="event-tag ai">AI</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="fab" onclick="this.style.transform='scale(0.9)'; setTimeout(()=>this.style.transform='scale(1)',200)">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 5V19M5 12H19" stroke="white" stroke-width="2.5" stroke-linecap="round"/></svg>
+    </div>
+
+    <div class="bottom-nav">
+      <div class="nav-item active">
+        <div style="width:26px;height:26px;display:flex;align-items:center;justify-content:center">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="4" stroke="#6c8fff" stroke-width="2"/><path d="M3 9H21" stroke="#6c8fff" stroke-width="2"/><path d="M8 2V6M16 2V6" stroke="#6c8fff" stroke-width="2" stroke-linecap="round"/><rect x="7" y="13" width="3" height="3" rx="1" fill="#6c8fff"/><rect x="14" y="13" width="3" height="3" rx="1" fill="#6c8fff" opacity="0.5"/></svg>
+        </div>
+        <div class="nav-label">Kalender</div>
+      </div>
+      <div class="nav-item">
+        <div style="width:26px;height:26px;display:flex;align-items:center;justify-content:center">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M9 11L12 14L20 6" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 12V18C20 19.1 19.1 20 18 20H6C4.9 20 4 19.1 4 18V6C4 4.9 4.9 4 6 4H15" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+        <div class="nav-label">Tugas</div>
+      </div>
+      <div class="nav-item">
+        <div style="width:26px;height:26px;display:flex;align-items:center;justify-content:center">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z" stroke="#6b7280" stroke-width="1.8" stroke-linejoin="round"/><circle cx="19" cy="5" r="1.5" stroke="#6b7280" stroke-width="1.5"/></svg>
+        </div>
+        <div class="nav-label">AI Chat</div>
+      </div>
+      <div class="nav-item" onclick="goToProfile()">
+        <div style="width:26px;height:26px;display:flex;align-items:center;justify-content:center">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#6b7280" stroke-width="2"/><path d="M4 20C4 17.8 7.6 16 12 16C16.4 16 20 17.8 20 20" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+        <div class="nav-label">Profil</div>
+      </div>
+    </div>
+
+  </div><!-- end homeScreen -->
+
+
+  <!-- ============ PROFILE SCREEN ============ -->
+  <div class="screen hidden-right" id="profileScreen">
+
+    <div class="profile-scroll" id="profileScroll">
+
+      <div class="profile-hero">
+        <div class="profile-hero-bg"></div>
+
+        <div class="status-bar" style="position:relative;z-index:10;">
+          <span class="status-time">9:41</span>
+          <div class="status-icons">
+            <svg width="16" height="12" viewBox="0 0 16 12"><rect x="0" y="3" width="3" height="9" rx="1" opacity="0.4"/><rect x="4.5" y="2" width="3" height="10" rx="1" opacity="0.6"/><rect x="9" y="0" width="3" height="12" rx="1" opacity="0.8"/><rect x="13.5" y="0" width="2.5" height="12" rx="1"/></svg>
+            <svg width="16" height="12" viewBox="0 0 24 12"><path d="M12 2.4C8.8 2.4 5.9 3.7 3.8 5.8L2 4C4.5 1.5 8.1 0 12 0s7.5 1.5 10 4l-1.8 1.8C18.1 3.7 15.2 2.4 12 2.4z" opacity="0.4"/><path d="M12 7.2c-1.9 0-3.6.8-4.8 2L5.4 7.4C7 5.8 9.4 4.8 12 4.8s5 1 6.6 2.6l-1.8 1.8c-1.2-1.2-2.9-2-4.8-2z" opacity="0.7"/><circle cx="12" cy="12" r="2"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="3" stroke="white" stroke-width="1.5" fill="none" opacity="0.5"/><rect x="22.5" y="3.5" width="2" height="5" rx="1" fill="white" opacity="0.5"/><rect x="1.5" y="2.5" width="16" height="7" rx="2" fill="white"/></svg>
+          </div>
+        </div>
+
+        <div class="profile-topbar">
+          <div class="back-btn" onclick="goToHome()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M15 19L8 12L15 5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="topbar-title">Profil Saya</div>
+          <div class="edit-btn">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M11 4H4C3.4 4 3 4.4 3 5V20C3 20.6 3.4 21 4 21H19C19.6 21 20 20.6 20 20V13" stroke="#6c8fff" stroke-width="2" stroke-linecap="round"/><path d="M18.5 2.5C19.3 1.7 20.7 1.7 21.5 2.5C22.3 3.3 22.3 4.7 21.5 5.5L12 15L8 16L9 12L18.5 2.5Z" stroke="#6c8fff" stroke-width="2" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+
+        <div class="profile-card">
+          <div class="profile-avatar-wrap">
+            <div class="profile-avatar">R</div>
+            <div class="profile-badge">✦</div>
+          </div>
+          <div class="profile-name">Rizky Pratama</div>
+          <div class="profile-email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="a7d5ceddccde89d7d5c6d3c6cac6e7c0cac6cecb89c4c8ca">[email&#160;protected]</a></div>
+          <div class="plan-badge">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z" fill="#6c8fff"/></svg>
+            AI Pro Plan
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-num accent">48</div>
+          <div class="stat-label">Event Bulan Ini</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num purple">12</div>
+          <div class="stat-label">Tugas Selesai</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-num pink">7</div>
+          <div class="stat-label">Hari Streak</div>
+        </div>
+      </div>
+
+      <!-- AI Usage -->
+      <div class="section-block" style="animation-delay:0.12s">
+        <div class="section-block-title">Penggunaan AI</div>
+        <div class="ai-usage-card">
+          <div class="ai-usage-header">
+            <div class="ai-usage-title">
+              <div class="ai-dot-icon">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z" fill="white"/></svg>
+              </div>
+              Chat AI Bulan Ini
+            </div>
+            <div class="ai-usage-pct">73%</div>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width:0%"></div>
+          </div>
+          <div class="ai-usage-sub">730 dari 1.000 pesan terpakai · Reset 1 Apr</div>
+        </div>
+      </div>
+
+      <!-- Connected Accounts -->
+      <div class="section-block" style="animation-delay:0.17s">
+        <div class="section-block-title">Akun Terhubung</div>
+        <div class="account-card">
+          <div class="account-icon google">
+            <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"/><path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.32-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z"/><path fill="#FBBC05" d="M11.68 28.18c-.44-1.32-.69-2.72-.69-4.18s.25-2.86.69-4.18v-5.7H4.34C2.85 17.09 2 20.45 2 24s.85 6.91 2.34 9.88l7.34-5.7z"/><path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.34 5.7c1.74-5.2 6.59-9.07 12.32-9.07z"/></svg>
+          </div>
+          <div class="account-info">
+            <div class="account-name">Google Calendar</div>
+            <div class="account-sub"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="c9bba0b3a2b0e7b9bba8bda8a4a889aea4a8a0a5e7aaa6a4">[email&#160;protected]</a></div>
+          </div>
+          <div class="account-status connected"><div class="status-dot"></div>Aktif</div>
+        </div>
+        <div class="account-card">
+          <div class="account-icon outlook">
+            <svg width="20" height="20" viewBox="0 0 48 48"><rect width="48" height="48" rx="4" fill="#0078D4"/><path fill="white" d="M24 12C17.4 12 12 17.4 12 24s5.4 12 12 12 12-5.4 12-12-5.4-12-12-12zm0 20c-4.4 0-8-3.6-8-8s3.6-8 8-8 8 3.6 8 8-3.6 8-8 8z"/><path fill="white" d="M28 24h-4v-4h-2v6h6v-2z"/></svg>
+          </div>
+          <div class="account-info">
+            <div class="account-name">Microsoft Outlook</div>
+            <div class="account-sub">Belum terhubung</div>
+          </div>
+          <div class="account-status disconnected"><div class="status-dot"></div>Hubungkan</div>
+        </div>
+      </div>
+
+      <!-- Settings -->
+      <div class="section-block" style="animation-delay:0.22s">
+        <div class="section-block-title">Preferensi</div>
+        <div class="settings-list">
+          <div class="setting-row">
+            <div class="setting-icon" style="background:rgba(108,143,255,0.12)">🔔</div>
+            <div class="setting-text">
+              <div class="setting-name">Notifikasi</div>
+              <div class="setting-desc">Pengingat jadwal & tugas</div>
+            </div>
+            <div class="setting-right">
+              <div class="toggle on" onclick="toggleSwitch(this)"><div class="toggle-knob"></div></div>
+            </div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-icon" style="background:rgba(167,139,255,0.12)">🤖</div>
+            <div class="setting-text">
+              <div class="setting-name">AI Saran Otomatis</div>
+              <div class="setting-desc">Analisis pola jadwal</div>
+            </div>
+            <div class="setting-right">
+              <div class="toggle on" onclick="toggleSwitch(this)"><div class="toggle-knob"></div></div>
+            </div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-icon" style="background:rgba(251,191,36,0.12)">🌐</div>
+            <div class="setting-text">
+              <div class="setting-name">Bahasa</div>
+              <div class="setting-desc">Tampilan aplikasi</div>
+            </div>
+            <div class="setting-right">
+              <div class="value-badge">Indonesia</div>
+              <span style="color:var(--text-muted)">›</span>
+            </div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-icon" style="background:rgba(52,211,153,0.12)">🕐</div>
+            <div class="setting-text">
+              <div class="setting-name">Zona Waktu</div>
+              <div class="setting-desc">Sinkronisasi jadwal</div>
+            </div>
+            <div class="setting-right">
+              <div class="value-badge">WIB +7</div>
+              <span style="color:var(--text-muted)">›</span>
+            </div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-icon" style="background:rgba(255,107,157,0.12)">🔒</div>
+            <div class="setting-text">
+              <div class="setting-name">Privasi & Keamanan</div>
+              <div class="setting-desc">Kelola data & izin</div>
+            </div>
+            <div class="setting-right">
+              <span style="color:var(--text-muted)">›</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Logout -->
+      <div class="logout-btn" onclick="this.style.opacity='0.6'; setTimeout(()=>this.style.opacity='1',300)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M9 21H5C4.4 21 4 20.6 4 20V4C4 3.4 4.4 3 5 3H9" stroke="#ff6b6b" stroke-width="2" stroke-linecap="round"/><path d="M16 17L21 12L16 7" stroke="#ff6b6b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 12H9" stroke="#ff6b6b" stroke-width="2" stroke-linecap="round"/></svg>
+        <span class="logout-text">Keluar dari Akun</span>
+      </div>
+
+      <div class="version-tag">Aura Calendar v1.0.0 · Made with ✦ AI</div>
+
+    </div><!-- end profile-scroll -->
+
+    <!-- Bottom Nav profile -->
+    <div class="bottom-nav">
+      <div class="nav-item" onclick="goToHome()">
+        <div style="width:26px;height:26px;display:flex;align-items:center;justify-content:center">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="4" stroke="#6b7280" stroke-width="2"/><path d="M3 9H21" stroke="#6b7280" stroke-width="2"/><path d="M8 2V6M16 2V6" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+        <div class="nav-label">Kalender</div>
+      </div>
+      <div class="nav-item">
+        <div style="width:26px;height:26px;display:flex;align-items:center;justify-content:center">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M9 11L12 14L20 6" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 12V18C20 19.1 19.1 20 18 20H6C4.9 20 4 19.1 4 18V6C4 4.9 4.9 4 6 4H15" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+        <div class="nav-label">Tugas</div>
+      </div>
+      <div class="nav-item">
+        <div style="width:26px;height:26px;display:flex;align-items:center;justify-content:center">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z" stroke="#6b7280" stroke-width="1.8" stroke-linejoin="round"/><circle cx="19" cy="5" r="1.5" stroke="#6b7280" stroke-width="1.5"/></svg>
+        </div>
+        <div class="nav-label">AI Chat</div>
+      </div>
+      <div class="nav-item active">
+        <div style="width:26px;height:26px;display:flex;align-items:center;justify-content:center">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#6c8fff" stroke-width="2"/><path d="M4 20C4 17.8 7.6 16 12 16C16.4 16 20 17.8 20 20" stroke="#6c8fff" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+        <div class="nav-label">Profil</div>
+      </div>
+    </div>
+
+  </div><!-- end profileScreen -->
+
+  <!-- ============ TASK DETAIL SCREEN ============ -->
+  <div class="screen hidden-bottom" id="taskScreen">
+
+    <div class="task-scroll" id="taskScroll">
+
+      <!-- Hero -->
+      <div class="task-hero">
+        <div class="task-hero-bg"></div>
+        <div class="task-hero-orb"></div>
+
+        <!-- SVG gradient def -->
+        <svg width="0" height="0" style="position:absolute">
+          <defs>
+            <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#6c8fff"/>
+              <stop offset="100%" stop-color="#a78bff"/>
+            </linearGradient>
+          </defs>
+        </svg>
+
+        <div class="status-bar" style="position:relative;z-index:10;">
+          <span class="status-time">9:41</span>
+          <div class="status-icons">
+            <svg width="16" height="12" viewBox="0 0 16 12"><rect x="0" y="3" width="3" height="9" rx="1" opacity="0.4"/><rect x="4.5" y="2" width="3" height="10" rx="1" opacity="0.6"/><rect x="9" y="0" width="3" height="12" rx="1" opacity="0.8"/><rect x="13.5" y="0" width="2.5" height="12" rx="1"/></svg>
+            <svg width="16" height="12" viewBox="0 0 24 12"><path d="M12 2.4C8.8 2.4 5.9 3.7 3.8 5.8L2 4C4.5 1.5 8.1 0 12 0s7.5 1.5 10 4l-1.8 1.8C18.1 3.7 15.2 2.4 12 2.4z" opacity="0.4"/><path d="M12 7.2c-1.9 0-3.6.8-4.8 2L5.4 7.4C7 5.8 9.4 4.8 12 4.8s5 1 6.6 2.6l-1.8 1.8c-1.2-1.2-2.9-2-4.8-2z" opacity="0.7"/><circle cx="12" cy="12" r="2"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="3" stroke="white" stroke-width="1.5" fill="none" opacity="0.5"/><rect x="22.5" y="3.5" width="2" height="5" rx="1" fill="white" opacity="0.5"/><rect x="1.5" y="2.5" width="16" height="7" rx="2" fill="white"/></svg>
+          </div>
+        </div>
+
+        <div class="task-topbar">
+          <div class="back-btn" onclick="goBackFromTask()" style="background:rgba(255,255,255,0.07);border:1px solid var(--border);width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;color:var(--text);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M15 19L8 12L15 5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div style="font-size:15px;font-weight:700;color:var(--text);letter-spacing:0.02em;">Detail Acara</div>
+          <div class="task-more-btn">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+
+        <div class="task-hero-content">
+          <div class="task-source-chip">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="#6c8fff"><rect x="3" y="4" width="18" height="18" rx="4"/><path d="M3 9H21M8 2V6M16 2V6" stroke="var(--bg)" stroke-width="2" stroke-linecap="round"/></svg>
+            Google Calendar
+          </div>
+          <div class="task-main-title">Standup<br>Meeting</div>
+          <div class="task-subtitle">Daily sync tim engineering — update progress, blocker, dan rencana hari ini.</div>
+          <div class="task-time-row">
+            <div class="time-chip">
+              <span class="chip-icon">🗓️</span>
+              <div class="time-chip-inner">
+                <span>Kamis, 5 Maret</span>
+                <span class="chip-label">Tanggal</span>
+              </div>
+            </div>
+            <div class="time-chip">
+              <span class="chip-icon">⏰</span>
+              <div class="time-chip-inner">
+                <span>08:30 – 09:00</span>
+                <span class="chip-label">Durasi 30 menit</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progress -->
+      <div class="task-progress-section">
+        <div class="progress-ring-wrap">
+          <svg class="progress-ring-svg" width="72" height="72" viewBox="0 0 72 72">
+            <circle class="progress-ring-bg" cx="36" cy="36" r="32"/>
+            <circle class="progress-ring-fill" id="ringFill" cx="36" cy="36" r="32"/>
+          </svg>
+          <div class="progress-ring-text">
+            <div class="progress-ring-pct" id="ringPct">0%</div>
+            <div class="progress-ring-sub">DONE</div>
+          </div>
+        </div>
+        <div class="progress-info">
+          <div class="progress-label">Progress Persiapan</div>
+          <div class="progress-sub">2 dari 5 task selesai dikerjakan sebelum meeting dimulai.</div>
+          <div class="progress-badge">On Track ✓</div>
+        </div>
+      </div>
+
+      <!-- Participants -->
+      <div class="task-section" style="animation-delay:0.08s">
+        <div class="task-section-title">Peserta (6)</div>
+        <div class="participants-row">
+          <div class="participant-chip">
+            <div class="participant-avatar" style="background:linear-gradient(135deg,#6c8fff,#a78bff)">R</div>
+            Kamu
+          </div>
+          <div class="participant-chip">
+            <div class="participant-avatar" style="background:linear-gradient(135deg,#ff6b9d,#ff8cc8)">A</div>
+            Andi
+          </div>
+          <div class="participant-chip">
+            <div class="participant-avatar" style="background:linear-gradient(135deg,#34d399,#6ee7b7)">S</div>
+            Sarah
+          </div>
+          <div class="more-participants">+3</div>
+        </div>
+      </div>
+
+      <!-- Checklist -->
+      <div class="task-section" style="animation-delay:0.12s">
+        <div class="task-section-title">Yang Harus Disiapkan</div>
+        <div class="checklist">
+
+          <div class="check-item done" onclick="toggleCheck(this)">
+            <div class="check-box">
+              <svg class="check-tick" width="12" height="12" viewBox="0 0 24 24" fill="none">
+                <path d="M5 12L10 17L19 8" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="check-content">
+              <div class="check-title">Update status task kemarin</div>
+              <div class="check-desc">Ringkas apa yang sudah selesai dari sprint kemarin dalam 2–3 kalimat.</div>
+            </div>
+          </div>
+
+          <div class="check-item done" onclick="toggleCheck(this)">
+            <div class="check-box">
+              <svg class="check-tick" width="12" height="12" viewBox="0 0 24 24" fill="none">
+                <path d="M5 12L10 17L19 8" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="check-content">
+              <div class="check-title">Cek Jira board sebelum meeting</div>
+              <div class="check-desc">Pastikan semua tiket ter-update dan status sudah benar di board sprint.</div>
+            </div>
+          </div>
+
+          <div class="check-item" onclick="toggleCheck(this)">
+            <div class="check-box">
+              <svg class="check-tick" width="12" height="12" viewBox="0 0 24 24" fill="none">
+                <path d="M5 12L10 17L19 8" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="check-content">
+              <div class="check-title">Siapkan daftar blocker</div>
+              <div class="check-desc">Tulis hambatan yang butuh bantuan tim atau keputusan lead.</div>
+            </div>
+          </div>
+
+          <div class="check-item" onclick="toggleCheck(this)">
+            <div class="check-box">
+              <svg class="check-tick" width="12" height="12" viewBox="0 0 24 24" fill="none">
+                <path d="M5 12L10 17L19 8" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="check-content">
+              <div class="check-title">Sebutkan rencana hari ini</div>
+              <div class="check-desc">Sampaikan 1–2 task utama yang akan dikerjakan hari ini secara singkat.</div>
+            </div>
+          </div>
+
+          <div class="check-item" onclick="toggleCheck(this)">
+            <div class="check-box">
+              <svg class="check-tick" width="12" height="12" viewBox="0 0 24 24" fill="none">
+                <path d="M5 12L10 17L19 8" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <div class="check-content">
+              <div class="check-title">Review PR yang butuh review</div>
+              <div class="check-desc">Opsional — tanyakan apakah ada PR yang perlu direview segera oleh tim.</div>
+              <span class="check-tag optional">Opsional</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- AI Insight -->
+      <div class="task-section" style="animation-delay:0.2s">
+        <div class="task-section-title">Insight dari AI</div>
+        <div class="ai-insight-card">
+          <div class="ai-insight-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z" fill="white"/>
+              <circle cx="19" cy="5" r="2" fill="rgba(255,255,255,0.5)"/>
+            </svg>
+          </div>
+          <div class="ai-insight-text">
+            <div class="ai-insight-label">✦ AI Suggestion</div>
+            <div class="ai-insight-body">
+              Berdasarkan pola sebelumnya, standup kamu biasanya <strong>over time 8 menit</strong>. Coba batasi update ke <strong>3 poin saja</strong>: kemarin, hari ini, blocker.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="join-btn-wrap">
+        <button class="join-btn" onclick="this.style.transform='scale(0.96)';setTimeout(()=>this.style.transform='scale(1)',180)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M15 10L20 7V17L15 14V10Z" fill="white"/><rect x="3" y="6" width="13" height="12" rx="2" fill="white"/></svg>
+          Bergabung ke Google Meet
+        </button>
+        <button class="join-btn-secondary" onclick="this.style.opacity='0.6';setTimeout(()=>this.style.opacity='1',200)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M18 8C18 6.4 17.4 5 16.4 4C15.3 3 13.8 2.5 12 2.5C10.2 2.5 8.7 3 7.6 4C6.6 5 6 6.4 6 8C6 11.5 3 14 3 14H21C21 14 18 11.5 18 8Z" stroke="#9ca3af" stroke-width="1.8"/><path d="M13.7 19C13.4 19.6 12.8 20 12 20C11.2 20 10.6 19.6 10.3 19" stroke="#9ca3af" stroke-width="1.8" stroke-linecap="round"/></svg>
+          Atur Pengingat
+        </button>
+      </div>
+
+    </div><!-- end task-scroll -->
+
+    <!-- Bottom nav task -->
+    <div class="bottom-nav">
+      <div class="nav-item active">
+        <div style="width:26px;height:26px;display:flex;align-items:center;justify-content:center">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="4" stroke="#6c8fff" stroke-width="2"/><path d="M3 9H21" stroke="#6c8fff" stroke-width="2"/><path d="M8 2V6M16 2V6" stroke="#6c8fff" stroke-width="2" stroke-linecap="round"/><rect x="7" y="13" width="3" height="3" rx="1" fill="#6c8fff"/></svg>
+        </div>
+        <div class="nav-label">Kalender</div>
+      </div>
+      <div class="nav-item">
+        <div style="width:26px;height:26px;display:flex;align-items:center;justify-content:center">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M9 11L12 14L20 6" stroke="#6b7280" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 12V18C20 19.1 19.1 20 18 20H6C4.9 20 4 19.1 4 18V6C4 4.9 4.9 4 6 4H15" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+        <div class="nav-label">Tugas</div>
+      </div>
+      <div class="nav-item">
+        <div style="width:26px;height:26px;display:flex;align-items:center;justify-content:center">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2L13.5 8.5L20 10L13.5 11.5L12 18L10.5 11.5L4 10L10.5 8.5L12 2Z" stroke="#6b7280" stroke-width="1.8" stroke-linejoin="round"/><circle cx="19" cy="5" r="1.5" stroke="#6b7280" stroke-width="1.5"/></svg>
+        </div>
+        <div class="nav-label">AI Chat</div>
+      </div>
+      <div class="nav-item" onclick="goToProfile()">
+        <div style="width:26px;height:26px;display:flex;align-items:center;justify-content:center">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="#6b7280" stroke-width="2"/><path d="M4 20C4 17.8 7.6 16 12 16C16.4 16 20 17.8 20 20" stroke="#6b7280" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+        <div class="nav-label">Profil</div>
+      </div>
+    </div>
+
+  </div><!-- end taskScreen -->
+
+</div><!-- end phone -->
+
+<script>
+  /* ---- Navigation ---- */
+  function goToProfile() {
+    const home = document.getElementById('homeScreen');
+    const profile = document.getElementById('profileScreen');
+    home.classList.remove('visible'); home.classList.add('hidden-left');
+    profile.classList.remove('hidden-right'); profile.classList.add('visible');
+    document.getElementById('profileScroll').scrollTop = 0;
+    setTimeout(() => { document.getElementById('progressFill').style.width = '73%'; }, 400);
+  }
+
+  function goToHome() {
+    const home = document.getElementById('homeScreen');
+    const profile = document.getElementById('profileScreen');
+    profile.classList.remove('visible'); profile.classList.add('hidden-right');
+    home.classList.remove('hidden-left'); home.classList.add('visible');
+    document.getElementById('progressFill').style.width = '0%';
+  }
+
+  function goToTask() {
+    const task = document.getElementById('taskScreen');
+    task.classList.remove('hidden-bottom');
+    task.classList.add('visible');
+    document.getElementById('taskScroll').scrollTop = 0;
+    // animate ring after transition
+    setTimeout(() => animateRing(), 350);
+  }
+
+  function goBackFromTask() {
+    const task = document.getElementById('taskScreen');
+    task.classList.remove('visible');
+    task.classList.add('hidden-bottom');
+    // reset ring
+    document.getElementById('ringFill').style.strokeDashoffset = '201';
+    document.getElementById('ringPct').textContent = '0%';
+  }
+
+  /* ---- Progress Ring ---- */
+  function animateRing() {
+    const doneItems = document.querySelectorAll('.check-item.done').length;
+    const total = document.querySelectorAll('.check-item').length;
+    updateRing(doneItems, total);
+  }
+
+  function updateRing(done, total) {
+    const pct = Math.round((done / total) * 100);
+    const circumference = 201;
+    const offset = circumference - (circumference * pct / 100);
+    const fill = document.getElementById('ringFill');
+    const pctEl = document.getElementById('ringPct');
+    fill.style.strokeDashoffset = offset;
+    // animate number
+    let current = parseInt(pctEl.textContent);
+    const step = pct > current ? 1 : -1;
+    if (current === pct) return;
+    const interval = setInterval(() => {
+      current += step;
+      pctEl.textContent = current + '%';
+      if (current === pct) clearInterval(interval);
+    }, 18);
+  }
+
+  /* ---- Checklist toggle ---- */
+  function toggleCheck(el) {
+    el.classList.toggle('done');
+    const done = document.querySelectorAll('.check-item.done').length;
+    const total = document.querySelectorAll('.check-item').length;
+    updateRing(done, total);
+  }
+
+  /* ---- Home tab switch ---- */
+  function switchTab(el) {
+    document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  function toggleSwitch(el) { el.classList.toggle('on'); }
+</script>
+</body>
+</html>
