@@ -34,17 +34,60 @@ export class UsersService {
     const password = "null";
     createUserDto.password = password;
 
-    const existingUser = await this.dbService.users.findFirst({
-      where: {
-        username: createUserDto.email,
-      },
-    });
+    const existingUser = await this.findOauthUser(createUserDto.email);
 
     if (existingUser) {
       throw new UnprocessableEntityException("Email already registered, please login instead");
     }
     
     return this.dbService.users.create({data : createUserDto});
+  }
+
+  async findOauthUser(email: string) {
+    return this.dbService.users.findFirst({
+      where: {
+        email: email,
+        password: "null"
+      },
+    });
+  }
+
+  async findById(id: string) {
+    return this.dbService.users.findUnique({
+      where: {
+        id: id
+      }});
+  };
+
+  async updateOauthUserRefreshToken(userid: string, provider: "google" | "microsoft", refresh_token: string) {
+
+    const user = await this.findById(userid);
+
+    if(!user) {
+      throw new UnprocessableEntityException("User not found");
+    }
+
+    if(provider === "google") {
+        return await this.dbService.users.update({
+            where: {
+              id: userid
+              }
+            , data: {
+                google_refresh_token: refresh_token
+            }
+        });
+    }else if(provider === "microsoft") {
+        return await this.dbService.users.update({
+            where: {
+                id: userid
+              }
+            , data: {
+                microsoft_refresh_token: refresh_token
+            }
+        });
+    }
+
+    throw new UnprocessableEntityException("Invalid provider");
   }
 
   findAll() {

@@ -3,52 +3,22 @@ import { useState, useEffect } from "react";
 import * as WebBrowser from "expo-web-browser";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Link, useRouter } from "expo-router";
+import { ExternalPathString, Link, useRouter } from "expo-router";
 import React from "react";
-import { useGoogleAuthCode } from "../hooks/useGoogleAuthCode";
-import { useMicrosoftLogin } from "../hooks/useMicrosoftLogin";
-import { useGoogleCodeLogin } from "../hooks/useGoogleCodeLogin";
 import { useLogin } from "../hooks/useLogin";
 import { pagePath } from "../lib/constants";
 import * as AuthSession from "expo-auth-session";
 import { useMicrosoftRegister } from "../hooks/useMicrosoftRegister";
+import { useGoogleRegister } from "../hooks/useGoogleRegister";
+import { useUser } from "../context/currentUserContext";
 
 export default function Index() {
   WebBrowser.maybeCompleteAuthSession();
 
-  const router = useRouter();
-
-  const [userInfo, setUserInfo] = useState(null);
-  // const [calendarEvents, setCalendarEvents] = useState([]);
-
-
-  const [gooogleRequest, googleResponse, googlePromptAsync] = useGoogleAuthCode();
-  // const [microsoftRequest, microsoftResponse, microsoftPromptAsync] = useMicrosoftLogin()
-  
-  const {isLoadingMicrosoft, microsoftPromptAsync, registerResponse} = useMicrosoftRegister()
-  const getUserInfoWithGoogle = async (token : any) => {
-    //absent token
-    if (!token) return;
-    //present token
-    try {
-      const response = await fetch(
-        "https://www.googleapis.com/userinfo/v2/me",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      const user = await response.json();
-      //store user information  in Asyncstorage
-      await AsyncStorage.setItem("user", JSON.stringify(user));
-      setUserInfo(user);
-    } catch (error) {
-      console.error(
-        "Failed to fetch user data:",
-        googleResponse!.status,
-        googleResponse!.statusText
-      );
-    }
-  };
+  const router = useRouter();  
+  const {isLoadingMicrosoft, promptAsync : microsoftPromptAsync, registerResponse : microsoftRegisterResponse } = useMicrosoftRegister()
+  const {isError, registerResponse : googleRegisterResponse, promptAsync : googlePromptAsync} = useGoogleRegister()
+  const {user, setUser} = useUser()
 
   const getCalendarEvents = async (token : any) => {
     const res = await fetch(
@@ -59,7 +29,7 @@ export default function Index() {
     );
     const data = await res.json();
     console.log("Events:", data.items);
-    setCalendarEvents(data.items);
+    // setCalendarEvents(data.items);
 
         // {
     //   "kind":"calendar#event",
@@ -96,27 +66,6 @@ export default function Index() {
     // }
   };
 
-  const signInWithGoogle = async () => {
-  try {
-    // Attempt to retrieve user information from AsyncStorage
-    const userJSON = await AsyncStorage.getItem("user");
-
-    if (userJSON) {
-      // If user information is found in AsyncStorage, parse it and set it in the state
-      setUserInfo(JSON.parse(userJSON));
-    } else if (googleResponse?.type === "success") {
-      // If no user information is found and the response type is "success" (assuming response is defined),
-      // call getUserInfo with the access token from the response
-      getUserInfoWithGoogle(googleResponse!.authentication.accessToken);
-    }
-
-    getCalendarEvents(googleResponse!.authentication.accessToken);
-  } catch (error) {
-    // Handle any errors that occur during AsyncStorage retrieval or other operations
-    console.error("Error retrieving user data from AsyncStorage:", error);
-  }
-};
-
 
 async function fetchCalendarMicrosoft(token : string){
       let res = await fetch("https://graph.microsoft.com/v1.0/me/calendar/events", {
@@ -125,25 +74,16 @@ async function fetchCalendarMicrosoft(token : string){
       let data = await res.json();
       console.log("Microsoft calendar events:", data);
 }
-useEffect(() => {
-  if(googleResponse == null || googleResponse == undefined) return;
-  if(gooogleRequest == null || gooogleRequest == undefined) return;
-  // signInWithGoogle();
-  console.log(googleResponse)
-  const code = googleResponse?.params?.code;
-  const codeVerifier = gooogleRequest.codeVerifier;
-  const redirectUri = gooogleRequest.redirectUri;
-  useGoogleCodeLogin(code, codeVerifier, redirectUri);
-}, [gooogleRequest, googleResponse]);
+
 
 //log the userInfo to see user details
-console.log("userInfo:", JSON.stringify(userInfo))
+// console.log("userInfo:", JSON.stringify(userInfo))
 
 
   const API_URL = `${process.env.EXPO_PUBLIC_BACKEND_URL}:${process.env.EXPO_PUBLIC_BACKEND_PORT}`;   
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const {login, isLoading, response} = useLogin()
+  const {login, isLoading : loginLoading, response : loginResponse, error : loginError} = useLogin()
 
   const toast = useToastController()
 
@@ -152,31 +92,59 @@ console.log("userInfo:", JSON.stringify(userInfo))
       login({username : username, password : password});
       toast.show("Login successful", { message: "You have been logged in successfully." });
     }catch(error){
-      toast.show("Login Failed", { message: JSON.stringify(error) });
+      toast.show("Login Failed", { message: JSON.stringify(loginError) });
     }
   }
 
   useEffect(() => {
-  if (response) {
-    toast.show("Login successful", { message: JSON.stringify(response) });
-    window.alert("Login successful: " + JSON.stringify(response));
-    console.log("Login response:", response);
+  if (loginResponse) {
+    toast.show("Login successful", { message: JSON.stringify(loginResponse) });
+    window.alert("Login successful: " + JSON.stringify(loginResponse));
+    console.log("Login response:", loginResponse);
   }
-}, [response]);
+}, [loginResponse]);
+
+useEffect(()=>{
+  if(googleRegisterResponse){
+    setUser({
+      email : googleRegisterResponse.email,
+      userid : googleRegisterResponse.userid,
+      username : googleRegisterResponse.username,
+      accessToken : googleRegisterResponse.accessToken
+    })
+
+  }else if(microsoftRegisterResponse){
+    setUser({
+      email : microsoftRegisterResponse.email,
+      userid : microsoftRegisterResponse.userid,
+      username : microsoftRegisterResponse.username,
+      accessToken : microsoftRegisterResponse.accessToken
+    })
+  }else if(loginResponse){
+    setUser({
+      email : loginResponse.email,
+      userid : loginResponse.userid,
+      username : loginResponse.username,
+      accessToken : loginResponse.accessToken
+    })
+  }
+}, [googleRegisterResponse, microsoftRegisterResponse, loginResponse])
+
+useEffect(() => {
+  if(user != null){
+    console.log("User logged in:", user);
+    router.push(pagePath.fromRoot.dashboard as ExternalPathString);
+  }else{
+    console.log("No user logged in");
+    console.log("User state:", user);
+  }
+}, [user])
   
   return (
     <View>
       <Text>
         Login
       </Text>
-
-      {
-        userInfo && (
-          <Text>
-            userInfo: {JSON.stringify(userInfo)}
-          </Text>
-        )
-      }
 
       {/* {
         calendarEvents.length > 0 && (
@@ -229,13 +197,13 @@ console.log("userInfo:", JSON.stringify(userInfo))
       >
         <Button onPress={()=>{handleLogin()}}>Login with credential</Button>
         <Button onPress={()=>{googlePromptAsync()}}>register with google (rial)</Button>
-        <Button onPress={() => router.push(pagePath.fromRoot.registerScreen)}>Go to Register Screen</Button>
-        <Button onPress={() => router.push(pagePath.fromRoot.dashboard)}>Navigate to main screen</Button>
+        <Button onPress={() => router.push(pagePath.fromRoot.registerScreen as ExternalPathString)}>Go to Register Screen</Button>
+        <Button onPress={() => router.push(pagePath.fromRoot.dashboard as ExternalPathString)}>Navigate to main screen</Button>
         {/* <Button onPress={()=>{microsoftPromptAsync()}}>sign in with microsoft</Button> */}
         <Button onPress={()=>{microsoftPromptAsync()}}>Register with microsoft</Button>
 
       </View>
-      <Link href={pagePath.fromRoot.registerScreen}>Go to Register Screen</Link>
+      <Link href={pagePath.fromRoot.registerScreen as ExternalPathString}>Go to Register Screen</Link>
     </View>
   );
 }
