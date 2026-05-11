@@ -7,7 +7,7 @@ import { AccessTokenPayload } from 'src/auth/dto/accessToken.dto';
 
 @Controller('schedules')
 export class SchedulesController {
-  constructor(private readonly schedulesService: SchedulesService) {}
+  constructor(private readonly schedulesService: SchedulesService) { }
 
   @Post()
   @UseGuards(AuthGuard('jwt'))
@@ -31,8 +31,8 @@ export class SchedulesController {
 
   @Get()
   @UseGuards(AuthGuard('jwt'))
-  findAll() {
-    return this.schedulesService.findAll();
+  findAll(@Req() req) {
+    return this.schedulesService.findAll(req.user.userId);
   }
 
   @Get(':id')

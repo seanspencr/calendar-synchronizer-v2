@@ -97,7 +97,7 @@ export const setSearchParams = function (url: URL, ...objects: any[]) {
  * Converting a set to a string will return an empty object, so an intermediate conversion to an array is required.
  */
 // @ts-ignore
-export const replaceWithSerializableTypeIfNeeded = function(key: string, value: any) {
+export const replaceWithSerializableTypeIfNeeded = function (key: string, value: any) {
     if (value instanceof Set) {
         return Array.from(value);
     } else {
@@ -121,7 +121,7 @@ export const toPathString = function (url: URL) {
 
 export const createRequestFunction = function (axiosArgs: RequestArgs, globalAxios: AxiosInstance, BASE_PATH: string, configuration?: Configuration) {
     return <T = unknown, R = AxiosResponse<T>>(axios: AxiosInstance = globalAxios, basePath: string = BASE_PATH) => {
-        const axiosRequestArgs = {...axiosArgs.options, url: (axios.defaults.baseURL ? '' : configuration?.basePath ?? basePath) + axiosArgs.url};
+        const axiosRequestArgs = { ...axiosArgs.options, url: (axios.defaults.baseURL ? '' : configuration?.basePath ?? basePath) + axiosArgs.url };
         return axios.request<T, R>(axiosRequestArgs);
     };
 }

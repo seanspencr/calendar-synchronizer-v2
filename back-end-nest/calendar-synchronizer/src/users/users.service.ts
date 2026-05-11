@@ -1,7 +1,7 @@
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import {DatabaseService} from "../database/database.service";
+import { DatabaseService } from "../database/database.service";
 import { hash_password } from 'src/lib/hash_password';
 
 @Injectable()
@@ -27,7 +27,7 @@ export class UsersService {
     if (existingUser) {
       throw new UnprocessableEntityException("Email already registered, please login instead");
     }
-    return this.dbService.users.create({data : createUserDto});
+    return this.dbService.users.create({ data: createUserDto });
   }
 
   async createOauthUser(createUserDto: CreateUserDto) {
@@ -39,8 +39,8 @@ export class UsersService {
     if (existingUser) {
       throw new UnprocessableEntityException("Email already registered, please login instead");
     }
-    
-    return this.dbService.users.create({data : createUserDto});
+
+    return this.dbService.users.create({ data: createUserDto });
   }
 
   async findOauthUser(email: string) {
@@ -56,35 +56,38 @@ export class UsersService {
     return this.dbService.users.findUnique({
       where: {
         id: id
-      }});
+      }
+    });
   };
 
   async updateOauthUserRefreshToken(userid: string, provider: "google" | "microsoft", refresh_token: string) {
 
     const user = await this.findById(userid);
 
-    if(!user) {
+    if (!user) {
       throw new UnprocessableEntityException("User not found");
     }
 
-    if(provider === "google") {
-        return await this.dbService.users.update({
-            where: {
-              id: userid
-              }
-            , data: {
-                google_refresh_token: refresh_token
-            }
-        });
-    }else if(provider === "microsoft") {
-        return await this.dbService.users.update({
-            where: {
-                id: userid
-              }
-            , data: {
-                microsoft_refresh_token: refresh_token
-            }
-        });
+    if (provider === "google") {
+      console.log(`UserService : Updated user ${userid} with  google refresh token ${refresh_token} `)
+
+      return await this.dbService.users.update({
+        where: {
+          id: userid
+        }
+        , data: {
+          google_refresh_token: refresh_token
+        }
+      });
+    } else if (provider === "microsoft") {
+      return await this.dbService.users.update({
+        where: {
+          id: userid
+        }
+        , data: {
+          microsoft_refresh_token: refresh_token
+        }
+      });
     }
 
     throw new UnprocessableEntityException("Invalid provider");

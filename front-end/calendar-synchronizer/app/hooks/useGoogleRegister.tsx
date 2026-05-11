@@ -6,7 +6,7 @@ import { GoogleService } from "../services/googleService";
 import { Platform } from "react-native";
 import { StorageService } from "../services/storageService";
 import { LoginResponseDto } from "../api-client";
-
+import * as AuthSession from "expo-auth-session"
 export function useGoogleRegister() {
 
     const [gooogleRequest, googleResponse, promptAsync] = Google.useAuthRequest(googleConfig);
@@ -14,27 +14,38 @@ export function useGoogleRegister() {
     const [isError, setIsError] = useState(false);
 
     async function signInWithGoogle() {
-        if(googleResponse == null || googleResponse == undefined) return;
-        if(gooogleRequest == null || gooogleRequest == undefined) return;
+        if (googleResponse == null || googleResponse == undefined) return;
+        if (gooogleRequest == null || gooogleRequest == undefined) return;
         // signInWithGoogle();
 
         console.log(googleResponse)
         const code = googleResponse?.params?.code;
         const codeVerifier = gooogleRequest.codeVerifier;
-        const redirectUri = gooogleRequest.redirectUri;
-        
-        try{
+        // TODO : bikin if else dia di mobile atau di web, soalnya redirect URI di web beda ma di mobile
+        let redirectUri: string | undefined = undefined;
+
+        if (Platform.OS === "android") {
+            redirectUri = AuthSession.makeRedirectUri({
+                scheme: "calendarsynchronizer"
+            });
+        } else {
+            redirectUri = gooogleRequest.redirectUri;
+        }
+
+        console.log("Redirect URI : " + redirectUri)
+
+        try {
             let loginResponse = await GoogleService.loginWithGoogleAuthCode(code, codeVerifier!, redirectUri);
-            if(Platform.OS === "android"){
+            if (Platform.OS === "android") {
                 // simpen access token di secure storgae
                 await StorageService.saveAccessToken(loginResponse.accessToken);
             }
             setGoogleRegisterResponse(loginResponse);
-        }catch(error){
+        } catch (error) {
             console.error("Error during Google registration:", error);
             setIsError(true);
         }
-        
+
     }
 
     useEffect(() => {

@@ -10,8 +10,8 @@ import { JwtStrategy } from 'src/jwt/jwt.strategy';
 import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
-  imports : [DatabaseModule, AuthModule],
+  imports: [DatabaseModule, AuthModule],
   controllers: [SchedulesController],
   providers: [SchedulesService, MicrosoftScheduleService, GoogleScheduleService, JwtStrategy],
 })
-export class SchedulesModule {}
+export class SchedulesModule { }

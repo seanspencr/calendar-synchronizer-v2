@@ -18,49 +18,49 @@ export class AuthService {
         this.userService = userService;
     }
 
-    
-    public async login({username, password}: {username: string, password: string}) : Promise<AccessTokenPayload>{
-        let user : usersModel | undefined | null = await this.databaseService.users.findFirst({
+
+    public async login({ username, password }: { username: string, password: string }): Promise<AccessTokenPayload> {
+        let user: usersModel | undefined | null = await this.databaseService.users.findFirst({
             where: {
                 username: username
             }
         });
-        
+
         if (user == null || user == undefined) {
             throw new UnauthorizedException("User not found");
         }
 
-        if(!check_password(password, user.password!)){
+        if (!check_password(password, user.password!)) {
             throw new UnauthorizedException("Invalid password");
         }
 
-        
-        return {email : user.email, userId : user.email, username : user.username!};
+
+        return { email: user.email, userId: user.id, username: user.username! };
     }
 
-    public async register(createUserDto : CreateUserDto){
+    public async register(createUserDto: CreateUserDto) {
         return this.userService.create(createUserDto);
     }
 
-    public async dummyAuthMicrosoftUser(email : string) : Promise<AccessTokenPayload>{
+    public async dummyAuthMicrosoftUser(email: string): Promise<AccessTokenPayload> {
         let existingUser = await this.userService.findOauthUser(email);
-        if(existingUser){
+        if (existingUser) {
             return {
-                email : existingUser.email,
-                userId : existingUser.id,
-                username : existingUser.username!
+                email: existingUser.email,
+                userId: existingUser.id,
+                username: existingUser.username!
             };
         }
         throw new UnauthorizedException("User not found");
     }
 
-    public async dummyAuthGoogleUser(email : string) : Promise<AccessTokenPayload>{
+    public async dummyAuthGoogleUser(email: string): Promise<AccessTokenPayload> {
         let existingUser = await this.userService.findOauthUser(email);
-        if(existingUser){
+        if (existingUser) {
             return {
-                email : existingUser.email,
-                userId : existingUser.id,
-                username : existingUser.username!
+                email: existingUser.email,
+                userId: existingUser.id,
+                username: existingUser.username!
             };
         }
         throw new UnauthorizedException("User not found");

@@ -5,18 +5,20 @@ import { UsersModule } from './users/users.module';
 import { SchedulesModule } from './schedules/schedules.module';
 import { AuthModule } from './auth/auth.module';
 import { DatabaseModule } from './database/database.module';
-import {ConfigModule} from "@nestjs/config";
+import { ConfigModule } from "@nestjs/config";
+import { TasksModule } from './tasks/tasks.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath : './.env',
+      envFilePath: './.env',
       isGlobal: true,
     }),
-      UsersModule,
+    UsersModule,
     SchedulesModule,
     AuthModule,
-    DatabaseModule],
+    DatabaseModule,
+    TasksModule],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

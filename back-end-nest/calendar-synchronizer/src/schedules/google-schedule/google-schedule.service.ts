@@ -6,20 +6,20 @@ import axios from 'axios';
 @Injectable()
 export class GoogleScheduleService {
 
-    constructor(private googleAuthService: GoogleAuthService) {}
+    constructor(private googleAuthService: GoogleAuthService) { }
 
     applyGoogleEventIdPrefix(eventId: string): string {
         return `google-${eventId}`;
     }
 
-    async getGoogleCalendarEvents(email: string) : Promise<GoogleCalendarEventsNormalized[]> {
+    async getGoogleCalendarEvents(email: string): Promise<GoogleCalendarEventsNormalized[]> {
         const accessToken = await this.googleAuthService.getGoogleAccessToken(email);
-        
+
         if (!accessToken) {
             throw new Error("Failed to get Google access token");
         }
 
-        const calendarIds : GoogleCalendarIdResponse[] = await this.getGoogleCalendarIds(email);
+        const calendarIds: GoogleCalendarIdResponse[] = await this.getGoogleCalendarIds(email);
 
         const eventsPromises = calendarIds.map(async (calendar) => {
             try {
@@ -43,32 +43,32 @@ export class GoogleScheduleService {
         return results.flat();
     }
 
-    async getGoogleCalendarIds(email : string): Promise<GoogleCalendarIdResponse[]> {
+    async getGoogleCalendarIds(email: string): Promise<GoogleCalendarIdResponse[]> {
         let url = "https://www.googleapis.com/calendar/v3/users/me/calendarList?fields=items(kind,id)";
 
         const accessToken = await this.googleAuthService.getGoogleAccessToken(email);
 
-        try{
-            let response =await axios.get(url, {
-                headers:{
+        try {
+            let response = await axios.get(url, {
+                headers: {
                     'Authorization': `Bearer ${accessToken}`,
                     'Content-Type': 'application/json',
                 }
             })
 
             return response.data.items
-            .filter((item: any) => item.kind === 'calendar#calendarListEntry')
-            .map((item: any) => ({
-                kind: item.kind,
-                id: item.id
-            }))
-            .filter((item): item is GoogleCalendarIdResponse => !!item.id);
+                .filter((item: any) => item.kind === 'calendar#calendarListEntry')
+                .map((item: any) => ({
+                    kind: item.kind,
+                    id: item.id
+                }))
+                .filter((item): item is GoogleCalendarIdResponse => !!item.id);
 
 
-        }catch(error){
+        } catch (error) {
             throw new Error(`Google Calendar API error: ${error.response?.data?.error?.message || error.message}`);
         }
     }
 
-    
+
 }

@@ -9,12 +9,12 @@ import { AccessTokenPayload } from '../dto/accessToken.dto';
 export class GoogleAuthService {
 
 
-    constructor(private userService: UsersService, private configService: ConfigService) {}
+    constructor(private userService: UsersService, private configService: ConfigService) { }
 
-    async getGoogleAccessToken(email : string) : Promise<string | null> {
+    async getGoogleAccessToken(email: string): Promise<string | null> {
         const user = await this.userService.findOauthUser(email);
-        
-        if(!user || !user.google_refresh_token) {
+
+        if (!user || !user.google_refresh_token) {
             console.error(`No user found with email ${email} or user does not have a Google refresh token`);
             throw new UnauthorizedException("User not found or does not have a Google refresh token");
         }
@@ -31,17 +31,18 @@ export class GoogleAuthService {
 
 
         try {
-        const response = await axios.post('https://oauth2.googleapis.com/token', params, {
-            headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            },
-        });
+            const response = await axios.post('https://oauth2.googleapis.com/token', params, {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+            });
 
-        if (response.data.access_token) {
-            return response.data.access_token;
-        }
+            if (response.data.access_token) {
+                return response.data.access_token;
+            }
 
-        throw new UnauthorizedException('Failed to refresh Google token');
+            throw new UnauthorizedException('Failed to refresh Google token');
+
         } catch (error) {
             console.error('Google token refresh error:', error.response?.data || error.message);
             throw new UnauthorizedException('Failed to refresh Google token');
@@ -50,7 +51,7 @@ export class GoogleAuthService {
     }
 
 
-    public async authGoogleUser(googleAuthCode : string,  codeVerifier: string, redirectUri: string) : Promise<AccessTokenPayload>{
+    public async authGoogleUser(googleAuthCode: string, codeVerifier: string, redirectUri: string): Promise<AccessTokenPayload> {
         // handle token exchange dan get refresh token (gara2 gw google clound consolenya buat web pdhl hrsnya bisa auto)
         const api_url = "https://oauth2.googleapis.com/token";
         const params = new URLSearchParams();
@@ -64,11 +65,12 @@ export class GoogleAuthService {
         console.log("Redirect URI:", redirectUri);
         console.log("Exchanging code for token with Google, params:", params.toString());
 
-        try{
-            const tokenResponse : GoogleTokenResponse = (await axios.post(api_url, params.toString(), {
+        try {
+            const tokenResponse: GoogleTokenResponse = (await axios.post(api_url, params.toString(), {
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
-                },})).data;
+                },
+            })).data;
             console.log("Google token response:", tokenResponse);
 
 
@@ -83,35 +85,39 @@ export class GoogleAuthService {
 
             // if exist
             let existing = await this.userService.findOauthUser(email);
-            if(existing){
+
+            if (existing) {
+
+                this.userService.updateOauthUserRefreshToken(existing.id, "google", tokenResponse.refresh_token!);
+
                 return {
-                    email : existing.email,
-                    userId : existing.email,
-                    username : existing.username!
+                    email: existing.email,
+                    userId: existing.email,
+                    username: existing.username!
                 };
             }
 
             // klo gaada, daftarin baru
             const refreshToken = tokenResponse.refresh_token;
-            if(!refreshToken){
+            if (!refreshToken) {
                 throw new UnauthorizedException("Failed to obtain refresh token from Google");
             }
-            
+
             let newUser = await this.userService.createOauthUser({
                 email: email,
                 password: "null",
                 username: name,
                 google_refresh_token: refreshToken
             });
-            
+
             return {
-                email : newUser.email,
-                userId : newUser.email,
-                username : newUser.username!
+                email: newUser.email,
+                userId: newUser.email,
+                username: newUser.username!
             };
 
-            
-        }catch(error){
+
+        } catch (error) {
             console.error("Error exchanging code for token:", error.response.data);
             console.error("Error response status:", error.response.status);
             console.error("Error request headers:", error.config.headers);

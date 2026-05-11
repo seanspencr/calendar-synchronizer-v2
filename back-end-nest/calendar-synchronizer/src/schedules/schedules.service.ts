@@ -23,11 +23,11 @@ export class SchedulesService {
 
   upsertManyByExternalEventId(createScheduleDtos: CreateScheduleDto[]) {
     return Promise.all(
-    createScheduleDtos.map((dto : CreateScheduleDto) => {
-      console.log("Upserting schedule : ", dto.external_event_id, " from provider: ", dto.schedule_provider);
+      createScheduleDtos.map((dto: CreateScheduleDto) => {
+        console.log("Upserting schedule : ", dto.external_event_id, " from provider: ", dto.schedule_provider);
         return this.databaseService.schedules.upsert({
           where: {
-            external_event_id_schedule_provider : {
+            external_event_id_schedule_provider: {
               external_event_id: dto.external_event_id!,
               schedule_provider: dto.schedule_provider!,
             }
@@ -49,12 +49,17 @@ export class SchedulesService {
           },
         })
       }
-    )
-  );
+      )
+    );
   }
 
-  findAll() {
-    return `This action returns all schedules`;
+  findAll(userId: string) {
+    // TODO : query juga schedula recurrences
+    return this.databaseService.schedules.findMany({
+      where: {
+        created_by: userId
+      }
+    });
   }
 
   findOne(id: number) {
@@ -69,12 +74,12 @@ export class SchedulesService {
     return `This action removes a #${id} schedule`;
   }
 
-  async syncMicrosoftEvents(issuer: AccessTokenPayload){
+  async syncMicrosoftEvents(issuer: AccessTokenPayload) {
     console.log("Syncing Microsoft Events for user: ", issuer.email);
 
     let microsoftCalendarEvents = await this.microsoftScheduleService.getMicrosoftCalendarEvents(issuer.email);
 
-    let createScheduleDtos : CreateScheduleDto[] = microsoftCalendarEvents.map((event : MicrosoftEvent) => {
+    let createScheduleDtos: CreateScheduleDto[] = microsoftCalendarEvents.map((event: MicrosoftEvent) => {
       return {
         event: event.subject,
         event_date: convertToUTC(new Date(event.start.dateTime), event.start.timeZone),
@@ -89,20 +94,20 @@ export class SchedulesService {
     return await this.upsertManyByExternalEventId(createScheduleDtos);
   }
 
-  async syncGoogleEvents(issuer: AccessTokenPayload){
+  async syncGoogleEvents(issuer: AccessTokenPayload) {
     console.log("Syncing Google Events for user: ", issuer.email, " and userId: ", issuer.userId);
-    let googleEvents : GoogleCalendarEventsNormalized[] = await this.googleScheduleService.getGoogleCalendarEvents(issuer.email);
-    
-    let createScheduleDtos : CreateScheduleDto[] = googleEvents.map((event : GoogleCalendarEventsNormalized) => {
-      const domainEvent : Partial<CreateScheduleDto> = {
+    let googleEvents: GoogleCalendarEventsNormalized[] = await this.googleScheduleService.getGoogleCalendarEvents(issuer.email);
+
+    let createScheduleDtos: CreateScheduleDto[] = googleEvents.map((event: GoogleCalendarEventsNormalized) => {
+      const domainEvent: Partial<CreateScheduleDto> = {
         user_id: issuer.userId,
         schedule_provider: schedule_provider.GOOGLE,
         event: event.summary,
       }
 
-      if(!event.start.dateTime || !event.end.dateTime) {
+      if (!event.start.dateTime || !event.end.dateTime) {
         domainEvent.event_date = event.start.date
-      }else{
+      } else {
         domainEvent.event_date = event.start.dateTime;
         domainEvent.start_time = convertToUTC(new Date(event.start.dateTime), event.start.timeZone);
         domainEvent.end_time = convertToUTC(new Date(event.end.dateTime), event.end.timeZone);

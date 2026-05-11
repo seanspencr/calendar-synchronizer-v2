@@ -54,6 +54,24 @@ model users {
   microsoft_refresh_token String?
   schedule_recurrences    schedule_recurrences[]
   schedules               schedules[]
+  tasks                   tasks[]
+
+  @@schema("calendar_synchronizer")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model tasks {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title          String
+  parent_task_id String?   @db.Uuid
+  description    String?
+  deadline       DateTime? @db.Timestamptz(6)
+  created_at     DateTime  @default(now()) @db.Timestamptz(6)
+  user_id        String    @db.Uuid
+  completed      Boolean   @default(false)
+  tasks          tasks?    @relation("tasksTotasks", fields: [parent_task_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "recursive_parent_key")
+  other_tasks    tasks[]   @relation("tasksTotasks")
+  users          users     @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@schema("calendar_synchronizer")
 }
