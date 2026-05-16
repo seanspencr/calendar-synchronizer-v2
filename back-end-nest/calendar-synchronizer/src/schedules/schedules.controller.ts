@@ -4,6 +4,7 @@ import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { AccessTokenPayload } from 'src/auth/dto/accessToken.dto';
+import { CreateScheduleNaturalLanguageDto } from './dto/create-schedule-natural-language';
 
 @Controller('schedules')
 export class SchedulesController {
@@ -14,6 +15,13 @@ export class SchedulesController {
   create(@Body() createScheduleDto: CreateScheduleDto) {
     return this.schedulesService.create(createScheduleDto);
   }
+
+  @Post('/natural-language')
+  @UseGuards(AuthGuard('jwt'))
+  createWithNaturalLanguage(@Body() query: CreateScheduleNaturalLanguageDto, @Req() req) {
+    return this.schedulesService.createWithNaturalLanguage(query.query, req.user as AccessTokenPayload);
+  }
+
 
   @Post('/sync/microsoft')
   @UseGuards(AuthGuard('jwt'))
