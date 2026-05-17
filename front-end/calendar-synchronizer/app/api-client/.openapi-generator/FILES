@@ -6,6 +6,8 @@ common.ts
 configuration.ts
 docs/AppApi.md
 docs/AuthApi.md
+docs/CreateScheduleNaturalLanguageDto.md
+docs/CreateTaskDto.md
 docs/CreateUserDto.md
 docs/DummyGoogleLoginDto.md
 docs/DummyMicrosoftLoginDto.md
@@ -14,6 +16,7 @@ docs/LoginDto.md
 docs/LoginResponseDto.md
 docs/MicrosoftAuthDto.md
 docs/SchedulesApi.md
+docs/TasksApi.md
 docs/UsersApi.md
 git_push.sh
 index.ts
