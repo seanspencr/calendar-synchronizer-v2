@@ -5,7 +5,8 @@ export const pagePath = {
         loginScreen : "(auth)/index",
         main : "(main)",
         dashboard : "(main)/dashboard",
-        profile : "(main)/profile"
+        profile : "(main)/profile",
+        scheduleDetail : "(main)/schedule"
     },
 
     fromMain : {
@@ -13,6 +14,7 @@ export const pagePath = {
         loginScreen : "../(auth)/index",
         main : "./",
         dashboard : "dashboard",
-        profile : "profile"
+        profile : "profile",
+        scheduleDetail : "schedule"
     }
-}
+}

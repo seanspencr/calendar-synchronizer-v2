@@ -12,10 +12,10 @@ export default function RootLayout() {
     <TamaguiProvider config={config} defaultTheme="dark">
       <ToastProvider>
         <UserProvider>
-          <Stack initialRouteName={pagePath.fromRoot.loginScreen} screenOptions={{contentStyle : { backgroundColor: '#001200' }}}>
-            <Stack.Screen name={pagePath.fromRoot.main} options={{ title: "Home" }} />
+          <Stack initialRouteName={pagePath.fromRoot.loginScreen} screenOptions={{ contentStyle: { backgroundColor: '#001200' } }}>
+            <Stack.Screen name={pagePath.fromRoot.main} options={{ headerShown: false }} />
             <Stack.Screen name={pagePath.fromRoot.registerScreen} options={{ headerShown: false }} />
-            <Stack.Screen name={pagePath.fromRoot.loginScreen}  options={{ headerShown: false }} />
+            <Stack.Screen name={pagePath.fromRoot.loginScreen} options={{ headerShown: false }} />
           </Stack>
         </UserProvider>
       </ToastProvider>

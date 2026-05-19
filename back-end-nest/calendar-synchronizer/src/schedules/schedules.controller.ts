@@ -22,7 +22,6 @@ export class SchedulesController {
     return this.schedulesService.createWithNaturalLanguage(query.query, req.user as AccessTokenPayload);
   }
 
-
   @Post('/sync/microsoft')
   @UseGuards(AuthGuard('jwt'))
   syncMicrosoftEvents(@Req() req) {

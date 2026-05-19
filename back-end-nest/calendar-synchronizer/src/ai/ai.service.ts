@@ -54,7 +54,7 @@ export class AiService {
                                 text: query,
                             },
                         ],
-                    },
+                },
                 ],
                 generationConfig: {
                     responseMimeType: 'application/json',
