@@ -6,6 +6,7 @@ import { SidebarTabBar, type SidebarTab } from './SidebarTabBar';
 import { TaskListPanel } from './TaskListPanel';
 import { EventListPanel } from './EventListPanel';
 import { ChatbotPanel } from './ChatbotPanel';
+import { CreateDialog } from '../create-dialog';
 import type { TaskDto, ScheduleDto, ChatMessage, UserProfile } from './types';
 
 interface DashboardSidebarProps {
@@ -29,6 +30,7 @@ export function DashboardSidebar({
   onSendChat,
 }: DashboardSidebarProps) {
   const [activeTab, setActiveTab] = useState<SidebarTab>('tasks');
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   return (
     <YStack
@@ -68,6 +70,8 @@ export function DashboardSidebar({
           borderRadius="$3"
           height={44}
           icon={<Feather name="plus-circle" size={18} color="#fff" />}
+          pressStyle={{ opacity: 0.85 }}
+          onPress={() => setIsCreateOpen(true)}
         >
           <Text color="#fff" fontWeight="600" fontSize="$3">
             Create New
@@ -92,6 +96,13 @@ export function DashboardSidebar({
           LAST SYNC: {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} UTC
         </Text>
       </YStack>
+
+      {/* Create dialog overlay */}
+      <CreateDialog
+        open={isCreateOpen}
+        onClose={() => setIsCreateOpen(false)}
+      />
     </YStack>
   );
 }
+

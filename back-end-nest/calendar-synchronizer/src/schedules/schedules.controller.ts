@@ -5,6 +5,7 @@ import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { AccessTokenPayload } from 'src/auth/dto/accessToken.dto';
 import { CreateScheduleNaturalLanguageDto } from './dto/create-schedule-natural-language';
+import { ScheduleDto } from './dto/schedule.dto';
 
 @Controller('schedules')
 export class SchedulesController {
@@ -38,7 +39,7 @@ export class SchedulesController {
 
   @Get()
   @UseGuards(AuthGuard('jwt'))
-  findAll(@Req() req) {
+  findAll(@Req() req) : Promise<ScheduleDto[]> {
     return this.schedulesService.findAll(req.user.userId);
   }
 
