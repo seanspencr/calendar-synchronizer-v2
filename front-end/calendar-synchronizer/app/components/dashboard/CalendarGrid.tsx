@@ -8,8 +8,6 @@ const DAYS_OF_WEEK = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
 interface CalendarGridProps {
   events: ScheduleDto[];
-  viewMode: 'month' | 'week';
-  onViewModeChange: (mode: 'month' | 'week') => void;
 }
 
 function getEventColor(source?: string): string {
@@ -61,7 +59,7 @@ function DayCell({ day, events, isToday, onEventPress }: { day: number | null; e
   );
 }
 
-export function CalendarGrid({ events, viewMode, onViewModeChange }: CalendarGridProps) {
+export function CalendarGrid({ events }: CalendarGridProps) {
   const router = useRouter();
   const [currentDate, setCurrentDate] = useState(new Date(2024, 8, 1));
   const year = currentDate.getFullYear();
@@ -92,7 +90,7 @@ export function CalendarGrid({ events, viewMode, onViewModeChange }: CalendarGri
   while (rows.length > 0 && rows[rows.length - 1].length < 7) rows[rows.length - 1].push(null);
 
   return (
-    <YStack flex={1} backgroundColor="$color1" borderRadius="$4" padding="$3">
+    <YStack backgroundColor="$color1" borderRadius="$4" padding="$3">
       <XStack justifyContent="space-between" alignItems="center" marginBottom="$3">
         <XStack alignItems="center" gap="$2">
           <Text fontSize="$7" fontWeight="700" color="$color12">{monthLabel}</Text>
@@ -104,14 +102,6 @@ export function CalendarGrid({ events, viewMode, onViewModeChange }: CalendarGri
               <Feather name="chevron-right" size={16} color="#aaa" />
             </Button>
           </XStack>
-        </XStack>
-        <XStack borderWidth={1} borderColor="$color5" borderRadius="$3" overflow="hidden">
-          <Button unstyled onPress={() => onViewModeChange('month')} paddingHorizontal="$3" paddingVertical="$1.5" backgroundColor={viewMode === 'month' ? '$color4' : 'transparent'}>
-            <Text fontSize="$2" fontWeight="600" color={viewMode === 'month' ? '$color12' : '$color8'}>Month</Text>
-          </Button>
-          <Button unstyled onPress={() => onViewModeChange('week')} paddingHorizontal="$3" paddingVertical="$1.5" backgroundColor={viewMode === 'week' ? '$color4' : 'transparent'}>
-            <Text fontSize="$2" fontWeight="600" color={viewMode === 'week' ? '$color12' : '$color8'}>Week</Text>
-          </Button>
         </XStack>
       </XStack>
       <XStack>

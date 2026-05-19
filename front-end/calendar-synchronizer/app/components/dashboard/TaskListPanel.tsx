@@ -10,7 +10,7 @@ interface TaskListPanelProps {
 }
 
 /** Single task item with checkbox and clickable text area */
-function TaskItem({
+export function TaskItem({
   task,
   onToggle,
   onPress,
