@@ -1,0 +1,1 @@
+please refactor hooks that does a network request to be singular (separate the CRUD operation in hookss). rename the file and the function to be intuitive, and make sure the code is still functional

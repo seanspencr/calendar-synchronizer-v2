@@ -2,7 +2,9 @@ import React from 'react';
 import { YStack, XStack, ScrollView, Text, Spinner } from 'tamagui';
 import { useRouter } from 'expo-router';
 import { ExternalPathString } from 'expo-router';
-import { useProfile } from '../hooks/useProfile';
+import { useGetProfile } from '../hooks/useGetProfile';
+import { useBindGoogle } from '../hooks/useBindGoogle';
+import { useBindMicrosoft } from '../hooks/useBindMicrosoft';
 import { useUser } from '../context/currentUserContext';
 import { pagePath } from '../lib/constants';
 import {
@@ -20,7 +22,9 @@ import { NavigationRail } from '../components/dashboard';
 export default function ProfileScreen() {
   const router = useRouter();
   const { logout } = useUser();
-  const { profile, isLoading, error, bindGoogle, bindMicrosoft } = useProfile();
+  const { profile, setProfile, isLoading, error } = useGetProfile();
+  const { bindGoogle } = useBindGoogle(setProfile);
+  const { bindMicrosoft } = useBindMicrosoft(setProfile);
 
   /** Handle logout: clear session and navigate to login */
   const handleLogout = async () => {

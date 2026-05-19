@@ -2,7 +2,8 @@ import React, { useState, useCallback } from 'react';
 import { YStack, XStack, ScrollView, Text, Spinner, Button } from 'tamagui';
 import Feather from '@expo/vector-icons/Feather';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useScheduleDetail } from '../../hooks/useScheduleDetail';
+import { useGetScheduleDetail } from '../../hooks/useGetScheduleDetail';
+import { useUpdateSchedule } from '../../hooks/useUpdateSchedule';
 import {
   ScheduleDetailHeader,
   ScheduleInfoBar,
@@ -53,9 +54,8 @@ function buildRecurrenceLabel(
 export default function ScheduleDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { schedule, isLoading, error, updateSchedule } = useScheduleDetail(
-    id ?? '',
-  );
+  const { schedule, setSchedule, isLoading, error } = useGetScheduleDetail(id ?? '');
+  const { updateSchedule } = useUpdateSchedule(setSchedule);
 
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<ScheduleEditFormData>({

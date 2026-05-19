@@ -2,7 +2,9 @@ import React, { useState, useCallback } from 'react';
 import { YStack, XStack, ScrollView, Text, Spinner, Button } from 'tamagui';
 import Feather from '@expo/vector-icons/Feather';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useTaskDetail } from '../../hooks/useTaskDetail';
+import { useGetTaskDetail } from '../../hooks/useGetTaskDetail';
+import { useUpdateTask } from '../../hooks/useUpdateTask';
+import { useToggleSubtask } from '../../hooks/useToggleSubtask';
 import {
   TaskDetailHeader,
   TaskDescription,
@@ -36,9 +38,9 @@ function formatDeadline(iso: string): string {
 export default function TaskDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { task, isLoading, error, updateTask, toggleSubtask } = useTaskDetail(
-    id ?? '',
-  );
+  const { task, setTask, isLoading, error } = useGetTaskDetail(id ?? '');
+  const { updateTask } = useUpdateTask(setTask);
+  const { toggleSubtask } = useToggleSubtask(setTask);
 
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<TaskEditFormData>({

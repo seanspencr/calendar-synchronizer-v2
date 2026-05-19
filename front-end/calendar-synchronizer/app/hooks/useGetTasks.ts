@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import type { TaskDto } from '../components/dashboard/types';
 
 /** Dummy task data simulating API responses */
@@ -41,35 +41,14 @@ const DUMMY_TASKS: TaskDto[] = [
   },
 ];
 
-export interface UseTasksReturn {
-  tasks: TaskDto[];
-  isLoading: boolean;
-  error: string | null;
-  toggleTask: (id: string) => void;
-  refetch: () => void;
-}
-
 /**
- * Dummy hook for fetching and managing tasks.
- * Replace with real API integration using TasksApi.
+ * Fetches the list of all tasks.
+ * Replace with real API call: GET /tasks
  */
-export function useTasks(): UseTasksReturn {
+export function useGetTasks() {
   const [tasks, setTasks] = useState<TaskDto[]>(DUMMY_TASKS);
   const [isLoading] = useState(false);
   const [error] = useState<string | null>(null);
 
-  const toggleTask = useCallback((id: string) => {
-    setTasks((prev) =>
-      prev.map((task) =>
-        task.id === id ? { ...task, completed: !task.completed } : task,
-      ),
-    );
-  }, []);
-
-  const refetch = useCallback(() => {
-    // In a real implementation, this would call tasksApi.tasksControllerFindAll()
-    setTasks(DUMMY_TASKS);
-  }, []);
-
-  return { tasks, isLoading, error, toggleTask, refetch };
+  return { tasks, setTasks, isLoading, error };
 }

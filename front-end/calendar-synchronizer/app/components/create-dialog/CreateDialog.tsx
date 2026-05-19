@@ -4,7 +4,8 @@ import Feather from '@expo/vector-icons/Feather';
 import { CreateDialogTabBar } from './CreateDialogTabBar';
 import { CreateTaskForm } from './CreateTaskForm';
 import { CreateScheduleForm } from './CreateScheduleForm';
-import { useCreateMutation } from '../../hooks/useCreateMutation';
+import { useCreateTask } from '../../hooks/useCreateTask';
+import { useCreateSchedule } from '../../hooks/useCreateSchedule';
 import type {
   CreateDialogMode,
   CreateTaskFormData,
@@ -41,8 +42,12 @@ export function CreateDialog({ open, onClose }: CreateDialogProps) {
   const [scheduleForm, setScheduleForm] =
     useState<CreateScheduleFormData>(INITIAL_SCHEDULE);
 
-  const { createTask, createSchedule, isSubmitting, error, successMessage } =
-    useCreateMutation();
+  const { createTask, isSubmitting: isSubmittingTask, error: taskError, successMessage: taskSuccess } = useCreateTask();
+  const { createSchedule, isSubmitting: isSubmittingSchedule, error: scheduleError, successMessage: scheduleSuccess } = useCreateSchedule();
+
+  const isSubmitting = isSubmittingTask || isSubmittingSchedule;
+  const error = mode === 'task' ? taskError : scheduleError;
+  const successMessage = mode === 'task' ? taskSuccess : scheduleSuccess;
 
   /** Reset forms and close */
   const handleClose = useCallback(() => {

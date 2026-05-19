@@ -6,28 +6,38 @@ import {
   NavigationRail,
   TaskColumnPanel,
 } from '../components/dashboard';
-import { useTasks } from '../hooks/useTasks';
-import { useSchedules } from '../hooks/useSchedules';
-import { useChatbot } from '../hooks/useChatbot';
-import { useDailyQuest } from '../hooks/useDailyQuest';
+import { useGetTasks } from '../hooks/useGetTasks';
+import { useToggleTask } from '../hooks/useToggleTask';
+import { useGetSchedules } from '../hooks/useGetSchedules';
+import { useGetChatMessages } from '../hooks/useGetChatMessages';
+import { useSendChatMessage } from '../hooks/useSendChatMessage';
+import { useGetDailyQuests } from '../hooks/useGetDailyQuests';
+import { useCommitTask } from '../hooks/useCommitTask';
+import { useUncommitTask } from '../hooks/useUncommitTask';
 import { useUser } from '../context/currentUserContext';
 import type { UserProfile } from '../components/dashboard/types';
 
 export default function DashboardScreen() {
   const { user } = useUser();
-  const { tasks, toggleTask } = useTasks();
-  const { schedules } = useSchedules();
-  const { messages, isTyping, sendMessage } = useChatbot();
-  const { dailyQuestIds, commitTask, uncommitTask } = useDailyQuest();
 
-  // Build user profile from context (fallback for dummy display)
+  // Query hooks
+  const { tasks, setTasks } = useGetTasks();
+  const { schedules } = useGetSchedules();
+  const { messages, setMessages } = useGetChatMessages();
+  const { dailyQuestIds, setDailyQuestIds } = useGetDailyQuests();
+
+  // Mutation hooks
+  const { toggleTask } = useToggleTask(setTasks);
+  const { sendMessage, isTyping } = useSendChatMessage(setMessages);
+  const { commitTask } = useCommitTask(setDailyQuestIds);
+  const { uncommitTask } = useUncommitTask(setDailyQuestIds);
+
   const userProfile: UserProfile = {
     userid: user?.userid ?? 'demo-user',
     username: user?.username ?? 'Strategy Hub',
     email: user?.email ?? 'user@example.com',
   };
 
-  // Split tasks into daily quest vs all (remaining)
   const dailyTasks = useMemo(
     () => tasks.filter((t) => dailyQuestIds.has(t.id)),
     [tasks, dailyQuestIds],
@@ -39,16 +49,12 @@ export default function DashboardScreen() {
 
   return (
     <XStack flex={1} backgroundColor="$color1">
-      {/* Left navigation rail */}
       <NavigationRail />
 
-      {/* Main content area */}
       <YStack flex={1}>
         <ScrollView flex={1} showsVerticalScrollIndicator={false}>
-          {/* Calendar */}
           <CalendarGrid events={schedules} />
 
-          {/* Daily Quest + All Tasks columns */}
           <XStack gap="$3" padding="$3" minHeight={250}>
             <TaskColumnPanel
               title="Daily Quest"
@@ -74,7 +80,6 @@ export default function DashboardScreen() {
         </ScrollView>
       </YStack>
 
-      {/* Right sidebar */}
       <DashboardSidebar
         user={userProfile}
         tasks={tasks}
