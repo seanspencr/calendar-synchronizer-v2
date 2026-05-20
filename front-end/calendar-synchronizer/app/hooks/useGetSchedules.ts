@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import type { ScheduleDto } from '../components/dashboard/types';
+import { ScheduleService } from '../services/scheduleService';
+import { ScheduleDto } from '../api-client';
 
 /** Dummy event data simulating API responses */
 const DUMMY_SCHEDULES: ScheduleDto[] = [
@@ -36,9 +37,23 @@ const DUMMY_SCHEDULES: ScheduleDto[] = [
  * Replace with real API call: GET /schedules
  */
 export function useGetSchedules() {
-  const [schedules] = useState<ScheduleDto[]>(DUMMY_SCHEDULES);
-  const [isLoading] = useState(false);
-  const [error] = useState<string | null>(null);
+  const [schedules, setSchedules] = useState<ScheduleDto[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  return { schedules, isLoading, error };
+  async function fetchSchedules() {
+    try{
+      setIsLoading(true);
+      const schedules = await ScheduleService.findAll();
+      setSchedules(schedules);
+
+    }catch(err){
+      setIsLoading(false)
+      setError(err instanceof Error ? err.message : 'Failed to fetch schedules');
+      console.error("Error fetching schedules:", err);
+    }
+  }
+
+
+  return { fetchSchedules, schedules, isLoading, error };
 }

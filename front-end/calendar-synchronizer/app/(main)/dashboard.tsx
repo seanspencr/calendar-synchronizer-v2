@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { XStack, YStack, ScrollView } from 'tamagui';
 import {
   CalendarGrid,
@@ -22,7 +22,7 @@ export default function DashboardScreen() {
 
   // Query hooks
   const { tasks, setTasks } = useGetTasks();
-  const { schedules } = useGetSchedules();
+  const { fetchSchedules, schedules, isLoading, error } = useGetSchedules();
   const { messages, setMessages } = useGetChatMessages();
   const { dailyQuestIds, setDailyQuestIds } = useGetDailyQuests();
 
@@ -46,6 +46,10 @@ export default function DashboardScreen() {
     () => tasks.filter((t) => !dailyQuestIds.has(t.id)),
     [tasks, dailyQuestIds],
   );
+
+  useEffect(()=>{
+    fetchSchedules();
+  }, []);
 
   return (
     <XStack flex={1} backgroundColor="$color1">

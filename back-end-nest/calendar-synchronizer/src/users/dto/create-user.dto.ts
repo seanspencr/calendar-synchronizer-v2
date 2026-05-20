@@ -7,7 +7,10 @@ export class CreateUserDto implements usersCreateInput{
     @ApiProperty()
     password: string;
     @ApiProperty()
-    email: string;
+    google_email: string | null;
+
+    @ApiProperty()
+    microsoft_email: string | null;
 
     @ApiProperty({required: false})
     google_refresh_token?: string | null | undefined;

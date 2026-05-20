@@ -16,6 +16,7 @@ export function useGoogleRegister() {
     async function signInWithGoogle() {
         if (googleResponse == null || googleResponse == undefined) return;
         if (gooogleRequest == null || gooogleRequest == undefined) return;
+        if (googleResponse?.type !== "success") return;
         // signInWithGoogle();
 
         console.log(googleResponse)
@@ -36,10 +37,9 @@ export function useGoogleRegister() {
 
         try {
             let loginResponse = await GoogleService.loginWithGoogleAuthCode(code, codeVerifier!, redirectUri);
-            if (Platform.OS === "android") {
-                // simpen access token di secure storgae
-                await StorageService.saveAccessToken(loginResponse.accessToken);
-            }
+            
+            await StorageService.saveAccessToken(loginResponse.accessToken)
+            
             setGoogleRegisterResponse(loginResponse);
         } catch (error) {
             console.error("Error during Google registration:", error);
@@ -50,7 +50,7 @@ export function useGoogleRegister() {
 
     useEffect(() => {
         signInWithGoogle();
-    }, [gooogleRequest, googleResponse]);
+    }, [googleResponse]);
 
 
     return { isError, registerResponse, promptAsync };

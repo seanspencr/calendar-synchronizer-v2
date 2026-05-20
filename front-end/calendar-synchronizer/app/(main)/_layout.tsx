@@ -1,7 +1,6 @@
 import { Tabs } from "expo-router";
 import { YStack, XStack, Text } from "tamagui";
 import Feather from "@expo/vector-icons/Feather";
-import { pagePath } from "../lib/constants";
 
 /** Global top bar displaying the app name */
 function AppTopBar() {
@@ -28,14 +27,14 @@ export default function TabLayout() {
     <YStack flex={1}>
       <AppTopBar />
       <Tabs
-        initialRouteName={pagePath.fromMain.dashboard}
+        initialRouteName={"dashboard"}
         screenOptions={{ headerShown: false, tabBarStyle: { display: "none" } }}
       >
-        <Tabs.Screen name={pagePath.fromMain.dashboard} options={{ title: "Dashboard" }} />
-        <Tabs.Screen name={pagePath.fromMain.profile} options={{ title: "Profile" }} />
+        <Tabs.Screen name={'dashboard'} options={{ title: "Dashboard" }} />
+        <Tabs.Screen name={'profile'} options={{ title: "Profile" }} />
         <Tabs.Screen name="schedule/[id]" options={{ title: "Schedule Detail", href: null }} />
         <Tabs.Screen name="task/[id]" options={{ title: "Task Detail", href: null }} />
       </Tabs>
     </YStack>
   );
-}
+}

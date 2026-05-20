@@ -2,7 +2,7 @@ import React from 'react';
 import { YStack, XStack, Text, ScrollView } from 'tamagui';
 import Feather from '@expo/vector-icons/Feather';
 import { useRouter } from 'expo-router';
-import type { ScheduleDto } from './types';
+import { ScheduleDto } from '../../api-client';
 
 interface EventListPanelProps {
   events: ScheduleDto[];
@@ -105,7 +105,7 @@ function EventItem({ event, onPress }: { event: ScheduleDto; onPress: () => void
 export function EventListPanel({ events }: EventListPanelProps) {
   const router = useRouter();
   const sorted = [...events].sort(
-    (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
+    (a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime(),
   );
 
   return (

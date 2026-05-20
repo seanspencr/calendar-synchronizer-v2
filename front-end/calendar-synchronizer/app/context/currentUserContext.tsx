@@ -1,33 +1,23 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { StorageService } from '../services/storageService';
-
-interface User {
-  email: string;
-  username : string;
-  userid: string;
-  accessToken: string | null;
-}
+import { LoginResponseDto } from '../api-client';
 
 interface UserContextType {
-  user: User | null;
+  user: LoginResponseDto | null;
+  setUser: (user: LoginResponseDto | null) => void; 
   isLoading: boolean;
   isAuthenticated: boolean;
-  setUser: (user: User | null) => void;
-  login: (userData: User) => Promise<void>;
+  login: (userData: LoginResponseDto) => Promise<void>;
   logout: () => Promise<void>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
-interface UserProviderProps {
-  children: ReactNode;
-}
-
-export function UserProvider({ children }: UserProviderProps) {
-  const [user, setUser] = useState<User | null>(null);
+export function UserProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<LoginResponseDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load user from storage on app start
+  // Rehydrate user from storage on app start
   useEffect(() => {
     async function loadUser() {
       try {
@@ -37,10 +27,16 @@ export function UserProvider({ children }: UserProviderProps) {
         ]);
 
         if (userInfo && accessToken) {
-          setUser({ ...userInfo, accessToken, userid: '' });
+          setUser({
+            google_email: userInfo.google_email,
+            microsoft_email: userInfo.microsoft_email,
+            username: userInfo.username,
+            userid: userInfo.userid,
+            accessToken : accessToken,
+          });
         }
       } catch (error) {
-        console.error('Failed to load user:', error);
+        console.error('Failed to load user from storage:', error);
       } finally {
         setIsLoading(false);
       }
@@ -49,13 +45,17 @@ export function UserProvider({ children }: UserProviderProps) {
     loadUser();
   }, []);
 
-  const login = async (userData: User) => {
+  const login = async (userData: LoginResponseDto) => {
+    // Save to storage
     await StorageService.saveAccessToken(userData.accessToken);
     await StorageService.saveUserInfo({
-      email: userData.email,
-      givenName: userData.givenName,
-      familyName: userData.familyName,
+      google_email: userData.google_email,
+      microsoft_email: userData.microsoft_email,
+      username: userData.username,
+      userid: userData.userid,
+      accessToken: userData.accessToken,
     });
+    // Update context — this triggers the redirect in index.tsx
     setUser(userData);
   };
 
@@ -64,17 +64,8 @@ export function UserProvider({ children }: UserProviderProps) {
     setUser(null);
   };
 
-  const value: UserContextType = {
-    user,
-    isLoading,
-    isAuthenticated: !!user,
-    setUser,
-    login,
-    logout,
-  };
-
   return (
-    <UserContext.Provider value={value}>
+    <UserContext.Provider value={{ user, setUser, isLoading, isAuthenticated: !!user, login, logout }}>
       {children}
     </UserContext.Provider>
   );
@@ -82,10 +73,6 @@ export function UserProvider({ children }: UserProviderProps) {
 
 export function useUser(): UserContextType {
   const context = useContext(UserContext);
-  
-  if (context === undefined) {
-    throw new Error('useUser must be used within a UserProvider');
-  }
-  
+  if (!context) throw new Error('useUser must be used within a UserProvider');
   return context;
 }

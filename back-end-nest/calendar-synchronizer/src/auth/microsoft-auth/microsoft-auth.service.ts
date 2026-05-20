@@ -4,28 +4,29 @@ import { ConfigService } from '@nestjs/config/dist';
 import { UsersService } from 'src/users/users.service';
 import { AccessTokenPayload } from '../dto/accessToken.dto';
 import axios from 'axios';
-import { MicrosoftAccessTokenResponse, MicrosoftUser } from '../dto/microsoftAuth.dto';
+import { MicrosoftAccessTokenResponse } from '../dto/microsoftAuth.dto';
+import { MicrosoftUser } from '../dto/microsoftUser.dto';
+import { users } from 'src/generated/prisma/client';
 
 @Injectable()
 export class MicrosoftAuthService {
 
     constructor(private userService: UsersService, private configService: ConfigService) {
-        
+
     }
 
-    async getMicrosoftAccessToken(email : string) : Promise<string | null> {
-        const user = await this.userService.findOauthUser(email);
+    async getMicrosoftAccessToken(email: string): Promise<string | null> {
+        const user = await this.userService.findMicrosoftUser(email);
 
-        if(!user || !user.microsoft_refresh_token) {
+        if (!user || !user.microsoft_refresh_token) {
             throw new UnauthorizedException("User not found or does not have a Microsoft refresh token");
         }
-
 
         const clientId = this.configService.get<string>('MICROSOFT_CLIENT_ID');
         const clientSecret = this.configService.get<string>('MICROSOFT_CLIENT_SECRET');
         const tenant = this.configService.get<string>('MICROSOFT_TENANT_ID');
 
-        if(!clientId || !clientSecret || !tenant) {
+        if (!clientId || !clientSecret || !tenant) {
             console.error("Microsoft OAuth configuration is missing. Please check environment variables.");
             throw new Error("Microsoft OAuth configuration is missing");
         }
@@ -38,9 +39,9 @@ export class MicrosoftAuthService {
         params.append("scope", "openid profile email https://graph.microsoft.com/Calendars.Read offline_access");
 
         const response = await fetch(`https://login.microsoftonline.com/consumers/oauth2/v2.0/token`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: params.toString(),
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params.toString(),
         }).then(res => res.json()).then(data => {
             console.log("Microsoft token response:", data);
             return data;
@@ -58,108 +59,131 @@ export class MicrosoftAuthService {
                 done(null, `${accessToken}`);
             },
         });
+
     }
 
-    public async authMicrosoftUser(authCode : string, redirectUri: string) : Promise<AccessTokenPayload>{
-        
-        // const params = new URLSearchParams();
-        // params.append("client_id", this.configService.get<string>('MICROSOFT_CLIENT_ID')!);
-        // params.append("client_secret", this.configService.get<string>('MICROSOFT_CLIENT_SECRET')!);
-        // params.append("code", authCode);
-        // params.append("redirect_uri", redirectUri);
-        // params.append("grant_type", "authorization_code");
-        // params.append("code_verifier", codeVerifier);
-        
-        try{
-            const tokenResponse = await axios.post(`https://login.microsoftonline.com/consumers/oauth2/v2.0/token`, {
-                client_id: this.configService.get<string>('MICROSOFT_CLIENT_ID')!,
-                client_secret: this.configService.get<string>('MICROSOFT_CLIENT_SECRET')!,
-                code: authCode,
-                redirect_uri: redirectUri,
-                grant_type: "authorization_code",
-                // code_verifier: codeVerifier
-            }, {
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                }
-            });
+    
+    public async getMicrosoftUserByAccessToken(accessToken: string): Promise<MicrosoftUser | null>  {
 
-            const tokenData : MicrosoftAccessTokenResponse = await tokenResponse.data;
-            const accessToken = tokenData.access_token;
-            const refreshToken = tokenData.refresh_token;
+        console.log("Access token for fetching Microsoft user info:", accessToken);
+
+        const userInfoResponse = await axios.get('https://graph.microsoft.com/oidc/userinfo', {
+            headers: { Authorization: `Bearer ${accessToken}` },
+        });
+
+        if (!userInfoResponse) {
+            throw new Error(`Failed to fetch user data: ${userInfoResponse}`);
+        }
+
+        const user: MicrosoftUser = userInfoResponse.data;
+        console.log("Microsoft user info response:", user);
+        return user
+    }
+
+    public async getMicrosoftUser(email: string): Promise<MicrosoftUser | null>  {
+
+        try {
+            const accessToken = await this.getMicrosoftAccessToken(email);
+            console.log("Access token for fetching Microsoft user info:", accessToken);
+
+            if(!accessToken){
+                throw new Error("Failed to get Microsoft access token for user " + email);
+            }
+
+           return await this.getMicrosoftUserByAccessToken(accessToken)
+
+        }catch (error) {
+            console.error("Error getting Microsoft access token for user info:", error);
+            return null;
+        }
+    }
+
+    public async exchangeAuthCodeForToken(authCode: string, redirectUri: string): Promise<MicrosoftAccessTokenResponse> {
+        const tokenResponse = await axios.post(`https://login.microsoftonline.com/consumers/oauth2/v2.0/token`, {
+            client_id: this.configService.get<string>('MICROSOFT_CLIENT_ID')!,
+            client_secret: this.configService.get<string>('MICROSOFT_CLIENT_SECRET')!,
+            code: authCode,
+            redirect_uri: redirectUri,
+            grant_type: "authorization_code",
+            // code_verifier: codeVerifier
+        }, {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        });
+
+        const tokenData: MicrosoftAccessTokenResponse = await tokenResponse.data;
+        const accessToken = tokenData.access_token;
+        const refreshToken = tokenData.refresh_token;
+
+        if (!tokenData.access_token) {
+            throw new Error('Failed to exchange code for token');
+        }
+
+        return tokenData;
+    }
+
+
+    public async bindMicrosoftUser(userId : string, authCode: string, redirectUri: string): Promise<users> {
+        const tokenData = await this.exchangeAuthCodeForToken(authCode, redirectUri);
+    
+        if (!tokenData.access_token) {
+            throw new Error('Failed to exchange code for token');
+        }
+
+        const user = await this.getMicrosoftUserByAccessToken(tokenData.access_token);
+
+        if(!user){
+            throw new Error("Failed to fetch user info from Microsoft");
+        }
+
+        const updatedUser = await this.userService.update(userId, {
+            microsoft_email: user.email,
+            microsoft_refresh_token: tokenData.refresh_token,
+        })
+
+        return updatedUser;
+    }
+
+    public async authMicrosoftUser(authCode: string, redirectUri: string): Promise<AccessTokenPayload> {
+
+        try {
+            const tokenData = await this.exchangeAuthCodeForToken(authCode, redirectUri);
 
             if (!tokenData.access_token) {
                 throw new Error('Failed to exchange code for token');
             }
 
-
             // setelah dapet token, cari userinfo
-
-
-            const userInfoResponse = await axios.get('https://graph.microsoft.com/oidc/userinfo', {
-                headers: { Authorization: `Bearer ${accessToken}` },
-            });
-
-            if (!userInfoResponse) {
-                throw new Error(`Failed to fetch user data: ${userInfoResponse}`);
+            const user = await this.getMicrosoftUserByAccessToken(tokenData.access_token);
+            if(!user){
+                throw new Error("Failed to fetch user info from Microsoft");
             }
-
-            const user : MicrosoftUser = userInfoResponse.data;
 
             // upsert user
 
-            let existingUser = await this.userService.findOauthUser(user.email);
+            let existingUser = await this.userService.findMicrosoftUser(user.email);
 
-            if(existingUser){
-                let updated = await this.userService.updateOauthUserRefreshToken(existingUser.id, "microsoft", refreshToken);
+            if (existingUser) {
+                let updated = await this.userService.updateOauthUserRefreshToken(existingUser.id, "microsoft", tokenData.refresh_token);
                 console.log("Updated Microsoft refresh token for existing user:", updated);
 
-                return {email : existingUser.email, userId : existingUser.id, username : existingUser.username!};
-            }else{
-                let newUser = await this.userService.createOauthUser({
-                    email : user.email,
-                    password : "null",
-                    username : user.givenname + " " + user.familyname,
-                    microsoft_refresh_token : refreshToken,
+                return { microsoft_email: existingUser.microsoft_email, google_email : existingUser.google_email, userId: existingUser.id, username: existingUser.username! };
+            } else {
+                let newUser = await this.userService.createMicrosoftUser({
+                    google_email: null,
+                    microsoft_email: user.email,
+                    password: "null",
+                    username: user.givenname + " " + user.familyname,
+                    microsoft_refresh_token: tokenData.refresh_token,
                 });
 
-                return {email : newUser.email, userId : newUser.id, username : newUser.username!};
+                return { microsoft_email: newUser.microsoft_email, google_email : newUser.google_email, userId: newUser.id, username: newUser.username! };
             }
 
-        }catch(error){
+        } catch (error) {
             console.error(error);
             throw new Error(error.message || 'Failed to exchange code for token');
         }
-    }
-
-    public async authMicrosoftUserOld(email : string, microsoft_refresh_token : string, username : string) : Promise<AccessTokenPayload>{
-        
-        let existingUser = await this.userService.findOauthUser(email);
-
-        if(existingUser){
-            
-            let updated = await this.userService.updateOauthUserRefreshToken(existingUser.id, "microsoft", microsoft_refresh_token);
-            console.log("Updated Microsoft refresh token for existing user:", updated);
-
-            return {
-                email : existingUser.email,
-                userId : existingUser.id,
-                username : existingUser.username!
-            };
-        }
-        
-        let newUser = await this.userService.createOauthUser({
-            email : email,
-            microsoft_refresh_token: microsoft_refresh_token,
-            username : username,
-            password : "null"
-        });
-
-        
-        return {
-            email : newUser.email,
-            userId : newUser.id,
-            username : newUser.username!
-        };
     }
 }

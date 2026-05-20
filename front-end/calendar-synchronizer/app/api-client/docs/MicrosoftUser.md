@@ -1,19 +1,23 @@
-# DummyMicrosoftLoginDto
+# MicrosoftUser
 
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**email** | **string** |  | [default to 'seanspencer32@outlook.com']
+**email** | **string** |  | [default to undefined]
+**givenname** | **string** |  | [default to undefined]
+**familyname** | **string** |  | [default to undefined]
 
 ## Example
 
 ```typescript
-import { DummyMicrosoftLoginDto } from './api';
+import { MicrosoftUser } from './api';
 
-const instance: DummyMicrosoftLoginDto = {
+const instance: MicrosoftUser = {
     email,
+    givenname,
+    familyname,
 };
 ```
 

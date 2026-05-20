@@ -105,7 +105,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **usersControllerFindOne**
-> usersControllerFindOne()
+> object usersControllerFindOne()
 
 
 ### Example
@@ -135,7 +135,7 @@ const { status, data } = await apiInstance.usersControllerFindOne(
 
 ### Return type
 
-void (empty response body)
+**object**
 
 ### Authorization
 
@@ -144,7 +144,7 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: Not defined
- - **Accept**: Not defined
+ - **Accept**: application/json
 
 
 ### HTTP response details
@@ -155,7 +155,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **usersControllerRemove**
-> usersControllerRemove()
+> object usersControllerRemove()
 
 
 ### Example
@@ -185,7 +185,7 @@ const { status, data } = await apiInstance.usersControllerRemove(
 
 ### Return type
 
-void (empty response body)
+**object**
 
 ### Authorization
 
@@ -194,7 +194,7 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: Not defined
- - **Accept**: Not defined
+ - **Accept**: application/json
 
 
 ### HTTP response details

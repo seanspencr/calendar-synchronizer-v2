@@ -2,7 +2,7 @@ import React, { useMemo, useState, useCallback } from 'react';
 import { YStack, XStack, Text, Button } from 'tamagui';
 import Feather from '@expo/vector-icons/Feather';
 import { useRouter } from 'expo-router';
-import type { ScheduleDto } from './types';
+import { ScheduleDto } from '../../api-client';
 
 const DAYS_OF_WEEK = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
@@ -32,7 +32,7 @@ function getMonthDays(year: number, month: number) {
 function EventChip({ event, onPress }: { event: ScheduleDto; onPress: () => void }) {
   return (
     <XStack
-      backgroundColor={getEventColor(event.source)}
+      backgroundColor={getEventColor(event.schedule_provider)}
       borderRadius="$1"
       paddingHorizontal="$1"
       paddingVertical={2}
@@ -41,7 +41,7 @@ function EventChip({ event, onPress }: { event: ScheduleDto; onPress: () => void
       cursor="pointer"
       onPress={onPress}
     >
-      <Text fontSize={9} color="#e0ddd5" numberOfLines={1}>{event.title}</Text>
+      <Text fontSize={9} color="#e0ddd5" numberOfLines={1}>{event.event}</Text>
     </XStack>
   );
 }
@@ -61,7 +61,7 @@ function DayCell({ day, events, isToday, onEventPress }: { day: number | null; e
 
 export function CalendarGrid({ events }: CalendarGridProps) {
   const router = useRouter();
-  const [currentDate, setCurrentDate] = useState(new Date(2024, 8, 1));
+  const [currentDate, setCurrentDate] = useState(new Date());
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
   const today = new Date();
@@ -70,7 +70,7 @@ export function CalendarGrid({ events }: CalendarGridProps) {
   const eventsByDay = useMemo(() => {
     const map = new Map<number, ScheduleDto[]>();
     events.forEach((event) => {
-      const d = new Date(event.startTime);
+      const d = new Date(event.event_date);
       if (d.getFullYear() === year && d.getMonth() === month) {
         const day = d.getDate();
         if (!map.has(day)) map.set(day, []);

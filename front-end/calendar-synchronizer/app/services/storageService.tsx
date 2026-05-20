@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
+import { LoginResponseDto } from '../api-client';
 
 const KEYS = {
   ACCESS_TOKEN: 'accessToken',
@@ -9,6 +10,9 @@ const KEYS = {
 
 // Secure storage — uses SecureStore on mobile, cookies/localStorage on web
 const secureSet = async (key: string, value: string): Promise<void> => {
+
+
+  console.log(`Saving ${key} to storage with value ${value}`); // Debug log
   if (Platform.OS === 'web') {
     // Web: use httpOnly cookies ideally, localStorage as fallback
     localStorage.setItem(key, value);
@@ -19,6 +23,8 @@ const secureSet = async (key: string, value: string): Promise<void> => {
 };
 
 const secureGet = async (key: string): Promise<string | null> => {
+
+  console.log(`Retrieving ${key} from storage`); // Debug log
   if (Platform.OS === 'web') {
     return localStorage.getItem(key);
   } else {
@@ -27,6 +33,9 @@ const secureGet = async (key: string): Promise<string | null> => {
 };
 
 const secureDelete = async (key: string): Promise<void> => {
+
+  console.log(`Deleting ${key} from storage`); // Debug log
+
   if (Platform.OS === 'web') {
     localStorage.removeItem(key);
   } else {
@@ -43,6 +52,11 @@ export const StorageService = {
     return secureGet(KEYS.ACCESS_TOKEN);
   },
 
+  async clearAccessToken(): Promise<void> {
+    console.trace("clearAccessToken called from:"); 
+    await secureDelete(KEYS.ACCESS_TOKEN);
+  },
+
   async saveRefreshToken(token: string): Promise<void> {
     await secureSet(KEYS.REFRESH_TOKEN, token);
   },
@@ -51,16 +65,19 @@ export const StorageService = {
     return secureGet(KEYS.REFRESH_TOKEN);
   },
 
-  async saveUserInfo(user: { email: string; givenName: string; familyName: string }): Promise<void> {
+  async saveUserInfo(user: LoginResponseDto): Promise<void> {
     await secureSet(KEYS.USER_INFO, JSON.stringify(user));
   },
 
-  async getUserInfo(): Promise<{ email: string; givenName: string; familyName: string } | null> {
+  async getUserInfo(): Promise<LoginResponseDto | null> {
     const data = await secureGet(KEYS.USER_INFO);
     return data ? JSON.parse(data) : null;
   },
 
   async clearAll(): Promise<void> {
+
+     console.trace("clearAll called from:");
+
     await secureDelete(KEYS.ACCESS_TOKEN);
     await secureDelete(KEYS.REFRESH_TOKEN);
     await secureDelete(KEYS.USER_INFO);

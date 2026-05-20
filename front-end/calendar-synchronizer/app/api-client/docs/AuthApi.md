@@ -4,6 +4,7 @@ All URIs are relative to *http://localhost*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
+|[**authControllerBindMicrosoft**](#authcontrollerbindmicrosoft) | **POST** /auth/microsoft/bind | |
 |[**authControllerDummyGoogleLogin**](#authcontrollerdummygooglelogin) | **POST** /auth/google/dummy | |
 |[**authControllerDummyMicrosoftLogin**](#authcontrollerdummymicrosoftlogin) | **POST** /auth/microsoft/dummy | |
 |[**authControllerGoogleAuthCallback**](#authcontrollergoogleauthcallback) | **GET** /auth/register/google/callback | |
@@ -12,8 +13,60 @@ All URIs are relative to *http://localhost*
 |[**authControllerRegisterGoogleUser**](#authcontrollerregistergoogleuser) | **POST** /auth/google | |
 |[**authControllerRegisterMicrosoftUser**](#authcontrollerregistermicrosoftuser) | **POST** /auth/microsoft | |
 
+# **authControllerBindMicrosoft**
+> LoginResponseDto authControllerBindMicrosoft(microsoftAuthDto)
+
+Bind Microsoft account to existing user
+
+### Example
+
+```typescript
+import {
+    AuthApi,
+    Configuration,
+    MicrosoftAuthDto
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new AuthApi(configuration);
+
+let microsoftAuthDto: MicrosoftAuthDto; //
+
+const { status, data } = await apiInstance.authControllerBindMicrosoft(
+    microsoftAuthDto
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **microsoftAuthDto** | **MicrosoftAuthDto**|  | |
+
+
+### Return type
+
+**LoginResponseDto**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | User bound |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **authControllerDummyGoogleLogin**
-> authControllerDummyGoogleLogin(dummyGoogleLoginDto)
+> LoginResponseDto authControllerDummyGoogleLogin(dummyGoogleLoginDto)
 
 
 ### Example
@@ -44,7 +97,7 @@ const { status, data } = await apiInstance.authControllerDummyGoogleLogin(
 
 ### Return type
 
-void (empty response body)
+**LoginResponseDto**
 
 ### Authorization
 
@@ -53,7 +106,7 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: application/json
- - **Accept**: Not defined
+ - **Accept**: application/json
 
 
 ### HTTP response details
@@ -64,7 +117,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **authControllerDummyMicrosoftLogin**
-> authControllerDummyMicrosoftLogin(dummyMicrosoftLoginDto)
+> LoginResponseDto authControllerDummyMicrosoftLogin(dummyMicrosoftLoginDto)
 
 
 ### Example
@@ -95,7 +148,7 @@ const { status, data } = await apiInstance.authControllerDummyMicrosoftLogin(
 
 ### Return type
 
-void (empty response body)
+**LoginResponseDto**
 
 ### Authorization
 
@@ -104,7 +157,7 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: application/json
- - **Accept**: Not defined
+ - **Accept**: application/json
 
 
 ### HTTP response details
@@ -209,7 +262,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **authControllerMe**
-> authControllerMe()
+> MeResponseDto authControllerMe()
 
 
 ### Example
@@ -232,7 +285,7 @@ This endpoint does not have any parameters.
 
 ### Return type
 
-void (empty response body)
+**MeResponseDto**
 
 ### Authorization
 
@@ -241,13 +294,14 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: Not defined
- - **Accept**: Not defined
+ - **Accept**: application/json
 
 
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 |**200** |  |  -  |
+|**0** |  |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -305,6 +359,7 @@ No authorization required
 # **authControllerRegisterMicrosoftUser**
 > LoginResponseDto authControllerRegisterMicrosoftUser(microsoftAuthDto)
 
+Register NEW user with Microsoft OAuth2
 
 ### Example
 

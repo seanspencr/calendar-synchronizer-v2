@@ -13,6 +13,7 @@ import { AccessTokenPayload } from './dto/accessToken.dto';
 export class AuthService {
     private databaseService: DatabaseService;
     private userService: UsersService;
+
     constructor(databaseService: DatabaseService, userService: UsersService) {
         this.databaseService = databaseService;
         this.userService = userService;
@@ -35,7 +36,7 @@ export class AuthService {
         }
 
 
-        return { email: user.email, userId: user.id, username: user.username! };
+        return { google_email: user.google_email, microsoft_email: user.microsoft_email, userId: user.id, username: user.username! };
     }
 
     public async register(createUserDto: CreateUserDto) {
@@ -43,10 +44,11 @@ export class AuthService {
     }
 
     public async dummyAuthMicrosoftUser(email: string): Promise<AccessTokenPayload> {
-        let existingUser = await this.userService.findOauthUser(email);
+        let existingUser = await this.userService.findMicrosoftUser(email);
         if (existingUser) {
             return {
-                email: existingUser.email,
+                google_email: existingUser.google_email,
+                microsoft_email: existingUser.microsoft_email,
                 userId: existingUser.id,
                 username: existingUser.username!
             };
@@ -55,10 +57,11 @@ export class AuthService {
     }
 
     public async dummyAuthGoogleUser(email: string): Promise<AccessTokenPayload> {
-        let existingUser = await this.userService.findOauthUser(email);
+        let existingUser = await this.userService.findGoogleUser(email);
         if (existingUser) {
             return {
-                email: existingUser.email,
+                google_email: existingUser.google_email,
+                microsoft_email: existingUser.microsoft_email,
                 userId: existingUser.id,
                 username: existingUser.username!
             };

@@ -14,7 +14,7 @@ All URIs are relative to *http://localhost*
 |[**schedulesControllerUpdate**](#schedulescontrollerupdate) | **PATCH** /schedules/{id} | |
 
 # **schedulesControllerCreate**
-> schedulesControllerCreate(body)
+> ScheduleDto schedulesControllerCreate(createScheduleDto)
 
 
 ### Example
@@ -22,16 +22,17 @@ All URIs are relative to *http://localhost*
 ```typescript
 import {
     SchedulesApi,
-    Configuration
+    Configuration,
+    CreateScheduleDto
 } from './api';
 
 const configuration = new Configuration();
 const apiInstance = new SchedulesApi(configuration);
 
-let body: object; //
+let createScheduleDto: CreateScheduleDto; //
 
 const { status, data } = await apiInstance.schedulesControllerCreate(
-    body
+    createScheduleDto
 );
 ```
 
@@ -39,12 +40,12 @@ const { status, data } = await apiInstance.schedulesControllerCreate(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **body** | **object**|  | |
+| **createScheduleDto** | **CreateScheduleDto**|  | |
 
 
 ### Return type
 
-void (empty response body)
+**ScheduleDto**
 
 ### Authorization
 
@@ -53,18 +54,19 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: application/json
- - **Accept**: Not defined
+ - **Accept**: application/json
 
 
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 |**201** |  |  -  |
+|**0** |  |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **schedulesControllerCreateWithNaturalLanguage**
-> schedulesControllerCreateWithNaturalLanguage(createScheduleNaturalLanguageDto)
+> ScheduleDto schedulesControllerCreateWithNaturalLanguage(createScheduleNaturalLanguageDto)
 
 
 ### Example
@@ -95,7 +97,7 @@ const { status, data } = await apiInstance.schedulesControllerCreateWithNaturalL
 
 ### Return type
 
-void (empty response body)
+**ScheduleDto**
 
 ### Authorization
 
@@ -104,18 +106,19 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: application/json
- - **Accept**: Not defined
+ - **Accept**: application/json
 
 
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 |**201** |  |  -  |
+|**0** |  |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **schedulesControllerFindAll**
-> schedulesControllerFindAll()
+> Array<ScheduleDto> schedulesControllerFindAll()
 
 
 ### Example
@@ -138,7 +141,7 @@ This endpoint does not have any parameters.
 
 ### Return type
 
-void (empty response body)
+**Array<ScheduleDto>**
 
 ### Authorization
 
@@ -147,18 +150,19 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: Not defined
- - **Accept**: Not defined
+ - **Accept**: application/json
 
 
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 |**200** |  |  -  |
+|**0** |  |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **schedulesControllerFindOne**
-> schedulesControllerFindOne()
+> ScheduleDto schedulesControllerFindOne()
 
 
 ### Example
@@ -188,7 +192,7 @@ const { status, data } = await apiInstance.schedulesControllerFindOne(
 
 ### Return type
 
-void (empty response body)
+**ScheduleDto**
 
 ### Authorization
 
@@ -197,18 +201,19 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: Not defined
- - **Accept**: Not defined
+ - **Accept**: application/json
 
 
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 |**200** |  |  -  |
+|**0** |  |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **schedulesControllerRemove**
-> schedulesControllerRemove()
+> ScheduleDto schedulesControllerRemove()
 
 
 ### Example
@@ -238,7 +243,7 @@ const { status, data } = await apiInstance.schedulesControllerRemove(
 
 ### Return type
 
-void (empty response body)
+**ScheduleDto**
 
 ### Authorization
 
@@ -247,18 +252,19 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: Not defined
- - **Accept**: Not defined
+ - **Accept**: application/json
 
 
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 |**200** |  |  -  |
+|**0** |  |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **schedulesControllerSyncGoogleEvents**
-> schedulesControllerSyncGoogleEvents()
+> Array<ScheduleDto> schedulesControllerSyncGoogleEvents()
 
 
 ### Example
@@ -281,7 +287,7 @@ This endpoint does not have any parameters.
 
 ### Return type
 
-void (empty response body)
+**Array<ScheduleDto>**
 
 ### Authorization
 
@@ -290,18 +296,19 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: Not defined
- - **Accept**: Not defined
+ - **Accept**: application/json
 
 
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 |**201** |  |  -  |
+|**0** |  |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **schedulesControllerSyncMicrosoftEvents**
-> schedulesControllerSyncMicrosoftEvents()
+> Array<ScheduleDto> schedulesControllerSyncMicrosoftEvents()
 
 
 ### Example
@@ -324,7 +331,7 @@ This endpoint does not have any parameters.
 
 ### Return type
 
-void (empty response body)
+**Array<ScheduleDto>**
 
 ### Authorization
 
@@ -333,18 +340,19 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: Not defined
- - **Accept**: Not defined
+ - **Accept**: application/json
 
 
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 |**201** |  |  -  |
+|**0** |  |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **schedulesControllerUpdate**
-> schedulesControllerUpdate(body)
+> ScheduleDto schedulesControllerUpdate(updateScheduleDto)
 
 
 ### Example
@@ -352,18 +360,19 @@ No authorization required
 ```typescript
 import {
     SchedulesApi,
-    Configuration
+    Configuration,
+    UpdateScheduleDto
 } from './api';
 
 const configuration = new Configuration();
 const apiInstance = new SchedulesApi(configuration);
 
 let id: string; // (default to undefined)
-let body: object; //
+let updateScheduleDto: UpdateScheduleDto; //
 
 const { status, data } = await apiInstance.schedulesControllerUpdate(
     id,
-    body
+    updateScheduleDto
 );
 ```
 
@@ -371,13 +380,13 @@ const { status, data } = await apiInstance.schedulesControllerUpdate(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **body** | **object**|  | |
+| **updateScheduleDto** | **UpdateScheduleDto**|  | |
 | **id** | [**string**] |  | defaults to undefined|
 
 
 ### Return type
 
-void (empty response body)
+**ScheduleDto**
 
 ### Authorization
 
@@ -386,13 +395,14 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: application/json
- - **Accept**: Not defined
+ - **Accept**: application/json
 
 
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
 |**200** |  |  -  |
+|**0** |  |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

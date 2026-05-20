@@ -9,7 +9,7 @@ export class LoginDto{
 }
 
 export class DummyMicrosoftLoginDto{
-    @ApiProperty({default: "sean.spencr@outlook.com"})
+    @ApiProperty({default: "seanspencer32@outlook.com"})
     email : string;
 
 }
@@ -23,7 +23,9 @@ export class LoginResponseDto{
     @ApiProperty()
     accessToken : string;
     @ApiProperty()
-    email : string;
+    google_email : string;
+    @ApiProperty()
+    microsoft_email : string;
     @ApiProperty()
     userid : string;
     @ApiProperty()

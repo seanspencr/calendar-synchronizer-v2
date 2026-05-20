@@ -10,6 +10,7 @@ import { convertToUTC } from 'src/lib/timezone';
 import { schedule_provider } from 'src/generated/prisma/enums';
 import { GoogleCalendarEventsNormalized } from './dto/google-calendar-dto';
 import { AiService } from 'src/ai/ai.service';
+import { schedules } from 'src/generated/prisma/client';
 
 
 
@@ -20,8 +21,18 @@ export class SchedulesService {
 
   }
 
-  create(createScheduleDto: CreateScheduleDto) {
-    return 'This action adds a new schedule';
+  create(createScheduleDto: CreateScheduleDto): Promise<schedules> {
+    return this.databaseService.schedules.create({
+      data: {
+        event: createScheduleDto.event,
+        event_date: createScheduleDto.event_date,
+        start_time: createScheduleDto.start_time,
+        end_time: createScheduleDto.end_time,
+        created_by: createScheduleDto.user_id,
+        schedule_provider: createScheduleDto.schedule_provider,
+        external_event_id: createScheduleDto.external_event_id,
+      },
+    });
   }
 
   async createWithNaturalLanguage(query: string, issuer: AccessTokenPayload) {
@@ -78,7 +89,7 @@ Natural language input: "${query}"`;
     });
   }
 
-  upsertManyByExternalEventId(createScheduleDtos: CreateScheduleDto[]) {
+  upsertManyByExternalEventId(createScheduleDtos: CreateScheduleDto[]): Promise<schedules[]> {
     return Promise.all(
       createScheduleDtos.map((dto: CreateScheduleDto) => {
         console.log("Upserting schedule : ", dto.external_event_id, " from provider: ", dto.schedule_provider);
@@ -110,7 +121,7 @@ Natural language input: "${query}"`;
     );
   }
 
-  findAll(userId: string) {
+  findAll(userId: string): Promise<schedules[]> {
     // TODO : query juga schedula recurrences
     return this.databaseService.schedules.findMany({
       where: {
@@ -119,22 +130,44 @@ Natural language input: "${query}"`;
     });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} schedule`;
+  findOne(id: string): Promise<schedules | null> {
+    return this.databaseService.schedules.findUnique({
+      where: {
+        id: id
+      }
+    });
   }
 
-  update(id: number, updateScheduleDto: UpdateScheduleDto) {
-    return `This action updates a #${id} schedule`;
+  update(id: string, updateScheduleDto: UpdateScheduleDto) {
+    return this.databaseService.schedules.update({
+      where: {
+        id: id
+      },
+      data: {
+        event: updateScheduleDto.event,
+        event_date: updateScheduleDto.event_date,
+        start_time: updateScheduleDto.start_time,
+        end_time: updateScheduleDto.end_time,
+      },
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} schedule`;
+  remove(id: string): Promise<schedules | null> {
+    return this.databaseService.schedules.delete({
+      where: {
+        id: id
+      }
+    });
   }
 
-  async syncMicrosoftEvents(issuer: AccessTokenPayload) {
-    console.log("Syncing Microsoft Events for user: ", issuer.email);
+  async syncMicrosoftEvents(issuer: AccessTokenPayload): Promise<schedules[]> {
+    console.log("Syncing Microsoft Events for user: ", issuer.microsoft_email);
 
-    let microsoftCalendarEvents = await this.microsoftScheduleService.getMicrosoftCalendarEvents(issuer.email);
+    if (!issuer.microsoft_email) {
+      return [];
+    }
+
+    let microsoftCalendarEvents = await this.microsoftScheduleService.getMicrosoftCalendarEvents(issuer.microsoft_email);
 
     let createScheduleDtos: CreateScheduleDto[] = microsoftCalendarEvents.map((event: MicrosoftEvent) => {
       return {
@@ -151,9 +184,12 @@ Natural language input: "${query}"`;
     return await this.upsertManyByExternalEventId(createScheduleDtos);
   }
 
-  async syncGoogleEvents(issuer: AccessTokenPayload) {
-    console.log("Syncing Google Events for user: ", issuer.email, " and userId: ", issuer.userId);
-    let googleEvents: GoogleCalendarEventsNormalized[] = await this.googleScheduleService.getGoogleCalendarEvents(issuer.email);
+  async syncGoogleEvents(issuer: AccessTokenPayload): Promise<schedules[]> {
+    console.log("Syncing Google Events for user: ", issuer.google_email, " and userId: ", issuer.userId);
+    if(!issuer.google_email){
+      return [];
+    }
+    let googleEvents: GoogleCalendarEventsNormalized[] = await this.googleScheduleService.getGoogleCalendarEvents(issuer.google_email);
 
     let createScheduleDtos: CreateScheduleDto[] = googleEvents.map((event: GoogleCalendarEventsNormalized) => {
       const domainEvent: Partial<CreateScheduleDto> = {

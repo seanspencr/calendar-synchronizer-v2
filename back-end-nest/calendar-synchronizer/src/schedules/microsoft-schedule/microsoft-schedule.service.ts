@@ -8,44 +8,44 @@ import axios from 'axios';
 @Injectable()
 export class MicrosoftScheduleService {
 
-    constructor(private microsoftAuthService: MicrosoftAuthService) {}
-    
+    constructor(private microsoftAuthService: MicrosoftAuthService) { }
 
-    async getMicrosoftCalendars(accessToken: string) : Promise<MicrosoftGetCalendarsResponse>{
+
+    async getMicrosoftCalendars(accessToken: string): Promise<MicrosoftGetCalendarsResponse> {
 
         const client = this.microsoftAuthService.getAuthenticatedClient(accessToken);
         let calendars = await client.api('/me/calendars')
-                    .select('id')
-                    .get();
+            .select('id')
+            .get();
         console.log("Microsoft calendars response:", calendars);
         return calendars;
     }
 
-    async getMicrosoftCalendarEvents(email : string) : Promise<MicrosoftEvent[]> {
+    async getMicrosoftCalendarEvents(email: string): Promise<MicrosoftEvent[]> {
         const accessToken = await this.microsoftAuthService.getMicrosoftAccessToken(email);
-        
-        if(!accessToken) {
+
+        if (!accessToken) {
             throw new Error("Failed to get Microsoft access token");
-        }else{
+        } else {
             console.log("Microsoft access token:", accessToken);
         }
 
-        let calendars : MicrosoftGetCalendarsResponse = await this.getMicrosoftCalendars(accessToken);
+        let calendars: MicrosoftGetCalendarsResponse = await this.getMicrosoftCalendars(accessToken);
 
         const events = await Promise.all(
-            calendars.value.map(async (calendar : MicrosoftCalendar) => {
+            calendars.value.map(async (calendar: MicrosoftCalendar) => {
                 let url = `https://graph.microsoft.com/v1.0/me/calendars/${calendar.id}/calendarView?startDateTime=2026-03-07T00:00:00Z&endDateTime=2026-04-07T00:00:00Z&$select=id,subject,body,start,end`
-                let response =await axios.get(url, {
+                let response = await axios.get(url, {
                     headers: {
                         'Authorization': `Bearer ${accessToken}`
                     }
-            });
+                });
 
-            return response.data as MicrosoftGetEventResponse;
-        }));
+                return response.data as MicrosoftGetEventResponse;
+            }));
 
         console.log("Microsoft calendar events response:", events);
-        return events.flat().map((eventResponse : MicrosoftGetEventResponse) => eventResponse.value).flat();
+        return events.flat().map((eventResponse: MicrosoftGetEventResponse) => eventResponse.value).flat();
 
 
         // const client = this.microsoftAuthService.getAuthenticatedClient(accessToken);
@@ -54,7 +54,7 @@ export class MicrosoftScheduleService {
         //             .get();
         // console.log("Microsoft calendar events response:", events);
         // return events;
-        
+
 
         // return fetch("https://graph.microsoft.com/v1.0/me/events?$select=subject,body,bodyPreview,organizer,attendees,start,end,location", {
         //     "headers": {

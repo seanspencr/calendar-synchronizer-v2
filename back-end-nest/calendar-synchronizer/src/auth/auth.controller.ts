@@ -5,9 +5,12 @@ import { JwtService } from '@nestjs/jwt';
 import { AuthGuard } from '@nestjs/passport';
 import { MicrosoftAuthDto } from './dto/microsoftAuth.dto';
 import { GoogleAuthDto } from './dto/googleAuth.dto';
-import { ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { GoogleAuthService } from './google-auth/google-auth.service';
 import { MicrosoftAuthService } from './microsoft-auth/microsoft-auth.service';
+import { MeResponseDto } from './dto/meResponse.dto';
+import { AccessTokenPayload } from './dto/accessToken.dto';
+import { users } from 'src/generated/prisma/client';
 
 
 @Controller('auth')
@@ -27,10 +30,24 @@ export class AuthController {
     // ambil bearer, return user
     @UseGuards(AuthGuard('jwt'))
     @Get("/me")
-    me(@Req() req) {
+    @ApiResponse({ type: MeResponseDto })
+    async me(@Req() req): Promise<MeResponseDto> {
         // return this.authService.getHello();
         console.log("/me hit : " + req.user);
-        return req.user;
+
+        const userMeta = req.user as AccessTokenPayload;
+
+
+        const googleUser = (userMeta.google_email) ? await this.googleAuthService.getGoogleUserInfo(userMeta.google_email) : null;
+        const microsoftUser = (userMeta.microsoft_email) ? await this.microsoftAuthService.getMicrosoftUser(userMeta.microsoft_email) : null;
+        return {
+            google_email: userMeta.google_email,
+            microsoft_email: userMeta.microsoft_email,
+            userId: userMeta.userId,
+            username: userMeta.username,
+            googleUser: googleUser,
+            microsoftUser: microsoftUser,
+        }
     }
 
     //ambil user, return bearer
@@ -50,7 +67,7 @@ export class AuthController {
             expires: new Date(new Date().getTime() + 60 * 10 * 1000),
         });
 
-        return { accessToken: token, email: tokenPayload.email, userid: tokenPayload.userId, username: tokenPayload.username } as LoginResponseDto;
+        return { accessToken: token, google_email: tokenPayload.google_email, microsoft_email : tokenPayload.microsoft_email, userid: tokenPayload.userId, username: tokenPayload.username } as LoginResponseDto;
     }
 
     // NOTE : Ini gara2 gw daftarin di google console sebagai web, jadinya perlu PKCE manual
@@ -58,6 +75,7 @@ export class AuthController {
     @Post("/google")
     @ApiResponse({ status: 200, description: 'User found', type: LoginResponseDto })
     async registerGoogleUser(@Body() body: GoogleAuthDto, @Req() req, @Res({ passthrough: true }) res): Promise<LoginResponseDto> {
+        console.log("Google auth endpoint hit with body:", body);
         const googleAuthCode = body.authCode;
         const codeVerifier = body.codeVerifier;
         const redirectUri = body.redirectUri;
@@ -70,7 +88,7 @@ export class AuthController {
             httpOnly: true,
             expires: new Date(new Date().getTime() + 60 * 10 * 1000),
         });
-        return { accessToken: token, email: tokenPayload.email, userid: tokenPayload.userId, username: tokenPayload.username } as LoginResponseDto;
+        return { accessToken: token, google_email: tokenPayload.google_email, microsoft_email : tokenPayload.microsoft_email, userid: tokenPayload.userId, username: tokenPayload.username } as LoginResponseDto;
     }
 
     @Post("/google/dummy")
@@ -81,7 +99,7 @@ export class AuthController {
             httpOnly: true,
             expires: new Date(new Date().getTime() + 60 * 10 * 1000),
         });
-        return { accessToken: token, email: tokenPayload.email, userid: tokenPayload.userId, username: tokenPayload.username } as LoginResponseDto;
+        return { accessToken: token, google_email: tokenPayload.google_email, microsoft_email : tokenPayload.microsoft_email, userid: tokenPayload.userId, username: tokenPayload.username } as LoginResponseDto;
     }
 
     @Post("/microsoft/dummy")
@@ -92,13 +110,15 @@ export class AuthController {
             httpOnly: true,
             expires: new Date(new Date().getTime() + 60 * 10 * 1000),
         });
-        return { accessToken: token, email: tokenPayload.email, userid: tokenPayload.userId, username: tokenPayload.username } as LoginResponseDto;
+        return { accessToken: token, google_email: tokenPayload.google_email, microsoft_email : tokenPayload.microsoft_email, userid: tokenPayload.userId, username: tokenPayload.username } as LoginResponseDto;
     }
 
     @HttpCode(200)
     @Post("/microsoft")
+    @ApiOperation({ description: "Register NEW user with Microsoft OAuth2" })
     @ApiResponse({ status: 200, description: 'User found', type: LoginResponseDto })
     async registerMicrosoftUser(@Body() body: MicrosoftAuthDto, @Req() req, @Res({ passthrough: true }) res): Promise<LoginResponseDto> {
+        console.log("Microsoft auth endpoint hit with body:", body);
         if (!body.code || !body.redirect_uri) {
             throw new HttpException("auth_code and redirect_uri are required", 400);
         }
@@ -108,7 +128,24 @@ export class AuthController {
             httpOnly: true,
             expires: new Date(new Date().getTime() + 60 * 10 * 1000),
         });
-        return { accessToken: token, email: tokenPayload.email, userid: tokenPayload.userId, username: tokenPayload.username } as LoginResponseDto;
+        return { accessToken: token, google_email: tokenPayload.google_email, microsoft_email : tokenPayload.microsoft_email, userid: tokenPayload.userId, username: tokenPayload.username } as LoginResponseDto;
+    }
+
+
+
+     @HttpCode(200)
+    @Post("/microsoft/bind")
+    @ApiOperation({ description: "Bind Microsoft account to existing user" })
+    @ApiResponse({ status: 200, description: 'User bound', type: LoginResponseDto })
+    @UseGuards(AuthGuard('jwt'))
+    async bindMicrosoft(@Body() body: MicrosoftAuthDto, @Req() req, @Res({ passthrough: true }) res): Promise<users> {
+        if (!body.code || !body.redirect_uri) {
+            throw new HttpException("auth_code and redirect_uri are required", 400);
+        }
+
+        const userMeta = req.user as AccessTokenPayload;
+        let updated = await this.microsoftAuthService.bindMicrosoftUser(userMeta.userId, body.code, body.redirect_uri);
+        return updated    
     }
 
     @Get("register/google/callback")

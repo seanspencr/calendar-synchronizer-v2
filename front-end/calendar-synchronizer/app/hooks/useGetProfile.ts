@@ -1,24 +1,25 @@
 import { useState } from 'react';
 import type { UserProfileDto } from '../components/profile/types';
+import { AuthApi, MeResponseDto } from '../api-client';
+import { authApi } from '../services/apiService';
 
-/** Dummy profile data simulating an API response */
-const DUMMY_PROFILE: UserProfileDto = {
-  id: 'usr-001',
-  username: 'Alexander Vance',
-  email: 'alexander.vance@gmail.com',
-  google_email: 'alexander.vance@gmail.com',
-  microsoft_email: null,
-  avatarUrl: null,
-};
-
-/**
- * Fetches the current user's profile.
- * Replace with real API call: GET /users/me
- */
 export function useGetProfile() {
-  const [profile, setProfile] = useState<UserProfileDto | null>(DUMMY_PROFILE);
-  const [isLoading] = useState(false);
-  const [error] = useState<string | null>(null);
+  const [profile, setProfile] = useState<MeResponseDto | null>(null);
+  const [isLoading, setLoading] = useState(false);
+  const [error, isError] = useState<string | null>(null);
 
-  return { profile, setProfile, isLoading, error };
+  async function fetchProfile() {
+    setLoading(true);
+    isError(null);
+    try {
+      const response = await authApi.authControllerMe();
+      setProfile(response.data);
+    } catch (err) {
+      isError('Failed to fetch profile');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return { profile, setProfile, isLoading, error, fetchProfile };
 }

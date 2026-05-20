@@ -1,18 +1,20 @@
-# DummyMicrosoftLoginDto
+# GoogleUserDto
 
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**email** | **string** |  | [default to 'seanspencer32@outlook.com']
+**name** | **string** |  | [default to undefined]
+**email** | **string** |  | [default to undefined]
 
 ## Example
 
 ```typescript
-import { DummyMicrosoftLoginDto } from './api';
+import { GoogleUserDto } from './api';
 
-const instance: DummyMicrosoftLoginDto = {
+const instance: GoogleUserDto = {
+    name,
     email,
 };
 ```

@@ -9,8 +9,9 @@ Name | Type | Description | Notes
 **description** | **object** |  | [optional] [default to undefined]
 **deadline** | **object** |  | [optional] [default to undefined]
 **created_at** | **object** |  | [optional] [default to undefined]
-**completed** | **object** |  | [default to undefined]
-**parent_task_id** | **object** |  | [default to undefined]
+**completed** | **boolean** |  | [optional] [default to undefined]
+**parent_task_id** | **string** |  | [optional] [default to undefined]
+**user_id** | **string** |  | [default to undefined]
 
 ## Example
 
@@ -24,6 +25,7 @@ const instance: CreateTaskDto = {
     created_at,
     completed,
     parent_task_id,
+    user_id,
 };
 ```
 

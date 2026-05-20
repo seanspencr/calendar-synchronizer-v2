@@ -8,18 +8,12 @@ import {ConfigService} from '@nestjs/config';
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
 
-    cookieExtract(req) {
-        // console.log(req)
-        // console.log(req.cookie)
-        // console.log(`cookie authorization : ${req.cookies.authorization}`);
-        let token = null;
-        if (req && req.cookies) {
-            token = req.cookies['authorization'];
-        }else{
-            throw new UnauthorizedException("Please login first");
+    cookieExtract(req): string | null {
+        if (req?.cookies?.authorization) {
+        return req.cookies['authorization'];
         }
-        return token;
-    };
+        return null; // ✅ return null instead of throwing — lets the next extractor try
+    }
 
     constructor(configService: ConfigService) {
         const publicKey = configService.get<string>('JWT_PUBLIC');
@@ -29,7 +23,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         }
 
         super({
-            jwtFromRequest: (req) => this.cookieExtract(req),
+            jwtFromRequest: ExtractJwt.fromExtractors([
+                (req) => this.cookieExtract(req),       // 1️⃣ try cookie first
+                ExtractJwt.fromAuthHeaderAsBearerToken(), // 2️⃣ fallback to Authorization: Bearer
+            ]),
             ignoreExpiration: false,
             secretOrKey: publicKey.replace(/\\n/g, '\n'),
             algorithms: ['RS256'],

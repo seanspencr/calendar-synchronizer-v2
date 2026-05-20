@@ -7,7 +7,8 @@ import { TaskListPanel } from './TaskListPanel';
 import { EventListPanel } from './EventListPanel';
 import { ChatbotPanel } from './ChatbotPanel';
 import { CreateDialog } from '../create-dialog';
-import type { TaskDto, ScheduleDto, ChatMessage, UserProfile } from './types';
+import type { TaskDto, ChatMessage, UserProfile } from './types';
+import { ScheduleDto } from '../api-client';
 
 interface DashboardSidebarProps {
   user: UserProfile;

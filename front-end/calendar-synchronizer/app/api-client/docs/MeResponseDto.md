@@ -1,26 +1,28 @@
-# LoginResponseDto
+# MeResponseDto
 
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**accessToken** | **string** |  | [default to undefined]
+**googleUser** | [**GoogleUserDto**](GoogleUserDto.md) |  | [default to undefined]
+**microsoftUser** | [**MicrosoftUser**](MicrosoftUser.md) |  | [default to undefined]
+**userId** | **string** |  | [default to undefined]
 **google_email** | **string** |  | [default to undefined]
 **microsoft_email** | **string** |  | [default to undefined]
-**userid** | **string** |  | [default to undefined]
 **username** | **string** |  | [default to undefined]
 
 ## Example
 
 ```typescript
-import { LoginResponseDto } from './api';
+import { MeResponseDto } from './api';
 
-const instance: LoginResponseDto = {
-    accessToken,
+const instance: MeResponseDto = {
+    googleUser,
+    microsoftUser,
+    userId,
     google_email,
     microsoft_email,
-    userid,
     username,
 };
 ```

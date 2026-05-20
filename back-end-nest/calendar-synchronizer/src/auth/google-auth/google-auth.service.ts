@@ -4,6 +4,7 @@ import { UsersService } from 'src/users/users.service';
 import axios from 'axios';
 import { GoogleTokenResponse } from '../dto/googleToken.dto';
 import { AccessTokenPayload } from '../dto/accessToken.dto';
+import { GoogleUserDto } from '../dto/googleUser.dto';
 
 @Injectable()
 export class GoogleAuthService {
@@ -11,11 +12,12 @@ export class GoogleAuthService {
 
     constructor(private userService: UsersService, private configService: ConfigService) { }
 
-    async getGoogleAccessToken(email: string): Promise<string | null> {
-        const user = await this.userService.findOauthUser(email);
+    async getGoogleAccessToken(googleEmail: string): Promise<string | null> {
+        const user = await this.userService.findGoogleUser(googleEmail);
 
         if (!user || !user.google_refresh_token) {
-            console.error(`No user found with email ${email} or user does not have a Google refresh token`);
+            console.error(`No user found with email ${googleEmail} or user does not have a Google refresh token`);
+            console.error("User details:", user);
             throw new UnauthorizedException("User not found or does not have a Google refresh token");
         }
 
@@ -50,6 +52,38 @@ export class GoogleAuthService {
 
     }
 
+    public async getGoogleUserInfo(userEmail: string): Promise<GoogleUserDto | null> {
+
+        try {
+            const accessToken = await this.getGoogleAccessToken(userEmail);
+
+            const userInfoResponse = await axios.get("https://www.googleapis.com/oauth2/v2/userinfo", {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`
+                }
+            });
+            console.log("Google user info response:", userInfoResponse.data);
+            const { email, name } = userInfoResponse.data;
+
+            return { email, name }
+        }catch (error) {
+            console.error("Error fetching Google user info:", error);
+            return null;
+        }
+    }
+
+    public async getGoogleUserInfoByAccessToken(accessToken: string): Promise<GoogleUserDto | null>{
+         const userInfoResponse = await axios.get("https://www.googleapis.com/oauth2/v2/userinfo", {
+            headers: {
+                Authorization: `Bearer ${accessToken}`
+            }
+        });
+        console.log("Google user info response:", userInfoResponse.data);
+        const { email, name } = userInfoResponse.data;
+
+        return { email, name }
+    }
+
 
     public async authGoogleUser(googleAuthCode: string, codeVerifier: string, redirectUri: string): Promise<AccessTokenPayload> {
         // handle token exchange dan get refresh token (gara2 gw google clound consolenya buat web pdhl hrsnya bisa auto)
@@ -75,24 +109,22 @@ export class GoogleAuthService {
 
 
             // get user info from google
-            const userInfoResponse = await axios.get("https://www.googleapis.com/oauth2/v2/userinfo", {
-                headers: {
-                    Authorization: `Bearer ${tokenResponse.access_token}`
-                }
-            });
-            console.log("Google user info response:", userInfoResponse.data);
-            const { email, name } = userInfoResponse.data;
+            const user : GoogleUserDto | null = await this.getGoogleUserInfoByAccessToken(tokenResponse.access_token);
+            if(!user){
+                throw new Error("Failed to fetch user info from Google");
+            }
 
             // if exist
-            let existing = await this.userService.findOauthUser(email);
+            let existing = await this.userService.findGoogleUser(user.email);
 
             if (existing) {
 
                 this.userService.updateOauthUserRefreshToken(existing.id, "google", tokenResponse.refresh_token!);
 
                 return {
-                    email: existing.email,
-                    userId: existing.email,
+                    google_email: existing.google_email,
+                    microsoft_email: existing.microsoft_email,
+                    userId: existing.id,
                     username: existing.username!
                 };
             }
@@ -103,16 +135,19 @@ export class GoogleAuthService {
                 throw new UnauthorizedException("Failed to obtain refresh token from Google");
             }
 
-            let newUser = await this.userService.createOauthUser({
-                email: email,
+            let newUser = await this.userService.createGoogleUser({
+                google_email: user.email,
+                microsoft_email: null,
                 password: "null",
-                username: name,
-                google_refresh_token: refreshToken
+                username: user.name,
+                google_refresh_token: refreshToken,
+                microsoft_refresh_token: null,
             });
 
             return {
-                email: newUser.email,
-                userId: newUser.email,
+                google_email: newUser.google_email,
+                microsoft_email: newUser.microsoft_email,
+                userId: newUser.id,
                 username: newUser.username!
             };
 

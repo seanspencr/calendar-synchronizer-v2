@@ -1,11 +1,10 @@
 import { ApiProperty } from "@nestjs/swagger";
 
-export class GoogleAuthDto {
+export class MicrosoftUser {
     @ApiProperty()
-    authCode: string;
+    email: string;
     @ApiProperty()
-    codeVerifier: string;
+    givenname: string;
     @ApiProperty()
-    redirectUri: string;
+    familyname: string;
 }
-

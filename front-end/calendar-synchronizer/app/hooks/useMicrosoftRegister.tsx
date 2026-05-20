@@ -41,16 +41,13 @@ export function useMicrosoftRegister() {
 
       const response = await MicrosoftService.loginWithMicrosoftAuthCode(
         microsoftResponse.params.code,
-        microsoftRequest.codeVerifier,
         redirectUri
       )
 
+      await StorageService.saveAccessToken(response.accessToken);
+      
       setRegisterResponse(response)
-
-      if(Platform.OS === "android"){
-          await StorageService.saveAccessToken(registerResponse.accessToken);
-          // await StorageService.saveUserInfo({ email, givenName, familyName });
-      }
+          
 
 
     } catch (err) {
