@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Req, Res, UseGuards, HttpException, Body, HttpCode } from '@nestjs/common';
+import { Controller, Get, Post, Req, Res, UseGuards, HttpException, Body, HttpCode, NotFoundException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { DummyGoogleLoginDto, DummyMicrosoftLoginDto, LoginDto, LoginResponseDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
@@ -12,6 +12,7 @@ import { MeResponseDto } from './dto/meResponse.dto';
 import { AccessTokenPayload } from './dto/accessToken.dto';
 import { users } from 'src/generated/prisma/client';
 import { UserDto } from 'src/users/dto/user.dto';
+import { RegisterDto, RegisterResponseDto } from './dto/register.dto';
 
 
 @Controller('auth')
@@ -38,14 +39,19 @@ export class AuthController {
 
         const userMeta = req.user as AccessTokenPayload;
 
+        const user = await this.authService.findUserById(userMeta.userId);
+        if (!user) {
+            throw new NotFoundException("User not found");
+        }
 
-        const googleUser = (userMeta.google_email) ? await this.googleAuthService.getGoogleUserInfo(userMeta.google_email) : null;
-        const microsoftUser = (userMeta.microsoft_email) ? await this.microsoftAuthService.getMicrosoftUser(userMeta.microsoft_email) : null;
+        const googleUser = (user.google_email) ? await this.googleAuthService.getGoogleUserInfo(user.google_email) : null;
+        const microsoftUser = (user.microsoft_email) ? await this.microsoftAuthService.getMicrosoftUser(user.microsoft_email) : null;
+
         return {
-            google_email: userMeta.google_email,
-            microsoft_email: userMeta.microsoft_email,
-            userId: userMeta.userId,
-            username: userMeta.username,
+            google_email: user.google_email,
+            microsoft_email: user.microsoft_email,
+            userId: user.id,
+            username: user.username!,
             googleUser: googleUser,
             microsoftUser: microsoftUser,
         }
@@ -69,6 +75,19 @@ export class AuthController {
         });
 
         return { accessToken: token, google_email: tokenPayload.google_email, microsoft_email: tokenPayload.microsoft_email, userid: tokenPayload.userId, username: tokenPayload.username } as LoginResponseDto;
+    }
+
+
+    @Post("/register")
+    @HttpCode(201)
+    @ApiResponse({ status: 201, description: 'Register new user', type: RegisterResponseDto })
+    async register(@Body() body: RegisterDto, @Res({ passthrough: true }) res): Promise<RegisterResponseDto> {
+        try {
+            const result = await this.authService.register(body);
+            return { message: "Successfully create user with username " + body.username }
+        } catch (err) {
+            return { message: err.message }
+        }
     }
 
     // NOTE : Ini gara2 gw daftarin di google console sebagai web, jadinya perlu PKCE manual
@@ -137,31 +156,52 @@ export class AuthController {
     @HttpCode(200)
     @Post("/microsoft/bind")
     @ApiOperation({ description: "Bind Microsoft account to existing user" })
-    @ApiResponse({ status: 200, description: 'User bound', type: UserDto })
+    @ApiResponse({ status: 200, description: 'User bound', type: MeResponseDto })
     @UseGuards(AuthGuard('jwt'))
-    async bindMicrosoft(@Body() body: MicrosoftAuthDto, @Req() req, @Res({ passthrough: true }) res): Promise<UserDto> {
+    async bindMicrosoft(@Body() body: MicrosoftAuthDto, @Req() req, @Res({ passthrough: true }) res): Promise<MeResponseDto> {
         if (!body.code || !body.redirect_uri) {
             throw new HttpException("auth_code and redirect_uri are required", 400);
         }
 
         const userMeta = req.user as AccessTokenPayload;
         let updated = await this.microsoftAuthService.bindMicrosoftUser(userMeta.userId, body.code, body.redirect_uri);
-        return updated
+
+        const googleUser = (updated.google_email) ? await this.googleAuthService.getGoogleUserInfo(updated.google_email) : null;
+        const microsoftUser = (updated.microsoft_email) ? await this.microsoftAuthService.getMicrosoftUser(updated.microsoft_email) : null;
+        return {
+            google_email: updated.google_email,
+            microsoft_email: updated.microsoft_email,
+            userId: updated.id,
+            username: updated.username!,
+            googleUser: googleUser,
+            microsoftUser: microsoftUser,
+        }
     }
 
     @HttpCode(200)
     @Post("/google/bind")
     @ApiOperation({ description: "Bind Google account to existing user" })
-    @ApiResponse({ status: 200, description: 'User bound' , type: UserDto })
+    @ApiResponse({ status: 200, description: 'User bound', type: MeResponseDto })
     @UseGuards(AuthGuard('jwt'))
-    async bindGoogle(@Body() body: GoogleAuthDto, @Req() req, @Res({ passthrough: true }) res): Promise<UserDto> {
+    async bindGoogle(@Body() body: GoogleAuthDto, @Req() req, @Res({ passthrough: true }) res): Promise<MeResponseDto> {
         if (!body.authCode || !body.codeVerifier || !body.redirectUri) {
             throw new HttpException("authCode, codeVerifier, and redirectUri are required", 400);
         }
 
         const userMeta = req.user as AccessTokenPayload;
         const updated = await this.googleAuthService.bindGoogleUser(userMeta.userId, body.authCode, body.codeVerifier, body.redirectUri);
-        return updated;
+
+        const googleUser = (updated.google_email) ? await this.googleAuthService.getGoogleUserInfo(updated.google_email) : null;
+        const microsoftUser = (updated.microsoft_email) ? await this.microsoftAuthService.getMicrosoftUser(updated.microsoft_email) : null;
+
+        return {
+            google_email: updated.google_email,
+            microsoft_email: updated.microsoft_email,
+            userId: updated.id,
+            username: updated.username!,
+            googleUser: googleUser,
+            microsoftUser: microsoftUser,
+        }
     }
 
     @Get("register/google/callback")

@@ -22,8 +22,8 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { logout } = useUser();
   const { profile, setProfile, isLoading, error, fetchProfile } = useGetProfile();
-  const { bindGoogle } = useBindGoogle(setProfile);
-  const { bindMicrosoft } = useBindMicrosoft(setProfile);
+  const { isError: isGoogleBindGoogleError, bindResponse: googleBindResponse, promptAsync: googlePromptAsync } = useBindGoogle(setProfile);
+  const { isLoadingMicrosoft: isLoadingMicrosoft, bindResponse: microsoftBindResponse, errorMsg, promptAsync: microsoftPromptAsync } = useBindMicrosoft(setProfile);
 
   /** Handle logout: clear session and navigate to login */
   const handleLogout = async () => {
@@ -77,40 +77,34 @@ export default function ProfileScreen() {
       <NavigationRail />
 
       <YStack flex={1}>
-      <ScrollView
-        flex={1}
-        contentContainerStyle={{
-          padding: 24,
-          maxWidth: 800,
-          width: '100%',
-          alignSelf: 'center',
-        }}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Avatar & username */}
-        <YStack alignItems="center" marginTop="$6" marginBottom="$6">
-          <ProfileAvatar
-            username={profile.username}
-            avatarUrl={profile.avatarUrl}
+        <ScrollView
+          flex={1}
+          contentContainerStyle={{
+            padding: 24,
+            maxWidth: 800,
+            width: '100%',
+            alignSelf: 'center',
+          }}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Avatar & username */}
+          <YStack alignItems="center" marginTop="$6" marginBottom="$6">
+            <ProfileAvatar
+              username={profile.username}
+            />
+          </YStack>
+
+          {/* Digital ecosystem (Google / Microsoft bindings) */}
+          <DigitalEcosystemCard
+            googleEmail={profile.google_email}
+            microsoftEmail={profile.microsoft_email}
+            onBindGoogle={googlePromptAsync}
+            onBindMicrosoft={microsoftPromptAsync}
           />
-        </YStack>
 
-        {/* Digital ecosystem (Google / Microsoft bindings) */}
-        <DigitalEcosystemCard
-          googleEmail={profile.google_email}
-          microsoftEmail={profile.microsoft_email}
-          onBindGoogle={bindGoogle}
-          onBindMicrosoft={bindMicrosoft}
-        />
-
-        {/* Active session indicator */}
-        <YStack marginTop="$4">
-          <ActiveSessionBadge email={profile.email} />
-        </YStack>
-
-        {/* Logout */}
-        <LogoutButton onLogout={handleLogout} />
-      </ScrollView>
+          {/* Logout */}
+          <LogoutButton onLogout={handleLogout} />
+        </ScrollView>
       </YStack>
     </XStack>
   );

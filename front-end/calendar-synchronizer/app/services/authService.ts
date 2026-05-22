@@ -7,7 +7,9 @@ import {
   GoogleAuthDto,
   LoginResponseDto,
   MeResponseDto,
-  UserDto
+  UserDto,
+  RegisterDto,
+  RegisterResponseDto
 } from '../api-client';
 
 export const AuthService = {
@@ -15,7 +17,7 @@ export const AuthService = {
   /**
    * POST /auth/bind-microsoft
    */
-  async bindMicrosoft(microsoftAuthDto: MicrosoftAuthDto): Promise<UserDto> {
+  async bindMicrosoft(microsoftAuthDto: MicrosoftAuthDto): Promise<MeResponseDto> {
     try {
       const response = await authApi.authControllerBindMicrosoft(microsoftAuthDto);
       return response.data;
@@ -25,7 +27,7 @@ export const AuthService = {
     }
   },
 
-  async bindGoogle(googleAuthDto: GoogleAuthDto): Promise<UserDto> {
+  async bindGoogle(googleAuthDto: GoogleAuthDto): Promise<MeResponseDto> {
     try {
       const response = await authApi.authControllerBindGoogle(googleAuthDto);
       return response.data;
@@ -103,6 +105,17 @@ export const AuthService = {
   /**
    * POST /auth/register-google
    */
+
+  async register(registerDto: RegisterDto): Promise<RegisterResponseDto> {
+    try {
+      const response = await authApi.authControllerRegister(registerDto);
+      return response.data;
+    } catch (error) {
+      console.error("Error registering user:", error);
+      throw error;
+    }
+  },
+
   async registerGoogleUser(googleAuthDto: GoogleAuthDto): Promise<LoginResponseDto> {
     try {
       const response = await authApi.authControllerRegisterGoogleUser(googleAuthDto);

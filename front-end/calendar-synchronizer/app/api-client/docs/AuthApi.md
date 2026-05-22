@@ -11,11 +11,12 @@ All URIs are relative to *http://localhost*
 |[**authControllerGoogleAuthCallback**](#authcontrollergoogleauthcallback) | **GET** /auth/register/google/callback | |
 |[**authControllerLogin**](#authcontrollerlogin) | **POST** /auth/login | |
 |[**authControllerMe**](#authcontrollerme) | **GET** /auth/me | |
+|[**authControllerRegister**](#authcontrollerregister) | **POST** /auth/register | |
 |[**authControllerRegisterGoogleUser**](#authcontrollerregistergoogleuser) | **POST** /auth/google | |
 |[**authControllerRegisterMicrosoftUser**](#authcontrollerregistermicrosoftuser) | **POST** /auth/microsoft | |
 
 # **authControllerBindGoogle**
-> UserDto authControllerBindGoogle(googleAuthDto)
+> MeResponseDto authControllerBindGoogle(googleAuthDto)
 
 Bind Google account to existing user
 
@@ -47,7 +48,7 @@ const { status, data } = await apiInstance.authControllerBindGoogle(
 
 ### Return type
 
-**UserDto**
+**MeResponseDto**
 
 ### Authorization
 
@@ -67,7 +68,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **authControllerBindMicrosoft**
-> UserDto authControllerBindMicrosoft(microsoftAuthDto)
+> MeResponseDto authControllerBindMicrosoft(microsoftAuthDto)
 
 Bind Microsoft account to existing user
 
@@ -99,7 +100,7 @@ const { status, data } = await apiInstance.authControllerBindMicrosoft(
 
 ### Return type
 
-**UserDto**
+**MeResponseDto**
 
 ### Authorization
 
@@ -355,6 +356,57 @@ No authorization required
 |-------------|-------------|------------------|
 |**200** |  |  -  |
 |**0** |  |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **authControllerRegister**
+> RegisterResponseDto authControllerRegister(registerDto)
+
+
+### Example
+
+```typescript
+import {
+    AuthApi,
+    Configuration,
+    RegisterDto
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new AuthApi(configuration);
+
+let registerDto: RegisterDto; //
+
+const { status, data } = await apiInstance.authControllerRegister(
+    registerDto
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **registerDto** | **RegisterDto**|  | |
+
+
+### Return type
+
+**RegisterResponseDto**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**201** | Register new user |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

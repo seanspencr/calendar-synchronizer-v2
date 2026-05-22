@@ -1,5 +1,5 @@
 import React from 'react';
-import { YStack, XStack, Text, Input, Button } from 'tamagui';
+import { YStack, XStack, Text, Input, TextArea } from 'tamagui';
 import type { CreateScheduleFormData, ScheduleProvider } from './types';
 
 interface FormFieldProps {
@@ -51,6 +51,21 @@ export function CreateScheduleForm({
           onChangeText={(t) => onFieldChange('event', t)}
           placeholder="Event title"
           placeholderTextColor="$color7"
+        />
+      </FormField>
+
+      <FormField label="Description">
+        <TextArea
+          size="$4"
+          backgroundColor="$color3"
+          borderColor="$color5"
+          color="$color12"
+          value={formData.description}
+          onChangeText={(t) => onFieldChange('description', t)}
+          placeholder="Event description (optional)"
+          placeholderTextColor="$color7"
+          numberOfLines={3}
+          minHeight={80}
         />
       </FormField>
 

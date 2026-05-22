@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useState} from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { UserProfileDto } from '../../components/profile/types';
 import * as Google from "expo-auth-session/providers/google";
 
 import { Platform } from "react-native";
 import { googleConfig } from "../../lib/googleConfig";
-import { LoginResponseDto, UserDto } from '@/app/api-client';
+import { MeResponseDto, UserDto } from '@/app/api-client';
 import * as AuthSession from "expo-auth-session"
 import { StorageService } from '@/app/services/storageService';
 import { AuthService } from '@/app/services/authService';
@@ -16,11 +16,11 @@ import { AuthService } from '@/app/services/authService';
  * Replace with real API call: POST /users/me/bind-google
  */
 export function useBindGoogle(
-  setProfile: React.Dispatch<React.SetStateAction<LoginResponseDto | null>>,
+    setProfile: React.Dispatch<React.SetStateAction<MeResponseDto | null>>,
 ) {
 
-   const [gooogleRequest, googleResponse, promptAsync] = Google.useAuthRequest(googleConfig);
-   const [bindResponse, setBindResponse] = useState<LoginResponseDto | null>(null);
+    const [gooogleRequest, googleResponse, promptAsync] = Google.useAuthRequest(googleConfig);
+    const [bindResponse, setBindResponse] = useState<MeResponseDto | null>(null);
     const [isError, setIsError] = useState(false);
 
     async function signInWithGoogle() {
@@ -47,17 +47,17 @@ export function useBindGoogle(
 
         try {
             let updated = await AuthService.bindGoogle({
-              authCode : code,
-              codeVerifier : codeVerifier!,
-              redirectUri : redirectUri
+                authCode: code,
+                codeVerifier: codeVerifier!,
+                redirectUri: redirectUri
             });
 
 
             setProfile((prev) => {
-              if (!prev) return prev;
-              return { ...prev, google_email: updated.google_email as string };
+                if (!prev) return prev;
+                return { ...prev, google_email: updated.google_email as string };
             });
-            
+
 
         } catch (error) {
             console.error("Error during Google bind:", error);

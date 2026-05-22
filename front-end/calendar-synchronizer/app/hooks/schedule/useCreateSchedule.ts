@@ -39,6 +39,7 @@ export function useCreateSchedule() {
 
       const dto: CreateScheduleDto = {
         event: data.event,
+        description: data.description || undefined,
         event_date: isoEventDate,
         start_time: isoStartTime,
         end_time: isoEndTime,

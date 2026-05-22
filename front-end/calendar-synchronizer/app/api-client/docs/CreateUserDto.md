@@ -6,11 +6,11 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **username** | **string** |  | [default to undefined]
-**password** | **string** |  | [default to undefined]
-**google_email** | **string** |  | [default to undefined]
-**microsoft_email** | **string** |  | [default to undefined]
-**google_refresh_token** | **object** |  | [optional] [default to undefined]
-**microsoft_refresh_token** | **object** |  | [optional] [default to undefined]
+**password** | **string** |  | [optional] [default to undefined]
+**google_email** | **string** |  | [optional] [default to undefined]
+**microsoft_email** | **string** |  | [optional] [default to undefined]
+**google_refresh_token** | **string** |  | [optional] [default to undefined]
+**microsoft_refresh_token** | **string** |  | [optional] [default to undefined]
 
 ## Example
 

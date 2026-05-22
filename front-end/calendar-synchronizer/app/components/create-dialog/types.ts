@@ -17,6 +17,7 @@ export type ScheduleProvider = 'LOCAL' | 'MICROSOFT' | 'GOOGLE';
 /** Form data for creating a new schedule */
 export interface CreateScheduleFormData {
   event: string;
+  description: string;
   event_date: string;
   start_time: string;
   end_time: string;

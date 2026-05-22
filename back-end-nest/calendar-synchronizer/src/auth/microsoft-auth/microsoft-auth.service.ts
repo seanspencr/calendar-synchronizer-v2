@@ -1,5 +1,5 @@
 import { Client } from '@microsoft/microsoft-graph-client/lib/src/Client';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config/dist';
 import { UsersService } from 'src/users/users.service';
 import { AccessTokenPayload } from '../dto/accessToken.dto';
@@ -62,8 +62,8 @@ export class MicrosoftAuthService {
 
     }
 
-    
-    public async getMicrosoftUserByAccessToken(accessToken: string): Promise<MicrosoftUser | null>  {
+
+    public async getMicrosoftUserByAccessToken(accessToken: string): Promise<MicrosoftUser | null> {
 
         console.log("Access token for fetching Microsoft user info:", accessToken);
 
@@ -80,19 +80,19 @@ export class MicrosoftAuthService {
         return user
     }
 
-    public async getMicrosoftUser(email: string): Promise<MicrosoftUser | null>  {
+    public async getMicrosoftUser(email: string): Promise<MicrosoftUser | null> {
 
         try {
             const accessToken = await this.getMicrosoftAccessToken(email);
             console.log("Access token for fetching Microsoft user info:", accessToken);
 
-            if(!accessToken){
+            if (!accessToken) {
                 throw new Error("Failed to get Microsoft access token for user " + email);
             }
 
-           return await this.getMicrosoftUserByAccessToken(accessToken)
+            return await this.getMicrosoftUserByAccessToken(accessToken)
 
-        }catch (error) {
+        } catch (error) {
             console.error("Error getting Microsoft access token for user info:", error);
             return null;
         }
@@ -124,17 +124,22 @@ export class MicrosoftAuthService {
     }
 
 
-    public async bindMicrosoftUser(userId : string, authCode: string, redirectUri: string): Promise<users> {
+    public async bindMicrosoftUser(userId: string, authCode: string, redirectUri: string): Promise<users> {
         const tokenData = await this.exchangeAuthCodeForToken(authCode, redirectUri);
-    
+
         if (!tokenData.access_token) {
             throw new Error('Failed to exchange code for token');
         }
 
         const user = await this.getMicrosoftUserByAccessToken(tokenData.access_token);
 
-        if(!user){
+        if (!user) {
             throw new Error("Failed to fetch user info from Microsoft");
+        }
+
+        const isAccountRegisterer = await this.userService.findMicrosoftUser(user.email);
+        if (isAccountRegisterer) {
+            throw new ConflictException("User with this email is already registered");
         }
 
         const updatedUser = await this.userService.update(userId, {
@@ -156,7 +161,7 @@ export class MicrosoftAuthService {
 
             // setelah dapet token, cari userinfo
             const user = await this.getMicrosoftUserByAccessToken(tokenData.access_token);
-            if(!user){
+            if (!user) {
                 throw new Error("Failed to fetch user info from Microsoft");
             }
 
@@ -168,17 +173,17 @@ export class MicrosoftAuthService {
                 let updated = await this.userService.updateOauthUserRefreshToken(existingUser.id, "microsoft", tokenData.refresh_token);
                 console.log("Updated Microsoft refresh token for existing user:", updated);
 
-                return { microsoft_email: existingUser.microsoft_email, google_email : existingUser.google_email, userId: existingUser.id, username: existingUser.username! };
+                return { microsoft_email: existingUser.microsoft_email, google_email: existingUser.google_email, userId: existingUser.id, username: existingUser.username! };
             } else {
                 let newUser = await this.userService.createMicrosoftUser({
-                    google_email: null,
+                    google_email: undefined,
                     microsoft_email: user.email,
-                    password: "null",
+                    password: null,
                     username: user.givenname + " " + user.familyname,
                     microsoft_refresh_token: tokenData.refresh_token,
                 });
 
-                return { microsoft_email: newUser.microsoft_email, google_email : newUser.google_email, userId: newUser.id, username: newUser.username! };
+                return { microsoft_email: newUser.microsoft_email, google_email: newUser.google_email, userId: newUser.id, username: newUser.username! };
             }
 
         } catch (error) {

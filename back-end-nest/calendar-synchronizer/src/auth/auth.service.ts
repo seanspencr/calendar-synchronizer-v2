@@ -1,4 +1,4 @@
-import { HttpCode, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, HttpCode, Injectable, UnauthorizedException } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
 import { check_password, hash_password } from 'src/lib/hash_password';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
@@ -8,6 +8,7 @@ import { GoogleTokenResponse } from './dto/googleToken.dto';
 import { usersModel } from 'src/generated/prisma/models';
 import { MicrosoftAuthDto } from './dto/microsoftAuth.dto';
 import { AccessTokenPayload } from './dto/accessToken.dto';
+import { users } from 'src/generated/prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -39,7 +40,28 @@ export class AuthService {
         return { google_email: user.google_email, microsoft_email: user.microsoft_email, userId: user.id, username: user.username! };
     }
 
+    public async findUserById(id: string): Promise<users | null> {
+        return await this.userService.findById(id);
+    }
+
+
+
     public async register(createUserDto: CreateUserDto) {
+
+        const existing = await this.databaseService.users.findFirst({
+            where: {
+                OR: [
+                    { google_email: createUserDto.google_email },
+                    { microsoft_email: createUserDto.microsoft_email },
+                    { username: createUserDto.username }
+                ]
+            }
+        });
+
+        if (existing) {
+            throw new ConflictException("User already exists");
+        }
+
         return this.userService.create(createUserDto);
     }
 

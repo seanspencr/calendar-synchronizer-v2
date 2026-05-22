@@ -26,6 +26,7 @@ const INITIAL_TASK: CreateTaskFormData = {
 
 const INITIAL_SCHEDULE: CreateScheduleFormData = {
   event: '',
+  description: '',
   event_date: '',
   start_time: '',
   end_time: '',

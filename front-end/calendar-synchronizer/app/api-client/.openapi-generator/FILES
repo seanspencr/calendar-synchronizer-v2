@@ -20,6 +20,8 @@ docs/MeResponseDto.md
 docs/MicrosoftAuthDto.md
 docs/MicrosoftUser.md
 docs/RecurrenceDto.md
+docs/RegisterDto.md
+docs/RegisterResponseDto.md
 docs/ScheduleDto.md
 docs/SchedulesApi.md
 docs/TaskDto.md

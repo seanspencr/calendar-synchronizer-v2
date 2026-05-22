@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config/dist/config.service';
 import { UsersService } from 'src/users/users.service';
 import axios from 'axios';
@@ -154,11 +154,11 @@ export class GoogleAuthService {
 
         let newUser = await this.userService.createGoogleUser({
             google_email: user.email,
-            microsoft_email: null,
-            password: "null",
+            microsoft_email: undefined,
+            password: null,
             username: user.name,
             google_refresh_token: refreshToken,
-            microsoft_refresh_token: null,
+            microsoft_refresh_token: undefined,
         });
 
         return {
@@ -179,6 +179,11 @@ export class GoogleAuthService {
         const refreshToken = tokenResponse.refresh_token;
         if (!refreshToken) {
             throw new UnauthorizedException("Failed to obtain refresh token from Google");
+        }
+
+        const isAccountRegisterer = await this.userService.findGoogleUser(user.email);
+        if (isAccountRegisterer) {
+            throw new ConflictException("User with this email is already registered");
         }
 
         const updatedUser = await this.userService.update(userId, {

@@ -1,5 +1,6 @@
-import { Text, View, Input, AlertDialog, Button, useToastController } from "tamagui";
+import { Text, View, Input, Button, useToastController, YStack, XStack, Spinner } from "tamagui";
 import { useState, useEffect } from "react";
+import Feather from '@expo/vector-icons/Feather';
 import * as WebBrowser from "expo-web-browser";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -29,7 +30,7 @@ export default function Index() {
 
   // ✅ Single effect: save to context+storage whenever ANY auth flow succeeds
   useEffect(() => {
-    const response : LoginResponseDto | null= googleRegisterResponse ?? microsoftRegisterResponse ?? loginResponse;
+    const response: LoginResponseDto | null = googleRegisterResponse ?? microsoftRegisterResponse ?? loginResponse;
     if (!response) return;
 
     login({
@@ -45,22 +46,22 @@ export default function Index() {
   useEffect(() => {
     const checkAuth = async () => {
       const token = await StorageService.getAccessToken();
-      
+
       if (!isLoading && user && token) {
         router.replace('/dashboard');
       }
 
       // klo gaada user di context, coba fetch dlu
-      if(!user && !isLoading && token){
+      if (!user && !isLoading && token) {
         const { profile, setProfile, isLoading, error, fetchProfile } = useGetProfile()
-        fetchProfile().then(()=>{
+        fetchProfile().then(() => {
 
-          if(error){
+          if (error) {
             StorageService.clearAccessToken();
             return
           }
 
-          if(profile){
+          if (profile) {
             setUser({
               google_email: profile.google_email!!,
               microsoft_email: profile.microsoft_email!!,
@@ -73,7 +74,7 @@ export default function Index() {
           }
         })
       }
-      
+
     };
 
     checkAuth();
@@ -87,41 +88,168 @@ export default function Index() {
     loginWithCredentials({ username, password });
   }
 
+  // Show error toasts
+  useEffect(() => {
+    if (loginError) {
+      toast.show("Login Failed", { message: loginError, duration: 3000 });
+    }
+  }, [loginError, toast]);
+
   // Don't render login form while checking stored session
   if (isLoading) return null;
 
   // Already logged in — redirect effect will fire, render nothing
   if (user) return null;
   return (
-      <View>
-      <Text>Login</Text>
+    <YStack
+      flex={1}
+      backgroundColor="$color2"
+      justifyContent="center"
+      alignItems="center"
+      padding="$4"
+    >
+      <YStack
+        width="100%"
+        maxWidth={400}
+        backgroundColor="$color1"
+        borderRadius="$5"
+        borderWidth={1}
+        borderColor="$color4"
+        padding="$6"
+        gap="$5"
+        shadowColor="$shadowColor"
+        shadowOffset={{ width: 0, height: 4 }}
+        shadowOpacity={0.1}
+        shadowRadius={10}
+        elevation={5}
+      >
+        <YStack alignItems="center" gap="$2" marginBottom="$2">
+          <YStack 
+            width={60} 
+            height={60} 
+            borderRadius={30} 
+            backgroundColor="$accent8" 
+            justifyContent="center" 
+            alignItems="center"
+            marginBottom="$2"
+          >
+            <Feather name="log-in" size={28} color="#fff" />
+          </YStack>
+          <Text fontSize="$7" fontWeight="800" color="$color12">
+            Welcome Back
+          </Text>
+          <Text fontSize="$3" color="$color8" textAlign="center">
+            Log in to continue managing your calendar schedules.
+          </Text>
+        </YStack>
 
-      <Input
-        placeholder="Username"
-        value={username}
-        onChangeText={setUsername}
-      />
-      <Input
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
+        <YStack gap="$3">
+          <YStack gap="$1.5">
+            <Text fontSize="$2" fontWeight="600" color="$color11" marginLeft="$1">
+              Username
+            </Text>
+            <Input
+              size="$4"
+              placeholder="Enter your username"
+              value={username}
+              onChangeText={setUsername}
+              backgroundColor="$color2"
+              borderColor="$color5"
+              autoCapitalize="none"
+              focusStyle={{ borderColor: '$accent8' }}
+            />
+          </YStack>
 
-      <View style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", width: "100%", marginTop: 20 }}>
-        <Button onPress={handleLogin} disabled={loginLoading}>
-          Login with credentials
-        </Button>
-        <Button onPress={() => googlePromptAsync()}>
-          Register with Google
-        </Button>
-        <Button onPress={() => microsoftPromptAsync()}>
-          Register with Microsoft
-        </Button>
-        <Button onPress={() => router.push('/registerScreen')}>
-          Go to Register Screen
-        </Button>
-      </View>
-    </View>
+          <YStack gap="$1.5">
+            <Text fontSize="$2" fontWeight="600" color="$color11" marginLeft="$1">
+              Password
+            </Text>
+            <Input
+              size="$4"
+              placeholder="Enter your password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              backgroundColor="$color2"
+              borderColor="$color5"
+              focusStyle={{ borderColor: '$accent8' }}
+            />
+          </YStack>
+        </YStack>
+
+        <YStack gap="$3" marginTop="$2">
+          <Button
+            size="$4"
+            backgroundColor="$accent8"
+            borderRadius="$3"
+            pressStyle={{ opacity: 0.85, backgroundColor: '$accent9' }}
+            onPress={handleLogin}
+            disabled={loginLoading}
+            opacity={loginLoading ? 0.7 : 1}
+          >
+            {loginLoading ? (
+              <Spinner color="#fff" />
+            ) : (
+              <Text fontSize="$3" fontWeight="700" color="#fff">
+                Login
+              </Text>
+            )}
+          </Button>
+
+          <XStack alignItems="center" marginVertical="$2">
+            <View flex={1} height={1} backgroundColor="$color5" />
+            <Text marginHorizontal="$3" color="$color8" fontSize="$2" fontWeight="600">
+              OR
+            </Text>
+            <View flex={1} height={1} backgroundColor="$color5" />
+          </XStack>
+
+          <Button
+            size="$4"
+            backgroundColor="$color3"
+            borderWidth={1}
+            borderColor="$color5"
+            borderRadius="$3"
+            pressStyle={{ opacity: 0.7 }}
+            onPress={() => googlePromptAsync()}
+            icon={<Feather name="globe" size={18} color="$color11" />}
+          >
+            <Text fontSize="$3" fontWeight="600" color="$color12">
+              Continue with Google
+            </Text>
+          </Button>
+
+          <Button
+            size="$4"
+            backgroundColor="$color3"
+            borderWidth={1}
+            borderColor="$color5"
+            borderRadius="$3"
+            pressStyle={{ opacity: 0.7 }}
+            onPress={() => microsoftPromptAsync()}
+            icon={<Feather name="mail" size={18} color="$color11" />}
+          >
+            <Text fontSize="$3" fontWeight="600" color="$color12">
+              Continue with Microsoft
+            </Text>
+          </Button>
+
+          <XStack justifyContent="center" alignItems="center" gap="$2" marginTop="$2">
+            <Text color="$color8" fontSize="$3">
+              Don't have an account?
+            </Text>
+            <Button
+              unstyled
+              pressStyle={{ opacity: 0.6 }}
+              onPress={() => router.push('/registerScreen')}
+            >
+              <Text color="$accent9" fontSize="$3" fontWeight="bold">
+                Register
+              </Text>
+            </Button>
+          </XStack>
+        </YStack>
+      </YStack>
+    </YStack>
   );
 }
