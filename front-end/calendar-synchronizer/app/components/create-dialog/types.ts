@@ -8,6 +8,7 @@ export interface CreateTaskFormData {
   title: string;
   description: string;
   deadline: string;
+  parent_task_id?: string;
 }
 
 /** Schedule provider options */

@@ -26,6 +26,7 @@ export function useCreateTask(
         description: data.description,
         deadline: deadlineIso,
         completed: false,
+        parent_task_id: data.parent_task_id,
       });
       setTasks((prev) => [...prev, task].sort((a, b) => {
         const dateA = a.deadline ? new Date(a.deadline) : new Date(0);

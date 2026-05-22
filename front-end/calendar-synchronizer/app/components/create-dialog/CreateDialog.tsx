@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { YStack, XStack, Text, Button, ScrollView } from 'tamagui';
 import Feather from '@expo/vector-icons/Feather';
 import { CreateDialogTabBar } from './CreateDialogTabBar';
@@ -16,15 +16,20 @@ import { ScheduleDto, TaskDto } from '../../api-client';
 interface CreateDialogProps {
   open: boolean;
   onClose: () => void;
-  setTasks: React.Dispatch<React.SetStateAction<TaskDto[]>>,
-  setSchedules: React.Dispatch<React.SetStateAction<ScheduleDto[]>>,
+  setTasks: React.Dispatch<React.SetStateAction<TaskDto[]>>;
+  setSchedules: React.Dispatch<React.SetStateAction<ScheduleDto[]>>;
+  /** When set, the dialog opens locked to 'task' mode with this id as parent_task_id */
+  initialParentTaskId?: string;
+  /** Display name of the parent task for the badge */
+  initialParentTaskTitle?: string;
 }
 
-const INITIAL_TASK: CreateTaskFormData = {
+const makeInitialTask = (parentTaskId?: string): CreateTaskFormData => ({
   title: '',
   description: '',
   deadline: '',
-};
+  parent_task_id: parentTaskId,
+});
 
 const INITIAL_SCHEDULE: CreateScheduleFormData = {
   event: '',
@@ -38,16 +43,27 @@ const INITIAL_SCHEDULE: CreateScheduleFormData = {
 /**
  * Modal dialog for creating a new Task or Schedule.
  * Renders as an overlay with a backdrop.
+ * When `initialParentTaskId` is supplied the dialog is locked to task mode
+ * and the new task will be created as a subtask.
  */
 export function CreateDialog({
-  open: open,
-  onClose: onClose,
-  setTasks: setTasks,
-  setSchedules: setSchedules
+  open,
+  onClose,
+  setTasks,
+  setSchedules,
+  initialParentTaskId,
+  initialParentTaskTitle,
 }: CreateDialogProps) {
+  const isSubtaskMode = Boolean(initialParentTaskId);
   const [mode, setMode] = useState<CreateDialogMode>('task');
-  const [taskForm, setTaskForm] = useState<CreateTaskFormData>(INITIAL_TASK);
+  const [taskForm, setTaskForm] = useState<CreateTaskFormData>(makeInitialTask(initialParentTaskId));
   const [scheduleForm, setScheduleForm] = useState<CreateScheduleFormData>(INITIAL_SCHEDULE);
+
+  // Re-initialise the task form whenever the parent task changes (i.e. context menu target changes)
+  useEffect(() => {
+    setTaskForm(makeInitialTask(initialParentTaskId));
+    if (isSubtaskMode) setMode('task');
+  }, [initialParentTaskId, isSubtaskMode]);
 
   const { createTask, isSubmitting: isSubmittingTask, error: taskError, successMessage: taskSuccess } = useCreateTask(setTasks);
   const { createSchedule, isSubmitting: isSubmittingSchedule, error: scheduleError, successMessage: scheduleSuccess } = useCreateSchedule();
@@ -58,10 +74,10 @@ export function CreateDialog({
 
   /** Reset forms and close */
   const handleClose = useCallback(() => {
-    setTaskForm(INITIAL_TASK);
+    setTaskForm(makeInitialTask(initialParentTaskId));
     setScheduleForm(INITIAL_SCHEDULE);
     onClose();
-  }, [onClose]);
+  }, [onClose, initialParentTaskId]);
 
   /** Update a task form field */
   const handleTaskFieldChange = useCallback(
@@ -141,9 +157,19 @@ export function CreateDialog({
           borderBottomWidth={1}
           borderBottomColor="$color3"
         >
-          <Text fontSize="$5" fontWeight="700" color="$color12">
-            Create New
-          </Text>
+          <YStack gap="$1">
+            <Text fontSize="$5" fontWeight="700" color="$color12">
+              {isSubtaskMode ? 'Add Subtask' : 'Create New'}
+            </Text>
+            {isSubtaskMode && initialParentTaskTitle && (
+              <XStack alignItems="center" gap="$1.5">
+                <Feather name="corner-down-right" size={11} color="#888" />
+                <Text fontSize={11} color="$color7" numberOfLines={1}>
+                  {initialParentTaskTitle}
+                </Text>
+              </XStack>
+            )}
+          </YStack>
           <Button
             unstyled
             onPress={handleClose}
@@ -160,11 +186,13 @@ export function CreateDialog({
           contentContainerStyle={{ padding: 20 }}
           showsVerticalScrollIndicator={false}
         >
-          {/* Mode switcher */}
-          <CreateDialogTabBar mode={mode} onModeChange={setMode} />
+          {/* Mode switcher — hidden in subtask mode */}
+          {!isSubtaskMode && (
+            <CreateDialogTabBar mode={mode} onModeChange={setMode} />
+          )}
 
           {/* Form */}
-          <YStack marginTop="$4">
+          <YStack marginTop={isSubtaskMode ? 0 : '$4'}>
             {mode === 'task' ? (
               <CreateTaskForm
                 formData={taskForm}
@@ -211,9 +239,11 @@ export function CreateDialog({
             <Text fontSize="$3" fontWeight="700" color="#fff">
               {isSubmitting
                 ? 'Creating...'
-                : mode === 'task'
-                  ? 'Create Task'
-                  : 'Create Schedule'}
+                : isSubtaskMode
+                  ? 'Add Subtask'
+                  : mode === 'task'
+                    ? 'Create Task'
+                    : 'Create Schedule'}
             </Text>
           </Button>
         </ScrollView>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { YStack, XStack, Text, Button } from 'tamagui';
 import Feather from '@expo/vector-icons/Feather';
 import { SidebarHeader } from './SidebarHeader';
@@ -36,6 +36,25 @@ export function DashboardSidebar({
 }: DashboardSidebarProps) {
   const [activeTab, setActiveTab] = useState<SidebarTab>('tasks');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  /** Task selected via context menu "Add Subtask" — null means generic create */
+  const [parentTask, setParentTask] = useState<TaskDto | null>(null);
+
+  /** Open the create dialog in subtask mode for the given task */
+  const handleAddSubtask = useCallback((task: TaskDto) => {
+    setParentTask(task);
+    setIsCreateOpen(true);
+  }, []);
+
+  /** Open the dialog in normal (generic) create mode */
+  const handleCreateNew = useCallback(() => {
+    setParentTask(null);
+    setIsCreateOpen(true);
+  }, []);
+
+  const handleDialogClose = useCallback(() => {
+    setIsCreateOpen(false);
+    setParentTask(null);
+  }, []);
 
   return (
     <YStack
@@ -54,7 +73,11 @@ export function DashboardSidebar({
       {/* Tab content */}
       <YStack flex={1}>
         {activeTab === 'tasks' && (
-          <TaskListPanel tasks={tasks} onToggleTask={onToggleTask} />
+          <TaskListPanel
+            tasks={tasks}
+            onToggleTask={onToggleTask}
+            onAddSubtask={handleAddSubtask}
+          />
         )}
         {activeTab === 'events' && (
           <EventListPanel events={events} />
@@ -76,7 +99,7 @@ export function DashboardSidebar({
           height={44}
           icon={<Feather name="plus-circle" size={18} color="#fff" />}
           pressStyle={{ opacity: 0.85 }}
-          onPress={() => setIsCreateOpen(true)}
+          onPress={handleCreateNew}
         >
           <Text color="#fff" fontWeight="600" fontSize="$3">
             Create New
@@ -102,14 +125,15 @@ export function DashboardSidebar({
         </Text>
       </YStack>
 
-      {/* Create dialog overlay */}
+      {/* Create / Add-Subtask dialog overlay */}
       <CreateDialog
         open={isCreateOpen}
-        onClose={() => setIsCreateOpen(false)}
+        onClose={handleDialogClose}
         setTasks={setTasks}
         setSchedules={setSchedules}
+        initialParentTaskId={parentTask?.id}
+        initialParentTaskTitle={parentTask?.title}
       />
     </YStack>
   );
 }
-
