@@ -2,9 +2,9 @@ import React, { useEffect } from 'react';
 import { YStack, XStack, ScrollView, Text, Spinner } from 'tamagui';
 import { useRouter } from 'expo-router';
 import { ExternalPathString } from 'expo-router';
-import { useGetProfile } from '../hooks/useGetProfile';
-import { useBindGoogle } from '../hooks/useBindGoogle';
-import { useBindMicrosoft } from '../hooks/useBindMicrosoft';
+import { useGetProfile } from '../hooks/auth/useGetProfile';
+import { useBindGoogle } from '../hooks/auth/useBindGoogle';
+import { useBindMicrosoft } from '../hooks/auth/useBindMicrosoft';
 import { useUser } from '../context/currentUserContext';
 import {
   ProfileAvatar,

@@ -21,11 +21,15 @@ export class GoogleScheduleService {
 
         const calendarIds: GoogleCalendarIdResponse[] = await this.getGoogleCalendarIds(email);
 
+        const now = new Date();
+        const timeMin = now.toISOString();
+        const timeMax = new Date(new Date().setFullYear(now.getFullYear() + 1)).toISOString();
+
         const eventsPromises = calendarIds.map(async (calendar) => {
             try {
                 const encodedCalendarId = encodeURIComponent(calendar.id);
                 const response = await axios.get(
-                    `https://www.googleapis.com/calendar/v3/calendars/${encodedCalendarId}/events?singleEvents=true&orderBy=startTime&fields=items(id,summary,start,end)&timeMin=2025-03-06T00:00:00Z`,
+                    `https://www.googleapis.com/calendar/v3/calendars/${encodedCalendarId}/events?singleEvents=true&orderBy=startTime&fields=items(id,summary,description,start,end)&timeMin=${timeMin}&timeMax=${timeMax}`,
                     {
                         headers: {
                             'Authorization': `Bearer ${accessToken}`,

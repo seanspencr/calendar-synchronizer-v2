@@ -4,8 +4,8 @@ import Feather from '@expo/vector-icons/Feather';
 import { CreateDialogTabBar } from './CreateDialogTabBar';
 import { CreateTaskForm } from './CreateTaskForm';
 import { CreateScheduleForm } from './CreateScheduleForm';
-import { useCreateTask } from '../../hooks/useCreateTask';
-import { useCreateSchedule } from '../../hooks/useCreateSchedule';
+import { useCreateTask } from '../../hooks/task/useCreateTask';
+import { useCreateSchedule } from '../../hooks/schedule/useCreateSchedule';
 import type {
   CreateDialogMode,
   CreateTaskFormData,
@@ -29,7 +29,7 @@ const INITIAL_SCHEDULE: CreateScheduleFormData = {
   event_date: '',
   start_time: '',
   end_time: '',
-  schedule_provider: 'manual',
+  schedule_provider: 'LOCAL',
 };
 
 /**
@@ -39,8 +39,7 @@ const INITIAL_SCHEDULE: CreateScheduleFormData = {
 export function CreateDialog({ open, onClose }: CreateDialogProps) {
   const [mode, setMode] = useState<CreateDialogMode>('task');
   const [taskForm, setTaskForm] = useState<CreateTaskFormData>(INITIAL_TASK);
-  const [scheduleForm, setScheduleForm] =
-    useState<CreateScheduleFormData>(INITIAL_SCHEDULE);
+  const [scheduleForm, setScheduleForm] = useState<CreateScheduleFormData>(INITIAL_SCHEDULE);
 
   const { createTask, isSubmitting: isSubmittingTask, error: taskError, successMessage: taskSuccess } = useCreateTask();
   const { createSchedule, isSubmitting: isSubmittingSchedule, error: scheduleError, successMessage: scheduleSuccess } = useCreateSchedule();

@@ -24,48 +24,6 @@ function FormField({ label, children }: FormFieldProps) {
   );
 }
 
-const PROVIDER_OPTIONS: { value: ScheduleProvider; label: string }[] = [
-  { value: 'manual', label: 'Manual' },
-  { value: 'google', label: 'Google' },
-  { value: 'microsoft', label: 'Microsoft' },
-];
-
-interface ProviderPickerProps {
-  value: ScheduleProvider;
-  onChange: (provider: ScheduleProvider) => void;
-}
-
-/** Pill selector for schedule provider */
-function ProviderPicker({ value, onChange }: ProviderPickerProps) {
-  return (
-    <XStack gap="$2">
-      {PROVIDER_OPTIONS.map((opt) => {
-        const isSelected = value === opt.value;
-        return (
-          <Button
-            key={opt.value}
-            size="$2"
-            backgroundColor={isSelected ? '$accent8' : '$color3'}
-            borderRadius="$3"
-            borderWidth={1}
-            borderColor={isSelected ? '$accent9' : '$color5'}
-            pressStyle={{ opacity: 0.8 }}
-            onPress={() => onChange(opt.value)}
-          >
-            <Text
-              fontSize="$1"
-              fontWeight="600"
-              color={isSelected ? '#fff' : '$color10'}
-            >
-              {opt.label}
-            </Text>
-          </Button>
-        );
-      })}
-    </XStack>
-  );
-}
-
 interface CreateScheduleFormProps {
   formData: CreateScheduleFormData;
   onFieldChange: <K extends keyof CreateScheduleFormData>(
@@ -98,6 +56,7 @@ export function CreateScheduleForm({
 
       <FormField label="Event Date">
         <Input
+          type="date"
           size="$4"
           backgroundColor="$color3"
           borderColor="$color5"
@@ -113,6 +72,7 @@ export function CreateScheduleForm({
         <YStack flex={1}>
           <FormField label="Start Time">
             <Input
+              type="time"
               size="$4"
               backgroundColor="$color3"
               borderColor="$color5"
@@ -127,6 +87,7 @@ export function CreateScheduleForm({
         <YStack flex={1}>
           <FormField label="End Time">
             <Input
+              type="time"
               size="$4"
               backgroundColor="$color3"
               borderColor="$color5"
@@ -140,12 +101,6 @@ export function CreateScheduleForm({
         </YStack>
       </XStack>
 
-      <FormField label="Provider">
-        <ProviderPicker
-          value={formData.schedule_provider}
-          onChange={(p) => onFieldChange('schedule_provider', p)}
-        />
-      </FormField>
     </YStack>
   );
 }

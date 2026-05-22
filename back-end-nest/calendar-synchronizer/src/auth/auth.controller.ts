@@ -11,6 +11,7 @@ import { MicrosoftAuthService } from './microsoft-auth/microsoft-auth.service';
 import { MeResponseDto } from './dto/meResponse.dto';
 import { AccessTokenPayload } from './dto/accessToken.dto';
 import { users } from 'src/generated/prisma/client';
+import { UserDto } from 'src/users/dto/user.dto';
 
 
 @Controller('auth')
@@ -67,7 +68,7 @@ export class AuthController {
             expires: new Date(new Date().getTime() + 60 * 10 * 1000),
         });
 
-        return { accessToken: token, google_email: tokenPayload.google_email, microsoft_email : tokenPayload.microsoft_email, userid: tokenPayload.userId, username: tokenPayload.username } as LoginResponseDto;
+        return { accessToken: token, google_email: tokenPayload.google_email, microsoft_email: tokenPayload.microsoft_email, userid: tokenPayload.userId, username: tokenPayload.username } as LoginResponseDto;
     }
 
     // NOTE : Ini gara2 gw daftarin di google console sebagai web, jadinya perlu PKCE manual
@@ -88,7 +89,7 @@ export class AuthController {
             httpOnly: true,
             expires: new Date(new Date().getTime() + 60 * 10 * 1000),
         });
-        return { accessToken: token, google_email: tokenPayload.google_email, microsoft_email : tokenPayload.microsoft_email, userid: tokenPayload.userId, username: tokenPayload.username } as LoginResponseDto;
+        return { accessToken: token, google_email: tokenPayload.google_email, microsoft_email: tokenPayload.microsoft_email, userid: tokenPayload.userId, username: tokenPayload.username } as LoginResponseDto;
     }
 
     @Post("/google/dummy")
@@ -99,7 +100,7 @@ export class AuthController {
             httpOnly: true,
             expires: new Date(new Date().getTime() + 60 * 10 * 1000),
         });
-        return { accessToken: token, google_email: tokenPayload.google_email, microsoft_email : tokenPayload.microsoft_email, userid: tokenPayload.userId, username: tokenPayload.username } as LoginResponseDto;
+        return { accessToken: token, google_email: tokenPayload.google_email, microsoft_email: tokenPayload.microsoft_email, userid: tokenPayload.userId, username: tokenPayload.username } as LoginResponseDto;
     }
 
     @Post("/microsoft/dummy")
@@ -110,7 +111,7 @@ export class AuthController {
             httpOnly: true,
             expires: new Date(new Date().getTime() + 60 * 10 * 1000),
         });
-        return { accessToken: token, google_email: tokenPayload.google_email, microsoft_email : tokenPayload.microsoft_email, userid: tokenPayload.userId, username: tokenPayload.username } as LoginResponseDto;
+        return { accessToken: token, google_email: tokenPayload.google_email, microsoft_email: tokenPayload.microsoft_email, userid: tokenPayload.userId, username: tokenPayload.username } as LoginResponseDto;
     }
 
     @HttpCode(200)
@@ -128,24 +129,39 @@ export class AuthController {
             httpOnly: true,
             expires: new Date(new Date().getTime() + 60 * 10 * 1000),
         });
-        return { accessToken: token, google_email: tokenPayload.google_email, microsoft_email : tokenPayload.microsoft_email, userid: tokenPayload.userId, username: tokenPayload.username } as LoginResponseDto;
+        return { accessToken: token, google_email: tokenPayload.google_email, microsoft_email: tokenPayload.microsoft_email, userid: tokenPayload.userId, username: tokenPayload.username } as LoginResponseDto;
     }
 
 
 
-     @HttpCode(200)
+    @HttpCode(200)
     @Post("/microsoft/bind")
     @ApiOperation({ description: "Bind Microsoft account to existing user" })
-    @ApiResponse({ status: 200, description: 'User bound', type: LoginResponseDto })
+    @ApiResponse({ status: 200, description: 'User bound', type: UserDto })
     @UseGuards(AuthGuard('jwt'))
-    async bindMicrosoft(@Body() body: MicrosoftAuthDto, @Req() req, @Res({ passthrough: true }) res): Promise<users> {
+    async bindMicrosoft(@Body() body: MicrosoftAuthDto, @Req() req, @Res({ passthrough: true }) res): Promise<UserDto> {
         if (!body.code || !body.redirect_uri) {
             throw new HttpException("auth_code and redirect_uri are required", 400);
         }
 
         const userMeta = req.user as AccessTokenPayload;
         let updated = await this.microsoftAuthService.bindMicrosoftUser(userMeta.userId, body.code, body.redirect_uri);
-        return updated    
+        return updated
+    }
+
+    @HttpCode(200)
+    @Post("/google/bind")
+    @ApiOperation({ description: "Bind Google account to existing user" })
+    @ApiResponse({ status: 200, description: 'User bound' , type: UserDto })
+    @UseGuards(AuthGuard('jwt'))
+    async bindGoogle(@Body() body: GoogleAuthDto, @Req() req, @Res({ passthrough: true }) res): Promise<UserDto> {
+        if (!body.authCode || !body.codeVerifier || !body.redirectUri) {
+            throw new HttpException("authCode, codeVerifier, and redirectUri are required", 400);
+        }
+
+        const userMeta = req.user as AccessTokenPayload;
+        const updated = await this.googleAuthService.bindGoogleUser(userMeta.userId, body.authCode, body.codeVerifier, body.redirectUri);
+        return updated;
     }
 
     @Get("register/google/callback")

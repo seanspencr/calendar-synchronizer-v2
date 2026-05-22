@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, NotFoundException, Query } from '@nestjs/common';
 import { SchedulesService } from './schedules.service';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
@@ -15,48 +15,60 @@ export class SchedulesController {
 
   @Post()
   @UseGuards(AuthGuard('jwt'))
-  @ApiResponse({type: ScheduleDto})
-  create(@Body() createScheduleDto: CreateScheduleDto): Promise<ScheduleDto> {
+  @ApiResponse({ type: ScheduleDto })
+  create(@Body() createScheduleDto: CreateScheduleDto, @Req() req): Promise<ScheduleDto> {
+    createScheduleDto.user_id = (req.user as AccessTokenPayload).userId;
     return this.schedulesService.create(createScheduleDto);
   }
 
   @Post('/natural-language')
   @UseGuards(AuthGuard('jwt'))
-   @ApiResponse({type: ScheduleDto})
+  @ApiResponse({ type: ScheduleDto })
   createWithNaturalLanguage(@Body() query: CreateScheduleNaturalLanguageDto, @Req() req): Promise<ScheduleDto> {
     return this.schedulesService.createWithNaturalLanguage(query.query, req.user as AccessTokenPayload);
   }
 
   @Post('/sync/microsoft')
   @UseGuards(AuthGuard('jwt'))
-  @ApiResponse({type: [ScheduleDto]})
+  @ApiResponse({ type: [ScheduleDto] })
   syncMicrosoftEvents(@Req() req): Promise<ScheduleDto[]> {
     return this.schedulesService.syncMicrosoftEvents(req.user as AccessTokenPayload);
   }
-  
+
   @Post('/sync/google')
   @UseGuards(AuthGuard('jwt'))
-  @ApiResponse({type: [ScheduleDto]})
+  @ApiResponse({ type: [ScheduleDto] })
   syncGoogleEvents(@Req() req): Promise<ScheduleDto[]> {
     return this.schedulesService.syncGoogleEvents(req.user as AccessTokenPayload);
   }
-  
-  
-  
+
+
+
   @Get()
   @UseGuards(AuthGuard('jwt'))
-  @ApiResponse({type: [ScheduleDto]})
+  @ApiResponse({ type: [ScheduleDto] })
   findAll(@Req() req): Promise<ScheduleDto[]> {
     return this.schedulesService.findAll(req.user.userId);
   }
 
+  @Get('range')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiResponse({ type: [ScheduleDto] })
+  findByDateRange(
+    @Req() req,
+    @Query('minDate') minDate?: string,
+    @Query('maxDate') maxDate?: string,
+  ): Promise<ScheduleDto[]> {
+    return this.schedulesService.findByDateRange(req.user.userId, minDate, maxDate);
+  }
+
   @Get(':id')
   @UseGuards(AuthGuard('jwt'))
-  @ApiResponse({type: ScheduleDto})
+  @ApiResponse({ type: ScheduleDto })
   async findOne(@Param('id') id: string): Promise<ScheduleDto> {
-    const schedule =  await this.schedulesService.findOne(id);
+    const schedule = await this.schedulesService.findOne(id);
 
-    if(!schedule){
+    if (!schedule) {
       throw new NotFoundException("Schedule not found");
     }
 
@@ -65,7 +77,7 @@ export class SchedulesController {
 
   @Patch(':id')
   @UseGuards(AuthGuard('jwt'))
-  @ApiResponse({type: ScheduleDto})
+  @ApiResponse({ type: ScheduleDto })
   update(@Param('id') id: string, @Body() updateScheduleDto: UpdateScheduleDto): Promise<ScheduleDto> {
     return this.schedulesService.update(id, updateScheduleDto);
 
@@ -74,9 +86,9 @@ export class SchedulesController {
 
   @Delete(':id')
   @UseGuards(AuthGuard('jwt'))
-  @ApiResponse({type: ScheduleDto})
+  @ApiResponse({ type: ScheduleDto })
   async remove(@Param('id') id: string): Promise<ScheduleDto> {
-    const schedule =  await this.schedulesService.remove(id);
+    const schedule = await this.schedulesService.remove(id);
     if (!schedule) {
       throw new NotFoundException("Schedule not found");
     }

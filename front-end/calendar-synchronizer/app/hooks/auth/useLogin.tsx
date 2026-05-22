@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { AuthApi, LoginDto, LoginResponseDto } from '../api-client/api';
-import { Configuration } from "../api-client/configuration";
+import { AuthApi, LoginDto, LoginResponseDto } from '../../api-client/api';
+import { Configuration } from "../../api-client/configuration";
 
 const configuration = new Configuration({
   basePath: `${process.env.EXPO_PUBLIC_BACKEND_URL}:${process.env.EXPO_PUBLIC_BACKEND_PORT}`

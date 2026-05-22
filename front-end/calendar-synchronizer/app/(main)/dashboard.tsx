@@ -6,14 +6,14 @@ import {
   NavigationRail,
   TaskColumnPanel,
 } from '../components/dashboard';
-import { useGetTasks } from '../hooks/useGetTasks';
-import { useToggleTask } from '../hooks/useToggleTask';
-import { useGetSchedules } from '../hooks/useGetSchedules';
+import { useGetTasks } from '../hooks/task/useGetTasks';
+import { useToggleTask } from '../hooks/task/useToggleTask';
+import { useGetSchedules } from '../hooks/schedule/useGetSchedules';
 import { useGetChatMessages } from '../hooks/useGetChatMessages';
 import { useSendChatMessage } from '../hooks/useSendChatMessage';
 import { useGetDailyQuests } from '../hooks/useGetDailyQuests';
-import { useCommitTask } from '../hooks/useCommitTask';
-import { useUncommitTask } from '../hooks/useUncommitTask';
+import { useCommitTask } from '../hooks/task/useCommitTask';
+import { useUncommitTask } from '../hooks/task/useUncommitTask';
 import { useUser } from '../context/currentUserContext';
 import type { UserProfile } from '../components/dashboard/types';
 
@@ -22,7 +22,7 @@ export default function DashboardScreen() {
 
   // Query hooks
   const { tasks, setTasks } = useGetTasks();
-  const { fetchSchedules, schedules, isLoading, error } = useGetSchedules();
+  const { schedules, isLoading, error } = useGetSchedules();
   const { messages, setMessages } = useGetChatMessages();
   const { dailyQuestIds, setDailyQuestIds } = useGetDailyQuests();
 
@@ -46,10 +46,6 @@ export default function DashboardScreen() {
     () => tasks.filter((t) => !dailyQuestIds.has(t.id)),
     [tasks, dailyQuestIds],
   );
-
-  useEffect(()=>{
-    fetchSchedules();
-  }, []);
 
   return (
     <XStack flex={1} backgroundColor="$color1">

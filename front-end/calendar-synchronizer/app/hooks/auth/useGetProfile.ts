@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import type { UserProfileDto } from '../components/profile/types';
-import { AuthApi, MeResponseDto } from '../api-client';
-import { authApi } from '../services/apiService';
+import type { UserProfileDto } from '../../components/profile/types';
+import { AuthApi, MeResponseDto } from '../../api-client';
+import { authApi } from '../../services/apiService';
 
 export function useGetProfile() {
   const [profile, setProfile] = useState<MeResponseDto | null>(null);

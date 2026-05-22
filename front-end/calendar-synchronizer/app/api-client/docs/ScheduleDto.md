@@ -15,6 +15,8 @@ Name | Type | Description | Notes
 **schedule_recurrence_id** | **string** |  | [default to undefined]
 **created_by** | **string** |  | [default to undefined]
 **schedule_provider** | **object** |  | [default to undefined]
+**description** | **string** |  | [optional] [default to undefined]
+**recurrence** | [**RecurrenceDto**](RecurrenceDto.md) |  | [default to undefined]
 
 ## Example
 
@@ -32,6 +34,8 @@ const instance: ScheduleDto = {
     schedule_recurrence_id,
     created_by,
     schedule_provider,
+    description,
+    recurrence,
 };
 ```
 

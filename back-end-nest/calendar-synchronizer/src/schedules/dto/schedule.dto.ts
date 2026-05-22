@@ -1,6 +1,13 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { schedule_provider } from "src/generated/prisma/enums";
+import { recurrence_period, schedule_provider } from "src/generated/prisma/enums";
 import { schedulesModel } from "src/generated/prisma/models";
+
+export class RecurrenceDto {
+    @ApiProperty()
+    recurrence_interval: number;
+    @ApiProperty({ enum: recurrence_period })
+    recurrence_period: recurrence_period;
+}
 
 export class ScheduleDto implements schedulesModel {
     @ApiProperty()
@@ -23,4 +30,8 @@ export class ScheduleDto implements schedulesModel {
     created_by: string;
     @ApiProperty()
     schedule_provider: schedule_provider;
+    @ApiProperty({ required: false, nullable: true })
+    description: string | null;
+    @ApiProperty({ type: RecurrenceDto, nullable: true })
+    recurrence: RecurrenceDto | null;
 }

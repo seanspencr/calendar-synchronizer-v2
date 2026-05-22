@@ -7,6 +7,7 @@ All URIs are relative to *http://localhost*
 |[**schedulesControllerCreate**](#schedulescontrollercreate) | **POST** /schedules | |
 |[**schedulesControllerCreateWithNaturalLanguage**](#schedulescontrollercreatewithnaturallanguage) | **POST** /schedules/natural-language | |
 |[**schedulesControllerFindAll**](#schedulescontrollerfindall) | **GET** /schedules | |
+|[**schedulesControllerFindByDateRange**](#schedulescontrollerfindbydaterange) | **GET** /schedules/range | |
 |[**schedulesControllerFindOne**](#schedulescontrollerfindone) | **GET** /schedules/{id} | |
 |[**schedulesControllerRemove**](#schedulescontrollerremove) | **DELETE** /schedules/{id} | |
 |[**schedulesControllerSyncGoogleEvents**](#schedulescontrollersyncgoogleevents) | **POST** /schedules/sync/google | |
@@ -137,6 +138,60 @@ const { status, data } = await apiInstance.schedulesControllerFindAll();
 
 ### Parameters
 This endpoint does not have any parameters.
+
+
+### Return type
+
+**Array<ScheduleDto>**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** |  |  -  |
+|**0** |  |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **schedulesControllerFindByDateRange**
+> Array<ScheduleDto> schedulesControllerFindByDateRange()
+
+
+### Example
+
+```typescript
+import {
+    SchedulesApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new SchedulesApi(configuration);
+
+let minDate: string; // (default to undefined)
+let maxDate: string; // (default to undefined)
+
+const { status, data } = await apiInstance.schedulesControllerFindByDateRange(
+    minDate,
+    maxDate
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **minDate** | [**string**] |  | defaults to undefined|
+| **maxDate** | [**string**] |  | defaults to undefined|
 
 
 ### Return type

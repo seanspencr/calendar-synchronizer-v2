@@ -31,6 +31,7 @@ export interface GoogleCalendarEventsNormalized {
     id : string;
     kind : string;
     summary : string;
+    description?: string;
     start : {
         date : string;
         dateTime : string;

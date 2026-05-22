@@ -27,10 +27,10 @@ export interface MicrosoftGetEventResponse {
 }
 
 export interface MicrosoftGetCalendarsResponse {
-    '@odata.context': string;
-    value: MicrosoftCalendar[];
+  '@odata.context': string;
+  value: MicrosoftCalendar[];
 }
 
 export interface MicrosoftCalendar {
-    id: string;
+  id: string;
 }

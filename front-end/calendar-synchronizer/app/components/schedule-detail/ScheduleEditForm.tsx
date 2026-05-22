@@ -1,21 +1,8 @@
 import React from 'react';
-import { YStack, XStack, Text, Input, TextArea, Button, Label } from 'tamagui';
+import { YStack, XStack, Text, Input, TextArea, Button } from 'tamagui';
 import Feather from '@expo/vector-icons/Feather';
-import type {
-  RecurrenceInterval,
-  ScheduleEditFormData,
-  RECURRENCE_LABELS,
-} from './types';
-
-const RECURRENCE_OPTIONS: { value: RecurrenceInterval; label: string }[] = [
-  { value: 'none', label: 'None' },
-  { value: 'daily', label: 'Daily' },
-  { value: 'weekly', label: 'Weekly' },
-  { value: 'biweekly', label: 'Biweekly' },
-  { value: 'monthly', label: 'Monthly' },
-  { value: 'quarterly', label: 'Quarterly' },
-  { value: 'yearly', label: 'Yearly' },
-];
+import type { ScheduleEditFormData, RecurrencePeriod } from './types';
+import { RECURRENCE_PERIOD_LABELS } from './types';
 
 interface FormFieldProps {
   label: string;
@@ -40,34 +27,36 @@ function FormField({ label, children }: FormFieldProps) {
   );
 }
 
-interface RecurrencePickerProps {
-  value: RecurrenceInterval;
-  onChange: (interval: RecurrenceInterval) => void;
+const PERIOD_OPTIONS: RecurrencePeriod[] = ['NONE', 'DAY', 'WEEK', 'MONTH', 'YEAR'];
+
+interface PeriodPickerProps {
+  value: RecurrencePeriod;
+  onChange: (period: RecurrencePeriod) => void;
 }
 
-/** Inline pill selector for recurrence intervals */
-function RecurrencePicker({ value, onChange }: RecurrencePickerProps) {
+/** Inline pill selector for recurrence period */
+function PeriodPicker({ value, onChange }: PeriodPickerProps) {
   return (
     <XStack gap="$2" flexWrap="wrap">
-      {RECURRENCE_OPTIONS.map((option) => {
-        const isSelected = value === option.value;
+      {PERIOD_OPTIONS.map((period) => {
+        const isSelected = value === period;
         return (
           <Button
-            key={option.value}
+            key={period}
             size="$2"
             backgroundColor={isSelected ? '$accent8' : '$color3'}
             borderRadius="$3"
             borderWidth={1}
             borderColor={isSelected ? '$accent9' : '$color5'}
             pressStyle={{ opacity: 0.8 }}
-            onPress={() => onChange(option.value)}
+            onPress={() => onChange(period)}
           >
             <Text
               fontSize="$1"
               fontWeight="600"
               color={isSelected ? '#fff' : '$color10'}
             >
-              {option.label}
+              {RECURRENCE_PERIOD_LABELS[period]}
             </Text>
           </Button>
         );
@@ -86,25 +75,15 @@ interface ScheduleEditFormProps {
 }
 
 /**
- * Full edit form for schedule details.
- * Renders input fields for title, description, date/time, location, and recurrence.
+ * Edit form for schedule details.
+ * Fields: event (title), description, start_time, end_time,
+ * recurrence_interval (int), recurrence_period (DAY/WEEK/MONTH/YEAR).
  */
 export function ScheduleEditForm({
   formData,
   onFieldChange,
   onSave,
 }: ScheduleEditFormProps) {
-  /** Format ISO string to datetime-local input value (YYYY-MM-DDTHH:MM) */
-  const toDateTimeLocal = (iso: string): string => {
-    try {
-      const d = new Date(iso);
-      const pad = (n: number) => String(n).padStart(2, '0');
-      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-    } catch {
-      return iso;
-    }
-  };
-
   return (
     <YStack
       gap="$4"
@@ -149,18 +128,34 @@ export function ScheduleEditForm({
         />
       </FormField>
 
-      {/* Date & Time */}
+      {/* Date */}
+      <FormField label="Event Date">
+        <Input
+          type="date"
+          size="$4"
+          backgroundColor="$color3"
+          borderColor="$color5"
+          color="$color12"
+          value={formData.eventDate}
+          onChangeText={(text) => onFieldChange('eventDate', text)}
+          placeholder="YYYY-MM-DD"
+          placeholderTextColor="$color7"
+        />
+      </FormField>
+
+      {/* Time */}
       <XStack gap="$3" flexWrap="wrap">
         <YStack flex={1} minWidth={200}>
           <FormField label="Start Time">
             <Input
+              type="time"
               size="$4"
               backgroundColor="$color3"
               borderColor="$color5"
               color="$color12"
-              value={toDateTimeLocal(formData.startTime)}
+              value={formData.startTime}
               onChangeText={(text) => onFieldChange('startTime', text)}
-              placeholder="YYYY-MM-DDTHH:MM"
+              placeholder="HH:MM"
               placeholderTextColor="$color7"
             />
           </FormField>
@@ -169,61 +164,52 @@ export function ScheduleEditForm({
         <YStack flex={1} minWidth={200}>
           <FormField label="End Time">
             <Input
+              type="time"
               size="$4"
               backgroundColor="$color3"
               borderColor="$color5"
               color="$color12"
-              value={toDateTimeLocal(formData.endTime)}
+              value={formData.endTime}
               onChangeText={(text) => onFieldChange('endTime', text)}
-              placeholder="YYYY-MM-DDTHH:MM"
+              placeholder="HH:MM"
               placeholderTextColor="$color7"
             />
           </FormField>
         </YStack>
       </XStack>
 
-      {/* Location */}
-      <FormField label="Location">
-        <Input
-          size="$4"
-          backgroundColor="$color3"
-          borderColor="$color5"
-          color="$color12"
-          value={formData.location}
-          onChangeText={(text) => onFieldChange('location', text)}
-          placeholder="Event location"
-          placeholderTextColor="$color7"
-        />
-      </FormField>
-
       {/* Recurrence */}
-      <FormField label="Recurrence">
-        <RecurrencePicker
-          value={formData.recurrenceInterval}
-          onChange={(interval) => onFieldChange('recurrenceInterval', interval)}
-        />
-      </FormField>
+      <XStack gap="$3" alignItems="flex-end" flexWrap="wrap">
+        <YStack flex={1} minWidth={200}>
+          <FormField label="Repeat Pattern">
+            <PeriodPicker
+              value={formData.recurrencePeriod}
+              onChange={(p) => onFieldChange('recurrencePeriod', p)}
+            />
+          </FormField>
+        </YStack>
 
-      {/* Repeat Count (only visible when recurrence is set) */}
-      {formData.recurrenceInterval !== 'none' && (
-        <FormField label="Repeat Every N Intervals">
-          <Input
-            size="$4"
-            backgroundColor="$color3"
-            borderColor="$color5"
-            color="$color12"
-            value={String(formData.recurrenceCount)}
-            onChangeText={(text) => {
-              const num = parseInt(text, 10);
-              onFieldChange('recurrenceCount', isNaN(num) ? 1 : num);
-            }}
-            placeholder="1"
-            placeholderTextColor="$color7"
-            keyboardType="numeric"
-            maxWidth={120}
-          />
-        </FormField>
-      )}
+        {formData.recurrencePeriod !== 'NONE' && (
+          <YStack minWidth={120}>
+            <FormField label="Every">
+              <Input
+                size="$4"
+                backgroundColor="$color3"
+                borderColor="$color5"
+                color="$color12"
+                value={String(formData.recurrenceInterval)}
+                onChangeText={(text) => {
+                  const n = parseInt(text, 10);
+                  onFieldChange('recurrenceInterval', isNaN(n) || n < 0 ? 0 : n);
+                }}
+                placeholder="Number"
+                placeholderTextColor="$color7"
+                keyboardType="numeric"
+              />
+            </FormField>
+          </YStack>
+        )}
+      </XStack>
 
       {/* Save Button */}
       <Button

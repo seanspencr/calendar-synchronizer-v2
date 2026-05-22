@@ -19,10 +19,14 @@ docs/LoginResponseDto.md
 docs/MeResponseDto.md
 docs/MicrosoftAuthDto.md
 docs/MicrosoftUser.md
+docs/RecurrenceDto.md
 docs/ScheduleDto.md
 docs/SchedulesApi.md
+docs/TaskDto.md
 docs/TasksApi.md
 docs/UpdateScheduleDto.md
+docs/UpdateTaskDto.md
+docs/UserDto.md
 docs/UsersApi.md
 git_push.sh
 index.ts

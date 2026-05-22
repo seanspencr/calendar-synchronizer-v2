@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import type { CreateTaskFormData } from '../components/create-dialog/types';
+import type { CreateTaskFormData } from '../../components/create-dialog/types';
 
 /**
  * Creates a new task.

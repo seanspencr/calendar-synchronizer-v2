@@ -2,9 +2,9 @@ import React, { useState, useCallback } from 'react';
 import { YStack, XStack, ScrollView, Text, Spinner, Button } from 'tamagui';
 import Feather from '@expo/vector-icons/Feather';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useGetTaskDetail } from '../../hooks/useGetTaskDetail';
-import { useUpdateTask } from '../../hooks/useUpdateTask';
-import { useToggleSubtask } from '../../hooks/useToggleSubtask';
+import { useGetTaskDetail } from '../../hooks/task/useGetTaskDetail';
+import { useUpdateTask } from '../../hooks/task/useUpdateTask';
+import { useToggleSubtask } from '../../hooks/task/useToggleSubtask';
 import {
   TaskDetailHeader,
   TaskDescription,
@@ -13,6 +13,7 @@ import {
   TaskEditForm,
 } from '../../components/task-detail';
 import type { TaskEditFormData } from '../../components/task-detail';
+import { useToggleTask } from '@/app/hooks/task/useToggleTask';
 
 /** Format an ISO date string to a human-readable date + time */
 function formatDeadline(iso: string): string {
@@ -39,8 +40,8 @@ export default function TaskDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { task, setTask, isLoading, error } = useGetTaskDetail(id ?? '');
-  const { updateTask } = useUpdateTask(setTask);
-  const { toggleSubtask } = useToggleSubtask(setTask);
+  const { updateTask } = useUpdateTask(setTask, id);
+  const { toggleTask } = useToggleTask(setTask);
 
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<TaskEditFormData>({

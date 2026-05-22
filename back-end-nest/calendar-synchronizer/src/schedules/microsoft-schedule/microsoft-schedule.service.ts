@@ -32,9 +32,13 @@ export class MicrosoftScheduleService {
 
         let calendars: MicrosoftGetCalendarsResponse = await this.getMicrosoftCalendars(accessToken);
 
+        const now = new Date();
+        const startDateTime = now.toISOString();
+        const endDateTime = new Date(new Date().setFullYear(now.getFullYear() + 1)).toISOString();
+
         const events = await Promise.all(
             calendars.value.map(async (calendar: MicrosoftCalendar) => {
-                let url = `https://graph.microsoft.com/v1.0/me/calendars/${calendar.id}/calendarView?startDateTime=2026-03-07T00:00:00Z&endDateTime=2026-04-07T00:00:00Z&$select=id,subject,body,start,end`
+                let url = `https://graph.microsoft.com/v1.0/me/calendars/${calendar.id}/calendarView?startDateTime=${startDateTime}&endDateTime=${endDateTime}&$select=id,subject,body,start,end`
                 let response = await axios.get(url, {
                     headers: {
                         'Authorization': `Bearer ${accessToken}`

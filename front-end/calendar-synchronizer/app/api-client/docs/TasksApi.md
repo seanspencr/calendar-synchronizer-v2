@@ -11,7 +11,7 @@ All URIs are relative to *http://localhost*
 |[**tasksControllerUpdate**](#taskscontrollerupdate) | **PATCH** /tasks/{id} | |
 
 # **tasksControllerCreate**
-> tasksControllerCreate(createTaskDto)
+> TaskDto tasksControllerCreate(createTaskDto)
 
 
 ### Example
@@ -42,7 +42,7 @@ const { status, data } = await apiInstance.tasksControllerCreate(
 
 ### Return type
 
-void (empty response body)
+**TaskDto**
 
 ### Authorization
 
@@ -51,7 +51,7 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: application/json
- - **Accept**: Not defined
+ - **Accept**: application/json
 
 
 ### HTTP response details
@@ -62,7 +62,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **tasksControllerFindAll**
-> tasksControllerFindAll()
+> Array<TaskDto> tasksControllerFindAll()
 
 
 ### Example
@@ -85,7 +85,7 @@ This endpoint does not have any parameters.
 
 ### Return type
 
-void (empty response body)
+**Array<TaskDto>**
 
 ### Authorization
 
@@ -94,7 +94,7 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: Not defined
- - **Accept**: Not defined
+ - **Accept**: application/json
 
 
 ### HTTP response details
@@ -105,7 +105,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **tasksControllerFindOne**
-> tasksControllerFindOne()
+> TaskDto tasksControllerFindOne()
 
 
 ### Example
@@ -135,7 +135,7 @@ const { status, data } = await apiInstance.tasksControllerFindOne(
 
 ### Return type
 
-void (empty response body)
+**TaskDto**
 
 ### Authorization
 
@@ -144,7 +144,7 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: Not defined
- - **Accept**: Not defined
+ - **Accept**: application/json
 
 
 ### HTTP response details
@@ -155,7 +155,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **tasksControllerRemove**
-> tasksControllerRemove()
+> TaskDto tasksControllerRemove()
 
 
 ### Example
@@ -185,7 +185,7 @@ const { status, data } = await apiInstance.tasksControllerRemove(
 
 ### Return type
 
-void (empty response body)
+**TaskDto**
 
 ### Authorization
 
@@ -194,7 +194,7 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: Not defined
- - **Accept**: Not defined
+ - **Accept**: application/json
 
 
 ### HTTP response details
@@ -205,7 +205,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **tasksControllerUpdate**
-> tasksControllerUpdate(body)
+> TaskDto tasksControllerUpdate(updateTaskDto)
 
 
 ### Example
@@ -213,18 +213,19 @@ No authorization required
 ```typescript
 import {
     TasksApi,
-    Configuration
+    Configuration,
+    UpdateTaskDto
 } from './api';
 
 const configuration = new Configuration();
 const apiInstance = new TasksApi(configuration);
 
 let id: string; // (default to undefined)
-let body: object; //
+let updateTaskDto: UpdateTaskDto; //
 
 const { status, data } = await apiInstance.tasksControllerUpdate(
     id,
-    body
+    updateTaskDto
 );
 ```
 
@@ -232,13 +233,13 @@ const { status, data } = await apiInstance.tasksControllerUpdate(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **body** | **object**|  | |
+| **updateTaskDto** | **UpdateTaskDto**|  | |
 | **id** | [**string**] |  | defaults to undefined|
 
 
 ### Return type
 
-void (empty response body)
+**TaskDto**
 
 ### Authorization
 
@@ -247,7 +248,7 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: application/json
- - **Accept**: Not defined
+ - **Accept**: application/json
 
 
 ### HTTP response details

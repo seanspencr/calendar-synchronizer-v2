@@ -1,16 +1,26 @@
-import { useEffect, useState } from "react";
-import { useGoogleAuthCode } from "./useGoogleAuthCode";
-import { googleConfig } from "../lib/googleConfig";
+import { useCallback, useEffect, useState} from 'react';
+import type { UserProfileDto } from '../../components/profile/types';
 import * as Google from "expo-auth-session/providers/google";
-import { GoogleService } from "../services/googleService";
-import { Platform } from "react-native";
-import { StorageService } from "../services/storageService";
-import { LoginResponseDto } from "../api-client";
-import * as AuthSession from "expo-auth-session"
-export function useGoogleRegister() {
 
-    const [gooogleRequest, googleResponse, promptAsync] = Google.useAuthRequest(googleConfig);
-    const [registerResponse, setGoogleRegisterResponse] = useState<LoginResponseDto | null>(null);
+import { Platform } from "react-native";
+import { googleConfig } from "../../lib/googleConfig";
+import { LoginResponseDto, UserDto } from '@/app/api-client';
+import * as AuthSession from "expo-auth-session"
+import { StorageService } from '@/app/services/storageService';
+import { AuthService } from '@/app/services/authService';
+
+
+
+/**
+ * Binds a Google account to the user's profile.
+ * Replace with real API call: POST /users/me/bind-google
+ */
+export function useBindGoogle(
+  setProfile: React.Dispatch<React.SetStateAction<LoginResponseDto | null>>,
+) {
+
+   const [gooogleRequest, googleResponse, promptAsync] = Google.useAuthRequest(googleConfig);
+   const [bindResponse, setBindResponse] = useState<LoginResponseDto | null>(null);
     const [isError, setIsError] = useState(false);
 
     async function signInWithGoogle() {
@@ -36,13 +46,21 @@ export function useGoogleRegister() {
         console.log("Redirect URI : " + redirectUri)
 
         try {
-            let loginResponse = await GoogleService.loginWithGoogleAuthCode(code, codeVerifier!, redirectUri);
+            let updated = await AuthService.bindGoogle({
+              authCode : code,
+              codeVerifier : codeVerifier!,
+              redirectUri : redirectUri
+            });
+
+
+            setProfile((prev) => {
+              if (!prev) return prev;
+              return { ...prev, google_email: updated.google_email as string };
+            });
             
-            await StorageService.saveAccessToken(loginResponse.accessToken)
-            
-            setGoogleRegisterResponse(loginResponse);
+
         } catch (error) {
-            console.error("Error during Google registration:", error);
+            console.error("Error during Google bind:", error);
             setIsError(true);
         }
 
@@ -53,5 +71,5 @@ export function useGoogleRegister() {
     }, [googleResponse]);
 
 
-    return { isError, registerResponse, promptAsync };
+    return { isError, bindResponse, promptAsync };
 }

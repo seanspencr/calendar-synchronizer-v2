@@ -12,7 +12,7 @@ export interface CreateTaskFormData {
 }
 
 /** Schedule provider options */
-export type ScheduleProvider = 'google' | 'microsoft' | 'manual';
+export type ScheduleProvider = 'LOCAL' | 'MICROSOFT' | 'GOOGLE';
 
 /** Form data for creating a new schedule */
 export interface CreateScheduleFormData {

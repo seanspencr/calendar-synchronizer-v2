@@ -13,6 +13,7 @@ Name | Type | Description | Notes
 **schedule_provider** | **object** |  | [optional] [default to undefined]
 **user_id** | **string** |  | [optional] [default to undefined]
 **external_event_id** | **object** |  | [optional] [default to undefined]
+**description** | **object** |  | [optional] [default to undefined]
 
 ## Example
 
@@ -28,6 +29,7 @@ const instance: UpdateScheduleDto = {
     schedule_provider,
     user_id,
     external_event_id,
+    description,
 };
 ```
 

@@ -35,6 +35,7 @@ model schedules {
   created_by             String                @db.Uuid
   schedule_provider      schedule_provider     @default(LOCAL)
   external_event_id      String?
+  description            String?
   users                  users                 @relation(fields: [created_by], references: [id], onDelete: Cascade)
   schedule_recurrences   schedule_recurrences? @relation(fields: [schedule_recurrence_id], references: [id], onDelete: Cascade)
 

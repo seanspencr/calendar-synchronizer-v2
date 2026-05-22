@@ -1,12 +1,11 @@
 import React from 'react';
 import { XStack } from 'tamagui';
 import { ScheduleInfoChip } from './ScheduleInfoChip';
-import type { RecurrenceInterval, RECURRENCE_LABELS } from './types';
 
 interface ScheduleInfoBarProps {
   date: string;
   timeRange: string;
-  recurrenceLabel: string;
+  recurrenceLabel: string | null;
 }
 
 /**
@@ -49,11 +48,14 @@ export function ScheduleInfoBar({
         alignSelf="center"
       />
 
-      <ScheduleInfoChip
-        icon="refresh-cw"
-        label="Recurrence"
-        value={recurrenceLabel}
-      />
+
+      {recurrenceLabel && (
+        <ScheduleInfoChip
+          icon="refresh-cw"
+          label="Recurrence"
+          value={recurrenceLabel}
+        />
+      )}
     </XStack>
   );
 }

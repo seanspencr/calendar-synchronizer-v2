@@ -5,6 +5,7 @@ import axios from 'axios';
 import { GoogleTokenResponse } from '../dto/googleToken.dto';
 import { AccessTokenPayload } from '../dto/accessToken.dto';
 import { GoogleUserDto } from '../dto/googleUser.dto';
+import { users } from 'src/generated/prisma/client';
 
 @Injectable()
 export class GoogleAuthService {
@@ -66,14 +67,14 @@ export class GoogleAuthService {
             const { email, name } = userInfoResponse.data;
 
             return { email, name }
-        }catch (error) {
+        } catch (error) {
             console.error("Error fetching Google user info:", error);
             return null;
         }
     }
 
-    public async getGoogleUserInfoByAccessToken(accessToken: string): Promise<GoogleUserDto | null>{
-         const userInfoResponse = await axios.get("https://www.googleapis.com/oauth2/v2/userinfo", {
+    public async getGoogleUserInfoByAccessToken(accessToken: string): Promise<GoogleUserDto | null> {
+        const userInfoResponse = await axios.get("https://www.googleapis.com/oauth2/v2/userinfo", {
             headers: {
                 Authorization: `Bearer ${accessToken}`
             }
@@ -85,8 +86,15 @@ export class GoogleAuthService {
     }
 
 
-    public async authGoogleUser(googleAuthCode: string, codeVerifier: string, redirectUri: string): Promise<AccessTokenPayload> {
-        // handle token exchange dan get refresh token (gara2 gw google clound consolenya buat web pdhl hrsnya bisa auto)
+    /**
+     * Exchanges a Google auth code (PKCE) for tokens and fetches the Google user profile.
+     * Shared by authGoogleUser and bindGoogleUser.
+     */
+    private async exchangeCodeForTokenAndUser(
+        googleAuthCode: string,
+        codeVerifier: string,
+        redirectUri: string,
+    ): Promise<{ tokenResponse: GoogleTokenResponse; user: GoogleUserDto }> {
         const api_url = "https://oauth2.googleapis.com/token";
         const params = new URLSearchParams();
         params.append("code", googleAuthCode);
@@ -101,63 +109,83 @@ export class GoogleAuthService {
 
         try {
             const tokenResponse: GoogleTokenResponse = (await axios.post(api_url, params.toString(), {
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             })).data;
             console.log("Google token response:", tokenResponse);
 
-
-            // get user info from google
-            const user : GoogleUserDto | null = await this.getGoogleUserInfoByAccessToken(tokenResponse.access_token);
-            if(!user){
+            const user: GoogleUserDto | null = await this.getGoogleUserInfoByAccessToken(tokenResponse.access_token);
+            if (!user) {
                 throw new Error("Failed to fetch user info from Google");
             }
 
-            // if exist
-            let existing = await this.userService.findGoogleUser(user.email);
-
-            if (existing) {
-
-                this.userService.updateOauthUserRefreshToken(existing.id, "google", tokenResponse.refresh_token!);
-
-                return {
-                    google_email: existing.google_email,
-                    microsoft_email: existing.microsoft_email,
-                    userId: existing.id,
-                    username: existing.username!
-                };
-            }
-
-            // klo gaada, daftarin baru
-            const refreshToken = tokenResponse.refresh_token;
-            if (!refreshToken) {
-                throw new UnauthorizedException("Failed to obtain refresh token from Google");
-            }
-
-            let newUser = await this.userService.createGoogleUser({
-                google_email: user.email,
-                microsoft_email: null,
-                password: "null",
-                username: user.name,
-                google_refresh_token: refreshToken,
-                microsoft_refresh_token: null,
-            });
-
-            return {
-                google_email: newUser.google_email,
-                microsoft_email: newUser.microsoft_email,
-                userId: newUser.id,
-                username: newUser.username!
-            };
-
-
+            return { tokenResponse, user };
         } catch (error) {
-            console.error("Error exchanging code for token:", error.response.data);
-            console.error("Error response status:", error.response.status);
-            console.error("Error request headers:", error.config.headers);
-            console.error("Error request data:", error.config.data);
+            console.error("Error exchanging code for token:", error.response?.data);
+            console.error("Error response status:", error.response?.status);
+            console.error("Error request headers:", error.config?.headers);
+            console.error("Error request data:", error.config?.data);
             throw new UnauthorizedException("Failed to exchange code for token with Google");
         }
+    }
+
+    public async authGoogleUser(googleAuthCode: string, codeVerifier: string, redirectUri: string): Promise<AccessTokenPayload> {
+        // handle token exchange dan get refresh token (gara2 gw google clound consolenya buat web pdhl hrsnya bisa auto)
+        const { tokenResponse, user } = await this.exchangeCodeForTokenAndUser(googleAuthCode, codeVerifier, redirectUri);
+
+        // if exist
+        let existing = await this.userService.findGoogleUser(user.email);
+
+        if (existing) {
+            this.userService.updateOauthUserRefreshToken(existing.id, "google", tokenResponse.refresh_token!);
+
+            return {
+                google_email: existing.google_email,
+                microsoft_email: existing.microsoft_email,
+                userId: existing.id,
+                username: existing.username!
+            };
+        }
+
+        // klo gaada, daftarin baru
+        const refreshToken = tokenResponse.refresh_token;
+        if (!refreshToken) {
+            throw new UnauthorizedException("Failed to obtain refresh token from Google");
+        }
+
+        let newUser = await this.userService.createGoogleUser({
+            google_email: user.email,
+            microsoft_email: null,
+            password: "null",
+            username: user.name,
+            google_refresh_token: refreshToken,
+            microsoft_refresh_token: null,
+        });
+
+        return {
+            google_email: newUser.google_email,
+            microsoft_email: newUser.microsoft_email,
+            userId: newUser.id,
+            username: newUser.username!
+        };
+    }
+
+    /**
+     * Binds a Google account to an existing user (identified by userId).
+     * Mirrors MicrosoftAuthService.bindMicrosoftUser.
+     */
+    public async bindGoogleUser(userId: string, googleAuthCode: string, codeVerifier: string, redirectUri: string): Promise<users> {
+        const { tokenResponse, user } = await this.exchangeCodeForTokenAndUser(googleAuthCode, codeVerifier, redirectUri);
+
+        const refreshToken = tokenResponse.refresh_token;
+        if (!refreshToken) {
+            throw new UnauthorizedException("Failed to obtain refresh token from Google");
+        }
+
+        const updatedUser = await this.userService.update(userId, {
+            google_email: user.email,
+            google_refresh_token: refreshToken,
+        });
+
+        return updatedUser;
     }
 }

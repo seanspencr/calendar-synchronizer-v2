@@ -2,19 +2,15 @@ import React, { useState, useCallback } from 'react';
 import { YStack, XStack, ScrollView, Text, Spinner, Button } from 'tamagui';
 import Feather from '@expo/vector-icons/Feather';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useGetScheduleDetail } from '../../hooks/useGetScheduleDetail';
-import { useUpdateSchedule } from '../../hooks/useUpdateSchedule';
+import { useGetScheduleDetail } from '../../hooks/schedule/useGetScheduleDetail';
+import { useUpdateSchedule } from '../../hooks/schedule/useUpdateSchedule';
 import {
   ScheduleDetailHeader,
   ScheduleInfoBar,
   ScheduleDescription,
   ScheduleEditForm,
-  RECURRENCE_LABELS,
 } from '../../components/schedule-detail';
-import type {
-  ScheduleEditFormData,
-  RecurrenceInterval,
-} from '../../components/schedule-detail';
+import type { ScheduleEditFormData, RecurrencePeriod } from '../../components/schedule-detail';
 
 /** Format an ISO date string to a human-readable date (e.g. "Oct 24, 2024") */
 function formatDate(iso: string): string {
@@ -36,15 +32,26 @@ function formatTime(iso: string): string {
   });
 }
 
-/** Build the recurrence display label */
-function buildRecurrenceLabel(
-  interval: RecurrenceInterval,
-  count?: number,
-): string {
-  if (interval === 'none') return 'No recurrence';
-  const label = RECURRENCE_LABELS[interval];
-  const n = count && count > 1 ? count : 1;
-  return n > 1 ? `Repeat every ${n} ${label}s` : `Repeat every ${label}`;
+function extractDateStr(iso?: string | null): string {
+  if (!iso) return '';
+  try {
+    const d = new Date(iso);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  } catch {
+    return '';
+  }
+}
+
+function extractTimeStr(iso?: string | null): string {
+  if (!iso) return '';
+  try {
+    const d = new Date(iso);
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  } catch {
+    return '';
+  }
 }
 
 /**
@@ -61,24 +68,24 @@ export default function ScheduleDetailScreen() {
   const [formData, setFormData] = useState<ScheduleEditFormData>({
     title: '',
     description: '',
+    eventDate: '',
     startTime: '',
     endTime: '',
-    location: '',
-    recurrenceInterval: 'none',
-    recurrenceCount: 1,
+    recurrenceInterval: 1,
+    recurrencePeriod: 'NONE',
   });
 
   /** Populate form data when entering edit mode */
   const handleEditToggle = useCallback(() => {
     if (!isEditing && schedule) {
       setFormData({
-        title: schedule.title,
+        title: schedule.event ?? '',
         description: schedule.description ?? '',
-        startTime: schedule.startTime,
-        endTime: schedule.endTime,
-        location: schedule.location ?? '',
-        recurrenceInterval: schedule.recurrenceInterval,
-        recurrenceCount: schedule.recurrenceCount ?? 1,
+        eventDate: extractDateStr(schedule.event_date || schedule.start_time),
+        startTime: extractTimeStr(schedule.start_time),
+        endTime: extractTimeStr(schedule.end_time),
+        recurrenceInterval: schedule.recurrence?.recurrence_interval ?? 1,
+        recurrencePeriod: (schedule.recurrence?.recurrence_period as RecurrencePeriod) ?? 'NONE',
       });
     }
     setIsEditing((prev) => !prev);
@@ -97,9 +104,34 @@ export default function ScheduleDetailScreen() {
 
   /** Save changes and exit edit mode */
   const handleSave = useCallback(() => {
-    updateSchedule(formData);
+    if (!schedule) return;
+
+    let isoStart = schedule.start_time;
+    let isoEnd = schedule.end_time;
+    try {
+      if (formData.eventDate && formData.startTime) {
+        isoStart = new Date(`${formData.eventDate}T${formData.startTime}`).toISOString();
+      }
+      if (formData.eventDate && formData.endTime) {
+        isoEnd = new Date(`${formData.eventDate}T${formData.endTime}`).toISOString();
+      }
+    } catch (e) {
+      console.warn("Error parsing form dates", e);
+    }
+
+    updateSchedule(schedule.id, {
+      event: formData.title,
+      event_date: formData.eventDate ? new Date(formData.eventDate).toISOString() : isoStart,
+      start_time: isoStart,
+      end_time: isoEnd,
+      description: formData.description,
+      recurrence: formData.recurrencePeriod === 'NONE' ? null : {
+        recurrence_interval: formData.recurrenceInterval,
+        recurrence_period: formData.recurrencePeriod,
+      },
+    } as any);
     setIsEditing(false);
-  }, [formData, updateSchedule]);
+  }, [formData, schedule, updateSchedule]);
 
   // Loading state
   if (isLoading) {
@@ -171,7 +203,7 @@ export default function ScheduleDetailScreen() {
 
         {/* Header: title + edit button */}
         <ScheduleDetailHeader
-          title={schedule.title}
+          title={schedule.event ?? 'Untitled Event'}
           isEditing={isEditing}
           onEditPress={handleEditToggle}
         />
@@ -180,12 +212,9 @@ export default function ScheduleDetailScreen() {
         {!isEditing && (
           <YStack marginTop="$4">
             <ScheduleInfoBar
-              date={formatDate(schedule.startTime)}
-              timeRange={`${formatTime(schedule.startTime)} - ${formatTime(schedule.endTime)}`}
-              recurrenceLabel={buildRecurrenceLabel(
-                schedule.recurrenceInterval,
-                schedule.recurrenceCount,
-              )}
+              date={formatDate(schedule.event_date)}
+              timeRange={`${formatTime(schedule.start_time)} - ${formatTime(schedule.end_time)}`}
+              recurrenceLabel={schedule.recurrence ? `${schedule.recurrence?.recurrence_interval} ${schedule.recurrence?.recurrence_period}` : "Not Repeating"}
             />
           </YStack>
         )}
@@ -193,7 +222,7 @@ export default function ScheduleDetailScreen() {
         {/* Description (read mode only) */}
         {!isEditing && (
           <ScheduleDescription
-            description={schedule.description ?? 'No description provided.'}
+            description={schedule.description ?? 'No description.'}
           />
         )}
 

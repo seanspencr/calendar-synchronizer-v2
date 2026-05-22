@@ -1,9 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
-import { MicrosoftService } from '../services/microsoftService';
-import { StorageService } from '../services/storageService';
-import { authApi } from '../services/apiService';
+import { MicrosoftService } from '../../services/microsoftService';
+import { StorageService } from '../../services/storageService';
+import { authApi } from '../../services/apiService';
 import { Platform } from 'react-native';
-import { microsoftConfig, redirectUri } from '../lib/microsoftConfig';
+import { microsoftConfig, redirectUri } from '../../lib/microsoftConfig';
 import * as AuthSession from 'expo-auth-session';
 
 export function useMicrosoftRegister() {

@@ -5,14 +5,14 @@ import * as WebBrowser from "expo-web-browser";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ExternalPathString, Link, useRouter } from "expo-router";
 import React from "react";
-import { useLogin } from "../hooks/useLogin";
+import { useLogin } from "../hooks/auth/useLogin";
 import * as AuthSession from "expo-auth-session";
-import { useMicrosoftRegister } from "../hooks/useMicrosoftRegister";
-import { useGoogleRegister } from "../hooks/useGoogleRegister";
+import { useMicrosoftRegister } from "../hooks/auth/useMicrosoftRegister";
+import { useGoogleRegister } from "../hooks/auth/useGoogleRegister";
 import { useUser } from "../context/currentUserContext";
 import { LoginResponseDto } from "../api-client";
 import { StorageService } from "../services/storageService";
-import { useGetProfile } from "../hooks/useGetProfile";
+import { useGetProfile } from "../hooks/auth/useGetProfile";
 
 export default function Index() {
   WebBrowser.maybeCompleteAuthSession();

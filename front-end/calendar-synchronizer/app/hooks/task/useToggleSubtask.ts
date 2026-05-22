@@ -1,9 +1,10 @@
 import { useCallback } from 'react';
-import type { TaskDetailDto } from '../components/task-detail/types';
+import type { TaskDetailDto } from '../../components/task-detail/types';
+import { TaskService } from '../../services/taskService';
 
 /**
  * Toggles a subtask's completion status.
- * Replace with real API call: PATCH /tasks/:subtaskId
+ * Real API call: PATCH /tasks/:subtaskId
  */
 export function useToggleSubtask(
   setTask: React.Dispatch<React.SetStateAction<TaskDetailDto | null>>,
@@ -13,6 +14,12 @@ export function useToggleSubtask(
       // Optimistic update
       setTask((prev) => {
         if (!prev) return prev;
+
+        const subtaskToToggle = prev.subtasks.find((st) => st.id === subtaskId);
+        if (subtaskToToggle) {
+          TaskService.updateTask(subtaskId, { completed: !subtaskToToggle.completed }).catch(console.error);
+        }
+
         return {
           ...prev,
           subtasks: prev.subtasks.map((st) =>
@@ -20,7 +27,6 @@ export function useToggleSubtask(
           ),
         };
       });
-      // In real impl: await tasksApi.tasksControllerToggle(subtaskId)
     },
     [setTask],
   );
