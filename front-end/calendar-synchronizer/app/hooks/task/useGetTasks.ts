@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { TaskDto } from '../../api-client';
 import { TaskService } from '@/app/services/taskService';
 
@@ -11,13 +11,14 @@ export function useGetTasks() {
   const [isLoading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function fetch(){
+  async function fetch() {
     setLoading(true);
     setError(null);
 
     try {
       let tasks = await TaskService.findAll();
       setTasks(tasks);
+      setLoading(false)
     } catch (err) {
       setError("Failed to fetch tasks");
     } finally {
@@ -25,5 +26,9 @@ export function useGetTasks() {
     }
   }
 
-  return { tasks, setTasks, isLoading, error , fetch};
+  useEffect(() => {
+    fetch()
+  }, [])
+
+  return { tasks, setTasks, isLoading, error };
 }

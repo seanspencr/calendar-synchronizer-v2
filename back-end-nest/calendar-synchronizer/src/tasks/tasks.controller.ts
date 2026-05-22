@@ -20,8 +20,7 @@ export class TasksController {
   @UseGuards(AuthGuard("jwt"))
   create(@Body() createTaskDto: CreateTaskDto, @Req() req): Promise<TaskDto> {
     let user = req.user as AccessTokenPayload;
-    createTaskDto.user_id = user.userId;
-    return this.tasksService.create(createTaskDto);
+    return this.tasksService.create(user.userId, createTaskDto);
   }
 
   @Get()

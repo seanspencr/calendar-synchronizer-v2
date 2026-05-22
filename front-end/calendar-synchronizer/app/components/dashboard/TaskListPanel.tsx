@@ -2,7 +2,7 @@ import React from 'react';
 import { YStack, XStack, Text, Checkbox, ScrollView } from 'tamagui';
 import Feather from '@expo/vector-icons/Feather';
 import { useRouter } from 'expo-router';
-import type { TaskDto } from './types';
+import type { TaskDto } from '../../api-client';
 
 interface TaskListPanelProps {
   tasks: TaskDto[];

@@ -11,17 +11,19 @@ import type {
   CreateTaskFormData,
   CreateScheduleFormData,
 } from './types';
+import { ScheduleDto, TaskDto } from '../../api-client';
 
 interface CreateDialogProps {
   open: boolean;
   onClose: () => void;
+  setTasks: React.Dispatch<React.SetStateAction<TaskDto[]>>,
+  setSchedules: React.Dispatch<React.SetStateAction<ScheduleDto[]>>,
 }
 
 const INITIAL_TASK: CreateTaskFormData = {
   title: '',
   description: '',
   deadline: '',
-  parent_task_id: '',
 };
 
 const INITIAL_SCHEDULE: CreateScheduleFormData = {
@@ -37,12 +39,17 @@ const INITIAL_SCHEDULE: CreateScheduleFormData = {
  * Modal dialog for creating a new Task or Schedule.
  * Renders as an overlay with a backdrop.
  */
-export function CreateDialog({ open, onClose }: CreateDialogProps) {
+export function CreateDialog({
+  open: open,
+  onClose: onClose,
+  setTasks: setTasks,
+  setSchedules: setSchedules
+}: CreateDialogProps) {
   const [mode, setMode] = useState<CreateDialogMode>('task');
   const [taskForm, setTaskForm] = useState<CreateTaskFormData>(INITIAL_TASK);
   const [scheduleForm, setScheduleForm] = useState<CreateScheduleFormData>(INITIAL_SCHEDULE);
 
-  const { createTask, isSubmitting: isSubmittingTask, error: taskError, successMessage: taskSuccess } = useCreateTask();
+  const { createTask, isSubmitting: isSubmittingTask, error: taskError, successMessage: taskSuccess } = useCreateTask(setTasks);
   const { createSchedule, isSubmitting: isSubmittingSchedule, error: scheduleError, successMessage: scheduleSuccess } = useCreateSchedule();
 
   const isSubmitting = isSubmittingTask || isSubmittingSchedule;

@@ -12,7 +12,7 @@ export function useCreateSchedule() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const createSchedule = useCallback(async (data: CreateScheduleFormData, userId: string) => {
+  const createSchedule = useCallback(async (data: CreateScheduleFormData) => {
     setIsSubmitting(true);
     setError(null);
     setSuccessMessage(null);
@@ -44,7 +44,6 @@ export function useCreateSchedule() {
         start_time: isoStartTime,
         end_time: isoEndTime,
         schedule_provider: data.schedule_provider,
-        user_id: userId,
       };
 
       await ScheduleService.createSchedule(dto);

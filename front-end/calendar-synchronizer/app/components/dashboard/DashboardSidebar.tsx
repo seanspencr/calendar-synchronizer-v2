@@ -7,12 +7,14 @@ import { TaskListPanel } from './TaskListPanel';
 import { EventListPanel } from './EventListPanel';
 import { ChatbotPanel } from './ChatbotPanel';
 import { CreateDialog } from '../create-dialog';
-import type { TaskDto, ChatMessage, UserProfile } from './types';
-import { ScheduleDto } from '../api-client';
+import type { ChatMessage, UserProfile } from './types';
+import { ScheduleDto, TaskDto } from '../../api-client';
 
 interface DashboardSidebarProps {
   user: UserProfile;
   tasks: TaskDto[];
+  setTasks: React.Dispatch<React.SetStateAction<TaskDto[]>>;
+  setSchedules: React.Dispatch<React.SetStateAction<ScheduleDto[]>>;
   events: ScheduleDto[];
   chatMessages: ChatMessage[];
   isChatTyping: boolean;
@@ -27,6 +29,8 @@ export function DashboardSidebar({
   events,
   chatMessages,
   isChatTyping,
+  setTasks,
+  setSchedules,
   onToggleTask,
   onSendChat,
 }: DashboardSidebarProps) {
@@ -102,6 +106,8 @@ export function DashboardSidebar({
       <CreateDialog
         open={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
+        setTasks={setTasks}
+        setSchedules={setSchedules}
       />
     </YStack>
   );

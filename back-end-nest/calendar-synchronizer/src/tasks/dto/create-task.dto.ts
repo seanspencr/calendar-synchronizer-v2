@@ -14,5 +14,4 @@ export class CreateTaskDto implements Partial<tasksCreateInput> {
     completed?: boolean | undefined;
     @ApiProperty()
     parent_task_id?: string | undefined;
-    user_id: string;
 }

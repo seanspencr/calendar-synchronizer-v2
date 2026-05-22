@@ -12,12 +12,12 @@ export function useGetSchedules() {
   const [error, setError] = useState<string | null>(null);
 
   async function fetchSchedules() {
-    try{
+    try {
       setIsLoading(true);
       const schedules = await ScheduleService.findAll();
       setSchedules(schedules);
 
-    }catch(err){
+    } catch (err) {
       setIsLoading(false)
       setError(err instanceof Error ? err.message : 'Failed to fetch schedules');
       console.error("Error fetching schedules:", err);
@@ -29,5 +29,5 @@ export function useGetSchedules() {
     fetchSchedules();
   }, []);
 
-  return { schedules, isLoading, error };
+  return { schedules, setSchedules, isLoading, error };
 }

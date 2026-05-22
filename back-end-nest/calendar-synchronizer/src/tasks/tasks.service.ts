@@ -25,9 +25,12 @@ export class TasksService {
       }));
   }
 
-  create(createTaskDto: CreateTaskDto) {
+  create(userId: string, createTaskDto: CreateTaskDto) {
     return this.databaseService.tasks.create({
-      data: createTaskDto,
+      data: {
+        ...createTaskDto,
+        user_id: userId
+      },
     });
   }
 

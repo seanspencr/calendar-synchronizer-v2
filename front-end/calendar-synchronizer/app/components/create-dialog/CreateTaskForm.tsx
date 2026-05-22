@@ -71,26 +71,13 @@ export function CreateTaskForm({
 
       <FormField label="Deadline">
         <Input
+          type="datetime-local"
           size="$4"
           backgroundColor="$color3"
           borderColor="$color5"
           color="$color12"
           value={formData.deadline}
           onChangeText={(t) => onFieldChange('deadline', t)}
-          placeholder="YYYY-MM-DDTHH:MM"
-          placeholderTextColor="$color7"
-        />
-      </FormField>
-
-      <FormField label="Parent Task ID (optional)">
-        <Input
-          size="$4"
-          backgroundColor="$color3"
-          borderColor="$color5"
-          color="$color12"
-          value={formData.parent_task_id}
-          onChangeText={(t) => onFieldChange('parent_task_id', t)}
-          placeholder="Leave empty if none"
           placeholderTextColor="$color7"
         />
       </FormField>

@@ -44,7 +44,6 @@ export interface CreateTaskDto {
     'created_at'?: object;
     'completed'?: boolean;
     'parent_task_id'?: string;
-    'user_id': string;
 }
 export interface CreateUserDto {
     'username': string;
@@ -161,7 +160,6 @@ export interface UpdateTaskDto {
     'created_at'?: object;
     'completed'?: boolean;
     'parent_task_id'?: string;
-    'user_id'?: string;
 }
 export interface UserDto {
     'id': string;

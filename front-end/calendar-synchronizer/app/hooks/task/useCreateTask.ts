@@ -1,11 +1,16 @@
 import { useState, useCallback } from 'react';
 import type { CreateTaskFormData } from '../../components/create-dialog/types';
+import { TaskService } from '@/app/services/taskService';
+import { CreateTaskDto } from '@/app/api-client';
+import { TaskDto } from '@/app/api-client';
 
 /**
  * Creates a new task.
  * Replace with real API call: POST /tasks
  */
-export function useCreateTask() {
+export function useCreateTask(
+  setTasks: React.Dispatch<React.SetStateAction<TaskDto[]>>
+) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -15,11 +20,21 @@ export function useCreateTask() {
     setError(null);
     setSuccessMessage(null);
     try {
-      await new Promise((r) => setTimeout(r, 500));
-      console.log('[useCreateTask] Task created:', data);
+      const deadlineIso = data.deadline ? new Date(data.deadline).toISOString() : undefined;
+      const task = await TaskService.createTask({
+        title: data.title,
+        description: data.description,
+        deadline: deadlineIso,
+        completed: false,
+      });
+      setTasks((prev) => [...prev, task].sort((a, b) => {
+        const dateA = a.deadline ? new Date(a.deadline) : new Date(0);
+        const dateB = b.deadline ? new Date(b.deadline) : new Date(0);
+        return dateA.getTime() - dateB.getTime();
+      }));
       setSuccessMessage(`Task "${data.title}" created successfully.`);
-    } catch {
-      setError('Failed to create task.');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
     } finally {
       setIsSubmitting(false);
     }

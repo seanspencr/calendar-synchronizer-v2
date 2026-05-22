@@ -21,8 +21,8 @@ export default function DashboardScreen() {
   const { user } = useUser();
 
   // Query hooks
-  const { tasks, setTasks } = useGetTasks();
-  const { schedules, isLoading, error } = useGetSchedules();
+  const { tasks, setTasks, error: tasksError, isLoading: tasksLoading } = useGetTasks();
+  const { schedules, setSchedules, isLoading: schedulesLoading, error: schedulesError } = useGetSchedules();
   const { messages, setMessages } = useGetChatMessages();
   const { dailyQuestIds, setDailyQuestIds } = useGetDailyQuests();
 
@@ -83,6 +83,8 @@ export default function DashboardScreen() {
       <DashboardSidebar
         user={userProfile}
         tasks={tasks}
+        setTasks={setTasks}
+        setSchedules={setSchedules}
         events={schedules}
         chatMessages={messages}
         isChatTyping={isTyping}

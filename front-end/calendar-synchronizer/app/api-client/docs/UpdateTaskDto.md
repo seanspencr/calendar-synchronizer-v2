@@ -11,7 +11,6 @@ Name | Type | Description | Notes
 **created_at** | **object** |  | [optional] [default to undefined]
 **completed** | **boolean** |  | [optional] [default to undefined]
 **parent_task_id** | **string** |  | [optional] [default to undefined]
-**user_id** | **string** |  | [optional] [default to undefined]
 
 ## Example
 
@@ -25,7 +24,6 @@ const instance: UpdateTaskDto = {
     created_at,
     completed,
     parent_task_id,
-    user_id,
 };
 ```
 
