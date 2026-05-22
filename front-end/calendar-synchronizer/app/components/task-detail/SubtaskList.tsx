@@ -2,10 +2,10 @@ import React from 'react';
 import { YStack, XStack, Text, Checkbox } from 'tamagui';
 import Feather from '@expo/vector-icons/Feather';
 import { useRouter } from 'expo-router';
-import type { TaskDto } from '../dashboard/types';
+import type { TaskDto } from '../../api-client';
 
 interface SubtaskListProps {
-  subtasks: TaskDto[];
+  subtasks?: TaskDto[];
   onToggle: (id: string) => void;
 }
 
@@ -60,7 +60,7 @@ function SubtaskItem({
  * Displays a list of subtasks with toggleable checkboxes.
  * Each subtask title links to its own task detail page.
  */
-export function SubtaskList({ subtasks, onToggle }: SubtaskListProps) {
+export function SubtaskList({ subtasks = [], onToggle }: SubtaskListProps) {
   const router = useRouter();
 
   if (subtasks.length === 0) return null;

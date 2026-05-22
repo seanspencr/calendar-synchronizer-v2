@@ -13,19 +13,19 @@ export function useGetTaskDetail(id: string) {
 
   useEffect(() => {
     if (!id) return;
-    
+
     async function fetchTask() {
       setIsLoading(true);
       setError(null);
       try {
         const data = await TaskService.findOne(id);
-        // Map TaskDto from API to TaskDetailDto for UI (mocking empty subtasks array if needed)
         setTask(data);
-        
+        setIsLoading(false)
+
       } catch (err) {
         console.error(err);
-        setError('Failed to fetch task detail');
-        
+        setError(err instanceof Error ? err.message : 'Failed to fetch task detail');
+
       } finally {
         setIsLoading(false);
       }

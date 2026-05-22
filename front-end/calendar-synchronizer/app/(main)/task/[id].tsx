@@ -13,7 +13,6 @@ import {
   TaskEditForm,
 } from '../../components/task-detail';
 import type { TaskEditFormData } from '../../components/task-detail';
-import { useToggleTask } from '@/app/hooks/task/useToggleTask';
 
 /** Format an ISO date string to a human-readable date + time */
 function formatDeadline(iso: string): string {
@@ -40,8 +39,8 @@ export default function TaskDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { task, setTask, isLoading, error } = useGetTaskDetail(id ?? '');
-  const { updateTask } = useUpdateTask(setTask, id);
-  const { toggleTask } = useToggleTask(setTask);
+  const { updateTask, isLoading: isSaving, error: saveError, successMessage: saveSuccess } = useUpdateTask(setTask, id);
+  const { toggleSubtask, error: subtaskError } = useToggleSubtask(setTask);
 
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState<TaskEditFormData>({
@@ -76,8 +75,8 @@ export default function TaskDetailScreen() {
   );
 
   /** Save changes and exit edit mode */
-  const handleSave = useCallback(() => {
-    updateTask(formData);
+  const handleSave = useCallback(async () => {
+    await updateTask(formData);
     setIsEditing(false);
   }, [formData, updateTask]);
 
@@ -194,10 +193,33 @@ export default function TaskDetailScreen() {
 
         {/* Edit mode content */}
         {isEditing && (
-          <TaskEditForm
-            formData={formData}
-            onFieldChange={handleFieldChange}
-          />
+          <YStack gap="$3">
+            <TaskEditForm
+              formData={formData}
+              onFieldChange={handleFieldChange}
+            />
+
+            {/* Save feedback */}
+            {isSaving && (
+              <XStack alignItems="center" gap="$2" marginTop="$1">
+                <Spinner size="small" color="$accent8" />
+                <Text fontSize="$2" color="$color8">Saving...</Text>
+              </XStack>
+            )}
+            {saveError && (
+              <Text fontSize="$2" color="#f87171" marginTop="$1">{saveError}</Text>
+            )}
+            {saveSuccess && !isSaving && (
+              <Text fontSize="$2" color="#4ade80" marginTop="$1">{saveSuccess}</Text>
+            )}
+          </YStack>
+        )}
+
+        {/* Inline action errors */}
+        {subtaskError && (
+          <Text fontSize="$2" color="#f87171" marginTop="$3">
+            {subtaskError}
+          </Text>
         )}
       </ScrollView>
     </YStack>
