@@ -12,7 +12,7 @@ import {
   TaskInfoBar,
   TaskEditForm,
 } from '../../components/task-detail';
-import type { TaskEditFormData } from '../../components/task-detail';
+import { TaskDto, UpdateTaskDto } from '@/app/api-client';
 
 /** Format an ISO date string to a human-readable date + time */
 function formatDeadline(iso: string): string {
@@ -39,11 +39,13 @@ export default function TaskDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { task, setTask, isLoading, error } = useGetTaskDetail(id ?? '');
-  const { updateTask, isLoading: isSaving, error: saveError, successMessage: saveSuccess } = useUpdateTask(setTask, id);
+
+  const { updateTask, isLoading: isSaving, error: saveError, successMessage: saveSuccess } = useUpdateTask(setTask);
+
   const { toggleSubtask, error: subtaskError } = useToggleSubtask(setTask);
 
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState<TaskEditFormData>({
+  const [formData, setFormData] = useState<UpdateTaskDto>({
     title: '',
     description: '',
     deadline: '',
@@ -65,9 +67,9 @@ export default function TaskDetailScreen() {
 
   /** Update a single form field */
   const handleFieldChange = useCallback(
-    <K extends keyof TaskEditFormData>(
+    <K extends keyof UpdateTaskDto>(
       field: K,
-      value: TaskEditFormData[K],
+      value: UpdateTaskDto[K],
     ) => {
       setFormData((prev) => ({ ...prev, [field]: value }));
     },

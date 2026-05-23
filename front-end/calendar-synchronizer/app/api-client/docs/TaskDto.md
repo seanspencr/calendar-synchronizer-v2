@@ -14,6 +14,7 @@ Name | Type | Description | Notes
 **user_id** | **string** |  | [default to undefined]
 **completed** | **boolean** |  | [default to undefined]
 **subtasks** | [**Array&lt;TaskDto&gt;**](TaskDto.md) |  | [optional] [default to undefined]
+**is_todo** | **boolean** |  | [default to undefined]
 
 ## Example
 
@@ -30,6 +31,7 @@ const instance: TaskDto = {
     user_id,
     completed,
     subtasks,
+    is_todo,
 };
 ```
 

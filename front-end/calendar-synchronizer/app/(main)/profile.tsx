@@ -9,7 +9,6 @@ import { useUser } from '../context/currentUserContext';
 import {
   ProfileAvatar,
   DigitalEcosystemCard,
-  ActiveSessionBadge,
   LogoutButton,
 } from '../components/profile';
 import { NavigationRail } from '../components/dashboard';

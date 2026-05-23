@@ -2,7 +2,7 @@ import React from 'react';
 import { YStack, XStack, Text, ScrollView, Button, Checkbox } from 'tamagui';
 import Feather from '@expo/vector-icons/Feather';
 import { useRouter } from 'expo-router';
-import type { TaskDto } from './types';
+import type { TaskDto } from '../../api-client';
 
 interface TransferableTaskItemProps {
   task: TaskDto;
@@ -107,7 +107,7 @@ interface TaskColumnPanelProps {
   iconColor: string;
   tasks: TaskDto[];
   onToggle: (id: string) => void;
-  onTransfer: (id: string) => void;
+  onTransfer: (id: string, isTodo: boolean) => void;
   transferDirection: 'commit' | 'uncommit';
   emptyMessage: string;
 }
@@ -183,7 +183,7 @@ export function TaskColumnPanel({
               key={task.id}
               task={task}
               onToggle={onToggle}
-              onTransfer={() => onTransfer(task.id)}
+              onTransfer={() => onTransfer(task.id, !task.is_todo)}
               transferDirection={transferDirection}
             />
           ))

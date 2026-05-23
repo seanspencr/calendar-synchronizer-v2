@@ -80,11 +80,14 @@ export function useDeleteTask(
       setError(null);
 
       try {
+
         await TaskService.removeTask(id);
+
       } catch (err) {
-        // Roll back on failure
+
         setTasks(snapshot);
         setError(err instanceof Error ? err.message : 'Failed to delete task');
+
       } finally {
         setIsLoading(false);
       }

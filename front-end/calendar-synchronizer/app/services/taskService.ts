@@ -1,8 +1,8 @@
 import { tasksApi } from "./apiService";
-import { CreateTaskDto, TaskDto } from '../api-client';
+import { CreateTaskDto, TaskDto, UpdateTaskDto } from '../api-client';
 
 export const TaskService = {
-  
+
   /**
    * POST /tasks
    * Creates a new task
@@ -49,7 +49,7 @@ export const TaskService = {
    * PATCH /tasks/:id
    * Updates an existing task
    */
-  async updateTask(id: string, body: object): Promise<TaskDto> {
+  async updateTask(id: string, body: UpdateTaskDto): Promise<TaskDto> {
     try {
       const response = await tasksApi.tasksControllerUpdate(id, body);
       return response.data;
@@ -71,5 +71,8 @@ export const TaskService = {
       console.error(`Error deleting task ${id}:`, error);
       throw error;
     }
-  }
+  },
+
+
+
 };

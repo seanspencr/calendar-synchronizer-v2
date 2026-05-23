@@ -12,10 +12,11 @@ import { useGetSchedules } from '../hooks/schedule/useGetSchedules';
 import { useGetChatMessages } from '../hooks/useGetChatMessages';
 import { useSendChatMessage } from '../hooks/useSendChatMessage';
 import { useGetDailyQuests } from '../hooks/useGetDailyQuests';
-import { useAddTaskToTodolist } from '../hooks/task/useCommitTask';
-import { useUncommitTask } from '../hooks/task/useUncommitTask';
 import { useUser } from '../context/currentUserContext';
 import type { UserProfile } from '../components/dashboard/types';
+import { useUpdateTask } from '../hooks/task/useUpdateTask';
+import { TaskDto } from '../api-client';
+import { useAddTodolist } from '../hooks/task/useAddTodolist';
 
 export default function DashboardScreen() {
   const { user } = useUser();
@@ -24,13 +25,13 @@ export default function DashboardScreen() {
   const { tasks, setTasks, error: tasksError, isLoading: tasksLoading } = useGetTasks();
   const { schedules, setSchedules, isLoading: schedulesLoading, error: schedulesError } = useGetSchedules();
   const { messages, setMessages, isError: chatIsError, isLoading: chatIsLoading } = useGetChatMessages();
-  const { dailyQuestIds, setDailyQuestIds } = useGetDailyQuests();
+
+
 
   // Mutation hooks
   const { toggleTask } = useToggleTask(setTasks);
   const { sendMessage, isTyping, error: isSendMessageError, isLoading: isSendChatLoading } = useSendChatMessage(setMessages);
-  const { commitTask } = useAddTaskToTodolist(setDailyQuestIds);
-  const { uncommitTask } = useUncommitTask(setDailyQuestIds);
+  const { update: updateTodolist, isError: updateTodolistError, isLoading: updateTodolistLoading } = useAddTodolist(setTasks)
 
   const userProfile: UserProfile = {
     userid: user?.userid ?? 'demo-user',
@@ -39,12 +40,12 @@ export default function DashboardScreen() {
   };
 
   const dailyTasks = useMemo(
-    () => tasks.filter((t) => dailyQuestIds.has(t.id)),
-    [tasks, dailyQuestIds],
+    () => tasks.filter((t) => t.is_todo == true),
+    [tasks],
   );
   const remainingTasks = useMemo(
-    () => tasks.filter((t) => !dailyQuestIds.has(t.id)),
-    [tasks, dailyQuestIds],
+    () => tasks.filter((t) => t.is_todo == false),
+    [tasks],
   );
 
   return (
@@ -62,7 +63,7 @@ export default function DashboardScreen() {
               iconColor="#facc15"
               tasks={dailyTasks}
               onToggle={toggleTask}
-              onTransfer={uncommitTask}
+              onTransfer={updateTodolist}
               transferDirection="uncommit"
               emptyMessage="Drag tasks here to commit for today"
             />
@@ -72,7 +73,7 @@ export default function DashboardScreen() {
               iconColor="#8fb87a"
               tasks={remainingTasks}
               onToggle={toggleTask}
-              onTransfer={commitTask}
+              onTransfer={updateTodolist}
               transferDirection="commit"
               emptyMessage="All tasks committed — great work!"
             />

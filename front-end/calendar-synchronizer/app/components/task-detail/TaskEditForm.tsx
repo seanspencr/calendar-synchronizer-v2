@@ -1,7 +1,7 @@
 import React from 'react';
 import { YStack, XStack, Text, Input, TextArea, Button } from 'tamagui';
 import Feather from '@expo/vector-icons/Feather';
-import type { TaskEditFormData } from './types';
+import { UpdateTaskDto } from '@/app/api-client';
 
 interface FormFieldProps {
   label: string;
@@ -27,10 +27,10 @@ function FormField({ label, children }: FormFieldProps) {
 }
 
 interface TaskEditFormProps {
-  formData: TaskEditFormData;
-  onFieldChange: <K extends keyof TaskEditFormData>(
+  formData: UpdateTaskDto;
+  onFieldChange: <K extends keyof UpdateTaskDto>(
     field: K,
-    value: TaskEditFormData[K],
+    value: UpdateTaskDto[K],
   ) => void;
 }
 

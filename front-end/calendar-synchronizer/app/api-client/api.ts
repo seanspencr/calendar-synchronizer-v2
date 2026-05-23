@@ -47,6 +47,7 @@ export interface CreateTaskDto {
     'created_at'?: object;
     'completed'?: boolean;
     'parent_task_id'?: string;
+    'is_todo'?: boolean;
 }
 export interface CreateUserDto {
     'username': string;
@@ -141,6 +142,7 @@ export interface TaskDto {
     'user_id': string;
     'completed': boolean;
     'subtasks'?: Array<TaskDto>;
+    'is_todo': boolean;
 }
 export interface UpdateScheduleDto {
     'id'?: string;
@@ -160,6 +162,7 @@ export interface UpdateTaskDto {
     'created_at'?: object;
     'completed'?: boolean;
     'parent_task_id'?: string;
+    'is_todo'?: boolean;
 }
 export interface UserDto {
     'id': string;

@@ -8,6 +8,8 @@ import { CreateTaskDto } from 'src/tasks/dto/create-task.dto';
 import { SchedulesService } from 'src/schedules/schedules.service';
 import { TasksService } from 'src/tasks/tasks.service';
 import { LlmResponseDto } from './dto/llm-response.dto';
+import { TaskDto } from 'src/tasks/dto/task.dto';
+import { TaskCompactDto } from 'src/tasks/dto/task-compact.dto';
 
 @Injectable()
 export class MessagesService {
@@ -19,8 +21,11 @@ export class MessagesService {
     private readonly taskService: TasksService) {
   }
 
+
+
+
   async create(userId: string, createMessageDto: CreateMessageDto): Promise<messages> {
-    
+
     await this.databaseService.messages.create({
       data: {
         ...createMessageDto,
@@ -128,9 +133,56 @@ export class MessagesService {
             content: llmRes.responseMessage
           }
         });
-      // case 'CREATE_TODOLIST':
-      //   const createTodolistDto = await JSON.parse(await this.aiService.queryLmForJson(createMessageDto.content));
-      //   break;
+      case 'CREATE_TODOLIST':
+
+        const currentUserTasks: TaskDto[] = (await this.taskService.findAll(userId)).filter((task) => !task.completed && !task.is_todo)
+        const compactTask: TaskCompactDto[] = currentUserTasks.map((task) => this.taskService.toCompactTaskDto(task))
+
+
+
+        llmRes = await JSON.parse(await this.aiService.queryLmForJson(
+          `
+          You are a task list management assistant.
+
+          Given the user's existing tasks, select which tasks should be included in the user's daily to-do list. You MUST respond with a JSON object.
+
+          The JSON object MUST have exactly this shape:
+          {
+            "dto": [
+              { "id": string }   // UUID of the selected task
+            ],
+            "responseMessage": string  // a friendly summary to show the user
+          }
+
+          Rules:
+          - Prioritize tasks by:
+              1. Deadline urgency — tasks due soonest should be prioritized
+              2. Estimated difficulty — prefer a balanced mix, do not overload the user with only hard tasks
+          - Select a reasonable number of tasks for a single day (typically 3–7)
+          - If a task has subtasks, prefer selecting the subtasks over the parent task
+          - "dto" must be an array of objects each with only the "id" field — do NOT include any other fields
+          - "responseMessage" should briefly explain which tasks were selected and why (mention deadlines and difficulty where relevant)
+          - Do NOT add any text outside the JSON
+
+          User message: "${createMessageDto.content}"
+
+          Existing tasks:
+          ${JSON.stringify(compactTask, null, 2)}
+          `
+        ));
+
+        const todoListIds = (llmRes.dto as { id: string }[])
+        await this.taskService.markAsTodo(userId, todoListIds)
+
+        return this.databaseService.messages.create({
+          data: {
+            ...createMessageDto,
+            user_id: userId,
+            message_type: 'RESPONSE',
+            content: llmRes.responseMessage
+          }
+        });
+
       default:
         throw new BadRequestException('Unsupported task type, please only give prompt related to : create schedule, create task, and create todolist')
     }

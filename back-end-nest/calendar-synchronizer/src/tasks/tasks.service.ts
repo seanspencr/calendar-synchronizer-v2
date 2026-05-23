@@ -5,6 +5,7 @@ import { TaskDto } from './dto/task.dto';
 import { UsersService } from 'src/users/users.service';
 import { DatabaseService } from 'src/database/database.service';
 import { tasks } from 'src/generated/prisma/client';
+import { TaskCompactDto } from './dto/task-compact.dto';
 
 @Injectable()
 export class TasksService {
@@ -85,5 +86,27 @@ export class TasksService {
         id: task_id,
       },
     });
+  }
+
+  async markAsTodo(userId: string, ids: { id: string }[]) {
+    await this.databaseService.tasks.updateMany({
+      where: {
+        id: { in: ids.map((i) => i.id) },
+        user_id: userId, // safety check: only update tasks belonging to this user
+      },
+      data: {
+        is_todo: true,
+      },
+    });
+  }
+
+  public toCompactTaskDto(task: TaskDto): TaskCompactDto {
+    return {
+      deadline: task.deadline,
+      description: task.description,
+      title: task.title,
+      subtasks: task.subtasks?.map((subtask) => this.toCompactTaskDto(subtask)),
+      is_todo: task.is_todo
+    }
   }
 }

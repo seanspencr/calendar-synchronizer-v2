@@ -11,6 +11,7 @@ Name | Type | Description | Notes
 **created_at** | **object** |  | [optional] [default to undefined]
 **completed** | **boolean** |  | [optional] [default to undefined]
 **parent_task_id** | **string** |  | [optional] [default to undefined]
+**is_todo** | **boolean** |  | [optional] [default to false]
 
 ## Example
 
@@ -24,6 +25,7 @@ const instance: CreateTaskDto = {
     created_at,
     completed,
     parent_task_id,
+    is_todo,
 };
 ```
 
