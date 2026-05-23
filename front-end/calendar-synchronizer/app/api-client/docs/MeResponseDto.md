@@ -5,8 +5,6 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**googleUser** | [**GoogleUserDto**](GoogleUserDto.md) |  | [default to undefined]
-**microsoftUser** | [**MicrosoftUser**](MicrosoftUser.md) |  | [default to undefined]
 **userId** | **string** |  | [default to undefined]
 **google_email** | **string** |  | [default to undefined]
 **microsoft_email** | **string** |  | [default to undefined]
@@ -18,8 +16,6 @@ Name | Type | Description | Notes
 import { MeResponseDto } from './api';
 
 const instance: MeResponseDto = {
-    googleUser,
-    microsoftUser,
     userId,
     google_email,
     microsoft_email,

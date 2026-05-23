@@ -1,13 +1,13 @@
 // Assuming schedulesApi is exported from your apiService alongside authApi
 import { schedulesApi } from "./apiService";
-import { 
-  CreateScheduleDto, 
+import {
+  CreateScheduleDto,
   ScheduleDto,
   UpdateScheduleDto,
 } from '../api-client'; // Adjust this import path based on your setup
 
 export const ScheduleService = {
-  
+
   /**
    * POST /schedules
    * Creates a standard schedule
@@ -29,7 +29,7 @@ export const ScheduleService = {
   async createWithNaturalLanguage(query: string): Promise<ScheduleDto> {
     try {
       const response = await schedulesApi.schedulesControllerCreateWithNaturalLanguage({
-        query: query 
+        query: query
       });
       return response.data;
     } catch (error) {

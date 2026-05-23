@@ -1,17 +1,18 @@
 import React, { useState, useRef } from 'react';
 import { YStack, XStack, Text, Input, Button, ScrollView } from 'tamagui';
 import Feather from '@expo/vector-icons/Feather';
-import type { ChatMessage } from './types';
+import { MessageDto } from '@/app/api-client';
 
 interface ChatbotPanelProps {
-  messages: ChatMessage[];
+  messages: MessageDto[];
   isTyping: boolean;
   onSend: (content: string) => void;
 }
 
 /** Single chat bubble */
-function ChatBubble({ message }: { message: ChatMessage }) {
-  const isUser = message.role === 'user';
+function ChatBubble({ message }: { message: MessageDto }) {
+
+  const isUser = message.message_type === 'PROMPT';
 
   return (
     <YStack
@@ -37,7 +38,7 @@ function ChatBubble({ message }: { message: ChatMessage }) {
         alignSelf={isUser ? 'flex-end' : 'flex-start'}
         marginTop="$1"
       >
-        {new Date(message.timestamp).toLocaleTimeString([], {
+        {new Date(message.created_at).toLocaleTimeString([], {
           hour: '2-digit',
           minute: '2-digit',
         })}
@@ -78,6 +79,7 @@ export function ChatbotPanel({ messages, isTyping, onSend }: ChatbotPanelProps) 
   return (
     <YStack flex={1}>
       {/* Messages area */}
+
       <ScrollView
         ref={scrollRef}
         flex={1}
@@ -128,6 +130,7 @@ export function ChatbotPanel({ messages, isTyping, onSend }: ChatbotPanelProps) 
           <Feather name="send" size={16} color="#fff" />
         </Button>
       </XStack>
+
     </YStack>
   );
 }

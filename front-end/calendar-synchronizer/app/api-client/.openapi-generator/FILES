@@ -6,6 +6,7 @@ common.ts
 configuration.ts
 docs/AppApi.md
 docs/AuthApi.md
+docs/CreateMessageDto.md
 docs/CreateScheduleDto.md
 docs/CreateScheduleNaturalLanguageDto.md
 docs/CreateTaskDto.md
@@ -13,12 +14,12 @@ docs/CreateUserDto.md
 docs/DummyGoogleLoginDto.md
 docs/DummyMicrosoftLoginDto.md
 docs/GoogleAuthDto.md
-docs/GoogleUserDto.md
 docs/LoginDto.md
 docs/LoginResponseDto.md
 docs/MeResponseDto.md
+docs/MessageDto.md
+docs/MessagesApi.md
 docs/MicrosoftAuthDto.md
-docs/MicrosoftUser.md
 docs/RecurrenceDto.md
 docs/RegisterDto.md
 docs/RegisterResponseDto.md

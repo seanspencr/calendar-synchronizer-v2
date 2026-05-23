@@ -23,6 +23,9 @@ import type { RequestArgs } from './base';
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS, BaseAPI, RequiredError, operationServerMap } from './base';
 
+export interface CreateMessageDto {
+    'content': string;
+}
 export interface CreateScheduleDto {
     'id'?: string;
     'event'?: object;
@@ -64,10 +67,6 @@ export interface GoogleAuthDto {
     'codeVerifier': string;
     'redirectUri': string;
 }
-export interface GoogleUserDto {
-    'name': string;
-    'email': string;
-}
 export interface LoginDto {
     'username': string;
     'password': string;
@@ -80,21 +79,22 @@ export interface LoginResponseDto {
     'username': string;
 }
 export interface MeResponseDto {
-    'googleUser': GoogleUserDto | null;
-    'microsoftUser': MicrosoftUser | null;
     'userId': string;
     'google_email': string | null;
     'microsoft_email': string | null;
     'username': string;
 }
+export interface MessageDto {
+    'id': string;
+    'created_at': string;
+    'user_id': string;
+    'message_type': object;
+    'content': string;
+    'prompt_type': object | null;
+}
 export interface MicrosoftAuthDto {
     'code': string;
     'redirect_uri': string;
-}
-export interface MicrosoftUser {
-    'email': string;
-    'givenname': string;
-    'familyname': string;
 }
 export interface RecurrenceDto {
     'recurrence_interval': number;
@@ -935,6 +935,161 @@ export class AuthApi extends BaseAPI {
      */
     public authControllerRegisterMicrosoftUser(microsoftAuthDto: MicrosoftAuthDto, options?: RawAxiosRequestConfig) {
         return AuthApiFp(this.configuration).authControllerRegisterMicrosoftUser(microsoftAuthDto, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * MessagesApi - axios parameter creator
+ */
+export const MessagesApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @param {CreateMessageDto} createMessageDto 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        messagesControllerCreate: async (createMessageDto: CreateMessageDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'createMessageDto' is not null or undefined
+            assertParamExists('messagesControllerCreate', 'createMessageDto', createMessageDto)
+            const localVarPath = `/messages`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(createMessageDto, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        messagesControllerFindToday: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/messages`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * MessagesApi - functional programming interface
+ */
+export const MessagesApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = MessagesApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @param {CreateMessageDto} createMessageDto 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async messagesControllerCreate(createMessageDto: CreateMessageDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MessageDto>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.messagesControllerCreate(createMessageDto, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['MessagesApi.messagesControllerCreate']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async messagesControllerFindToday(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<MessageDto>>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.messagesControllerFindToday(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['MessagesApi.messagesControllerFindToday']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * MessagesApi - factory interface
+ */
+export const MessagesApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = MessagesApiFp(configuration)
+    return {
+        /**
+         * 
+         * @param {CreateMessageDto} createMessageDto 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        messagesControllerCreate(createMessageDto: CreateMessageDto, options?: RawAxiosRequestConfig): AxiosPromise<MessageDto> {
+            return localVarFp.messagesControllerCreate(createMessageDto, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        messagesControllerFindToday(options?: RawAxiosRequestConfig): AxiosPromise<Array<MessageDto>> {
+            return localVarFp.messagesControllerFindToday(options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * MessagesApi - object-oriented interface
+ */
+export class MessagesApi extends BaseAPI {
+    /**
+     * 
+     * @param {CreateMessageDto} createMessageDto 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public messagesControllerCreate(createMessageDto: CreateMessageDto, options?: RawAxiosRequestConfig) {
+        return MessagesApiFp(this.configuration).messagesControllerCreate(createMessageDto, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public messagesControllerFindToday(options?: RawAxiosRequestConfig) {
+        return MessagesApiFp(this.configuration).messagesControllerFindToday(options).then((request) => request(this.axios, this.basePath));
     }
 }
 

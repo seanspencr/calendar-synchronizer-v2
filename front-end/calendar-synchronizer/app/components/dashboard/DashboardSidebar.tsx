@@ -7,16 +7,20 @@ import { TaskListPanel } from './TaskListPanel';
 import { EventListPanel } from './EventListPanel';
 import { ChatbotPanel } from './ChatbotPanel';
 import { CreateDialog } from '../create-dialog';
-import type { ChatMessage, UserProfile } from './types';
-import { ScheduleDto, TaskDto } from '../../api-client';
+import type { UserProfile } from './types';
+import { ScheduleDto, TaskDto, MessageDto } from '../../api-client';
+import { useDeleteTask } from '../../hooks/task/useDeleteTask';
+import { useDeleteSchedule } from '../../hooks/schedule/useDeleteSchedule';
 
+
+// TODO : hapus userprofile disini
 interface DashboardSidebarProps {
   user: UserProfile;
   tasks: TaskDto[];
   setTasks: React.Dispatch<React.SetStateAction<TaskDto[]>>;
   setSchedules: React.Dispatch<React.SetStateAction<ScheduleDto[]>>;
   events: ScheduleDto[];
-  chatMessages: ChatMessage[];
+  chatMessages: MessageDto[];
   isChatTyping: boolean;
   onToggleTask: (id: string) => void;
   onSendChat: (content: string) => void;
@@ -56,6 +60,9 @@ export function DashboardSidebar({
     setParentTask(null);
   }, []);
 
+  const { deleteTask } = useDeleteTask(setTasks);
+  const { deleteSchedule } = useDeleteSchedule(setSchedules);
+
   return (
     <YStack
       width={280}
@@ -77,10 +84,11 @@ export function DashboardSidebar({
             tasks={tasks}
             onToggleTask={onToggleTask}
             onAddSubtask={handleAddSubtask}
+            onDeleteTask={deleteTask}
           />
         )}
         {activeTab === 'events' && (
-          <EventListPanel events={events} />
+          <EventListPanel events={events} onDeleteSchedule={deleteSchedule} />
         )}
         {activeTab === 'chatbot' && (
           <ChatbotPanel

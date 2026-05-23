@@ -8,6 +8,7 @@ import { DatabaseModule } from './database/database.module';
 import { ConfigModule } from "@nestjs/config";
 import { TasksModule } from './tasks/tasks.module';
 import { AiModule } from './ai/ai.module';
+import { MessagesModule } from './messages/messages.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -19,7 +20,8 @@ import { AiModule } from './ai/ai.module';
     AuthModule,
     DatabaseModule,
     TasksModule,
-    AiModule],
+    AiModule,
+    MessagesModule],
   controllers: [AppController],
   providers: [AppService],
 })

@@ -1,8 +1,12 @@
-import { AccessTokenPayload } from "./accessToken.dto";
-import { GoogleUserDto } from "./googleUser.dto";
-import { MicrosoftUser } from "./microsoftUser.dto";
+import { ApiProperty } from "@nestjs/swagger";
 
-export class MeResponseDto extends AccessTokenPayload {
-    googleUser: GoogleUserDto | null;
-    microsoftUser: MicrosoftUser | null;
+export class MeResponseDto {
+    @ApiProperty()
+    userId: string;
+    @ApiProperty({ nullable: true })
+    google_email: string | null;
+    @ApiProperty({ nullable: true })
+    microsoft_email: string | null;
+    @ApiProperty()
+    username: string;
 }

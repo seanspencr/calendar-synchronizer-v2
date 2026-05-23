@@ -4,7 +4,7 @@ import { TaskService } from '../../services/taskService';
 
 /**
  * Updates task fields.
- * Real API call: PUT /tasks/:id
+ * Real API call: PATCH /tasks/:id
  */
 export function useUpdateTask(
   setTask: React.Dispatch<React.SetStateAction<TaskDto | null>>,

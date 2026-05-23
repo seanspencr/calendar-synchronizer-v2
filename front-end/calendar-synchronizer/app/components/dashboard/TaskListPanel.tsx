@@ -29,11 +29,13 @@ function TaskContextMenu({
   menu,
   onToggle,
   onAddSubtask,
+  onDelete,
   onClose,
 }: {
   menu: ContextMenuState;
   onToggle: (id: string) => void;
   onAddSubtask: (task: TaskDto) => void;
+  onDelete: (id: string) => void;
   onClose: () => void;
 }) {
   const handleToggle = useCallback(() => {
@@ -45,6 +47,11 @@ function TaskContextMenu({
     onAddSubtask(menu.task);
     onClose();
   }, [onAddSubtask, menu.task, onClose]);
+
+  const handleDelete = useCallback(() => {
+    onDelete(menu.task.id);
+    onClose();
+  }, [onDelete, menu.task.id, onClose]);
 
   return (
     <>
@@ -112,6 +119,26 @@ function TaskContextMenu({
           <Feather name="corner-down-right" size={15} color="#8fb87a" />
           <Text fontSize="$3" color="$color12">
             Add Subtask
+          </Text>
+        </XStack>
+
+        {/* Divider */}
+        <YStack height={1} backgroundColor="$color4" />
+
+        {/* Delete */}
+        <XStack
+          paddingHorizontal="$3"
+          paddingVertical="$2.5"
+          gap="$2.5"
+          alignItems="center"
+          hoverStyle={{ backgroundColor: '#3f1a1a' }}
+          pressStyle={{ opacity: 0.8 }}
+          cursor="pointer"
+          onPress={handleDelete}
+        >
+          <Feather name="trash-2" size={15} color="#f87171" />
+          <Text fontSize="$3" color="#f87171">
+            Delete Task
           </Text>
         </XStack>
       </YStack>
@@ -293,11 +320,13 @@ interface TaskListPanelProps {
   onToggleTask: (id: string) => void;
   /** Called when "Add Subtask" is selected from the context menu */
   onAddSubtask: (task: TaskDto) => void;
+  /** Called when "Delete Task" is selected from the context menu */
+  onDeleteTask: (id: string) => void;
 }
 
 /** Scrollable list of tasks rendered as an infinitely-recursive tree.
- *  Right-clicking any row opens a context menu with Toggle and Add Subtask options. */
-export function TaskListPanel({ tasks, onToggleTask, onAddSubtask }: TaskListPanelProps) {
+ *  Right-clicking any row opens a context menu with Toggle, Add Subtask, and Delete options. */
+export function TaskListPanel({ tasks, onToggleTask, onAddSubtask, onDeleteTask }: TaskListPanelProps) {
   const router = useRouter();
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
 
@@ -356,6 +385,7 @@ export function TaskListPanel({ tasks, onToggleTask, onAddSubtask }: TaskListPan
           menu={contextMenu}
           onToggle={onToggleTask}
           onAddSubtask={onAddSubtask}
+          onDelete={onDeleteTask}
           onClose={closeContextMenu}
         />
       )}

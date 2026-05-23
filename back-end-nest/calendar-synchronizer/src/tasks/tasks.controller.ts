@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UseGuards, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UseGuards, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
@@ -39,13 +39,20 @@ export class TasksController {
   @Patch(':id')
   @UseGuards(AuthGuard("jwt"))
   update(@Param('id') id: string, @Body() updateTaskDto: UpdateTaskDto, @Req() req): Promise<TaskDto> {
-
     return this.tasksService.update(id, updateTaskDto);
   }
 
   @Delete(':id')
   @UseGuards(AuthGuard("jwt"))
-  async remove(@Param('id') id: string): Promise<TaskDto> {
+  async remove(@Param('id') id: string, @Req() req): Promise<TaskDto> {
+    let user = req.user as AccessTokenPayload;
+    const existing = await this.tasksService.findOne(id);
+    if (!existing) {
+      throw new NotFoundException('Task not found');
+    }
+    if (existing.user_id !== user.userId) {
+      throw new ForbiddenException('You are not allowed to delete this task');
+    }
     const task = await this.tasksService.remove(id);
     if (!task) {
       throw new NotFoundException('Task not found');

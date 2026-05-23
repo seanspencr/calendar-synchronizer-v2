@@ -12,7 +12,7 @@ import { useGetSchedules } from '../hooks/schedule/useGetSchedules';
 import { useGetChatMessages } from '../hooks/useGetChatMessages';
 import { useSendChatMessage } from '../hooks/useSendChatMessage';
 import { useGetDailyQuests } from '../hooks/useGetDailyQuests';
-import { useCommitTask } from '../hooks/task/useCommitTask';
+import { useAddTaskToTodolist } from '../hooks/task/useCommitTask';
 import { useUncommitTask } from '../hooks/task/useUncommitTask';
 import { useUser } from '../context/currentUserContext';
 import type { UserProfile } from '../components/dashboard/types';
@@ -23,13 +23,13 @@ export default function DashboardScreen() {
   // Query hooks
   const { tasks, setTasks, error: tasksError, isLoading: tasksLoading } = useGetTasks();
   const { schedules, setSchedules, isLoading: schedulesLoading, error: schedulesError } = useGetSchedules();
-  const { messages, setMessages } = useGetChatMessages();
+  const { messages, setMessages, isError: chatIsError, isLoading: chatIsLoading } = useGetChatMessages();
   const { dailyQuestIds, setDailyQuestIds } = useGetDailyQuests();
 
   // Mutation hooks
   const { toggleTask } = useToggleTask(setTasks);
-  const { sendMessage, isTyping } = useSendChatMessage(setMessages);
-  const { commitTask } = useCommitTask(setDailyQuestIds);
+  const { sendMessage, isTyping, error: isSendMessageError, isLoading: isSendChatLoading } = useSendChatMessage(setMessages);
+  const { commitTask } = useAddTaskToTodolist(setDailyQuestIds);
   const { uncommitTask } = useUncommitTask(setDailyQuestIds);
 
   const userProfile: UserProfile = {

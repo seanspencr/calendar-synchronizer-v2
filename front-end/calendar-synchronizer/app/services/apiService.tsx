@@ -1,7 +1,7 @@
 // axiosService.ts
 import axios from 'axios';
 import { router } from 'expo-router';
-import { AuthApi, Configuration, SchedulesApi, TasksApi, UsersApi } from '../api-client';
+import { AuthApi, Configuration, MessagesApi, SchedulesApi, TasksApi, UsersApi } from '../api-client';
 import { StorageService } from './storageService';
 import { ExternalPathString } from 'expo-router';
 
@@ -43,3 +43,4 @@ export const authApi = new AuthApi(configuration, `${process.env.EXPO_PUBLIC_BAC
 export const schedulesApi = new SchedulesApi(configuration, `${process.env.EXPO_PUBLIC_BACKEND_URL}:${process.env.EXPO_PUBLIC_BACKEND_PORT}`, axiosInstance);
 export const tasksApi = new TasksApi(configuration, `${process.env.EXPO_PUBLIC_BACKEND_URL}:${process.env.EXPO_PUBLIC_BACKEND_PORT}`, axiosInstance);
 export const usersApi = new UsersApi(configuration, `${process.env.EXPO_PUBLIC_BACKEND_URL}:${process.env.EXPO_PUBLIC_BACKEND_PORT}`, axiosInstance);
+export const messagesApi = new MessagesApi(configuration, `${process.env.EXPO_PUBLIC_BACKEND_URL}:${process.env.EXPO_PUBLIC_BACKEND_PORT}`, axiosInstance);

@@ -35,12 +35,18 @@ export class SchedulesService {
   }
 
   create(createScheduleDto: CreateScheduleDto): Promise<ScheduleDto> {
+    const toValidDate = (value: string | Date | null | undefined): Date | undefined => {
+      if (!value) return undefined;
+      const d = new Date(value);
+      return isNaN(d.getTime()) ? undefined : d;
+    };
+
     return this.databaseService.schedules.create({
       data: {
         event: createScheduleDto.event,
         event_date: new Date(createScheduleDto.event_date),
-        start_time: createScheduleDto.start_time ? new Date(createScheduleDto.start_time) : undefined,
-        end_time: createScheduleDto.end_time ? new Date(createScheduleDto.end_time) : undefined,
+        start_time: toValidDate(createScheduleDto.start_time),
+        end_time: toValidDate(createScheduleDto.end_time),
         created_by: createScheduleDto.user_id,
         schedule_provider: createScheduleDto.schedule_provider,
         external_event_id: createScheduleDto.external_event_id,

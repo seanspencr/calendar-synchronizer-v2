@@ -10,4 +10,5 @@ export class TaskDto implements tasks {
     user_id: string;
     completed: boolean;
     subtasks?: TaskDto[];
+    is_todo: boolean;
 }

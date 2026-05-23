@@ -9,10 +9,12 @@ import { jwtConfig } from 'src/lib/jwt_config';
 import { JwtStrategy } from 'src/jwt/jwt.strategy';
 import { AuthModule } from 'src/auth/auth.module';
 import { AiModule } from 'src/ai/ai.module';
+import { SchedulesScalarFieldEnum } from 'src/generated/prisma/internal/prismaNamespace';
 
 @Module({
   imports: [DatabaseModule, AuthModule, AiModule],
   controllers: [SchedulesController],
   providers: [SchedulesService, MicrosoftScheduleService, GoogleScheduleService, JwtStrategy],
+  exports: [SchedulesService]
 })
 export class SchedulesModule { }

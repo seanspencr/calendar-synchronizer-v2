@@ -34,7 +34,6 @@ export class AuthController {
     @Get("/me")
     @ApiResponse({ type: MeResponseDto })
     async me(@Req() req): Promise<MeResponseDto> {
-        // return this.authService.getHello();
         console.log("/me hit : " + req.user);
 
         const userMeta = req.user as AccessTokenPayload;
@@ -44,17 +43,12 @@ export class AuthController {
             throw new NotFoundException("User not found");
         }
 
-        const googleUser = (user.google_email) ? await this.googleAuthService.getGoogleUserInfo(user.google_email) : null;
-        const microsoftUser = (user.microsoft_email) ? await this.microsoftAuthService.getMicrosoftUser(user.microsoft_email) : null;
-
         return {
             google_email: user.google_email,
             microsoft_email: user.microsoft_email,
             userId: user.id,
             username: user.username!,
-            googleUser: googleUser,
-            microsoftUser: microsoftUser,
-        }
+        };
     }
 
     //ambil user, return bearer
@@ -166,16 +160,12 @@ export class AuthController {
         const userMeta = req.user as AccessTokenPayload;
         let updated = await this.microsoftAuthService.bindMicrosoftUser(userMeta.userId, body.code, body.redirect_uri);
 
-        const googleUser = (updated.google_email) ? await this.googleAuthService.getGoogleUserInfo(updated.google_email) : null;
-        const microsoftUser = (updated.microsoft_email) ? await this.microsoftAuthService.getMicrosoftUser(updated.microsoft_email) : null;
         return {
             google_email: updated.google_email,
             microsoft_email: updated.microsoft_email,
             userId: updated.id,
             username: updated.username!,
-            googleUser: googleUser,
-            microsoftUser: microsoftUser,
-        }
+        };
     }
 
     @HttpCode(200)
@@ -191,17 +181,12 @@ export class AuthController {
         const userMeta = req.user as AccessTokenPayload;
         const updated = await this.googleAuthService.bindGoogleUser(userMeta.userId, body.authCode, body.codeVerifier, body.redirectUri);
 
-        const googleUser = (updated.google_email) ? await this.googleAuthService.getGoogleUserInfo(updated.google_email) : null;
-        const microsoftUser = (updated.microsoft_email) ? await this.microsoftAuthService.getMicrosoftUser(updated.microsoft_email) : null;
-
         return {
             google_email: updated.google_email,
             microsoft_email: updated.microsoft_email,
             userId: updated.id,
             username: updated.username!,
-            googleUser: googleUser,
-            microsoftUser: microsoftUser,
-        }
+        };
     }
 
     @Get("register/google/callback")

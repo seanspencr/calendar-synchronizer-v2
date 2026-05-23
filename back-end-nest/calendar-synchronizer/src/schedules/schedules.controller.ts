@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, NotFoundException, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, NotFoundException, ForbiddenException, Query } from '@nestjs/common';
 import { SchedulesService } from './schedules.service';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
@@ -87,11 +87,18 @@ export class SchedulesController {
   @Delete(':id')
   @UseGuards(AuthGuard('jwt'))
   @ApiResponse({ type: ScheduleDto })
-  async remove(@Param('id') id: string): Promise<ScheduleDto> {
-    const schedule = await this.schedulesService.remove(id);
-    if (!schedule) {
-      throw new NotFoundException("Schedule not found");
+  async remove(@Param('id') id: string, @Req() req): Promise<ScheduleDto> {
+    const existing = await this.schedulesService.findOne(id);
+    if (!existing) {
+      throw new NotFoundException('Schedule not found');
     }
-    return schedule!;
+    if (existing.created_by !== (req.user as AccessTokenPayload).userId) {
+      throw new ForbiddenException('You are not allowed to delete this schedule');
+    }
+    const result = await this.schedulesService.remove(id);
+    if (!result) {
+      throw new NotFoundException("Failed to delete schedule, not found")
+    }
+    return result;
   }
 }
