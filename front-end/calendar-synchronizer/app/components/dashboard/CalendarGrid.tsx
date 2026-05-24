@@ -7,6 +7,8 @@ import { ScheduleDto } from '../../api-client';
 const DAYS_OF_WEEK = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
 interface CalendarGridProps {
+  currentDate: Date;
+  setCurrentDate: (date: Date) => void;
   events: ScheduleDto[];
 }
 
@@ -59,9 +61,8 @@ function DayCell({ day, events, isToday, onEventPress }: { day: number | null; e
   );
 }
 
-export function CalendarGrid({ events }: CalendarGridProps) {
+export function CalendarGrid({ currentDate, setCurrentDate, events }: CalendarGridProps) {
   const router = useRouter();
-  const [currentDate, setCurrentDate] = useState(new Date());
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
   const today = new Date();

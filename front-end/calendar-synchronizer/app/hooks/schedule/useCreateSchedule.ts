@@ -44,6 +44,10 @@ export function useCreateSchedule() {
         start_time: isoStartTime,
         end_time: isoEndTime,
         schedule_provider: data.schedule_provider,
+        recurrence: {
+          recurrence_interval: data.recurrence_interval,
+          recurrence_period: data.recurrence_period,
+        }
       };
 
       await ScheduleService.createSchedule(dto);

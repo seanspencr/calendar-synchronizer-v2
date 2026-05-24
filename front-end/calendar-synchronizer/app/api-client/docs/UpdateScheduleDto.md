@@ -5,6 +5,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
+**recurrence** | [**RecurrenceDto**](RecurrenceDto.md) |  | [optional] [default to undefined]
 **id** | **string** |  | [optional] [default to undefined]
 **event** | **object** |  | [optional] [default to undefined]
 **event_date** | **object** |  | [optional] [default to undefined]
@@ -21,6 +22,7 @@ Name | Type | Description | Notes
 import { UpdateScheduleDto } from './api';
 
 const instance: UpdateScheduleDto = {
+    recurrence,
     id,
     event,
     event_date,

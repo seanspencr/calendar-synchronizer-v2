@@ -27,6 +27,7 @@ export interface CreateMessageDto {
     'content': string;
 }
 export interface CreateScheduleDto {
+    'recurrence'?: RecurrenceDto | null;
     'id'?: string;
     'event'?: object;
     'event_date': object;
@@ -36,9 +37,6 @@ export interface CreateScheduleDto {
     'user_id': string;
     'external_event_id'?: object;
     'description'?: object;
-}
-export interface CreateScheduleNaturalLanguageDto {
-    'query': string;
 }
 export interface CreateTaskDto {
     'title': string;
@@ -145,6 +143,7 @@ export interface TaskDto {
     'is_todo': boolean;
 }
 export interface UpdateScheduleDto {
+    'recurrence'?: RecurrenceDto | null;
     'id'?: string;
     'event'?: object;
     'event_date'?: object;
@@ -1139,40 +1138,6 @@ export const SchedulesApiAxiosParamCreator = function (configuration?: Configura
         },
         /**
          * 
-         * @param {CreateScheduleNaturalLanguageDto} createScheduleNaturalLanguageDto 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        schedulesControllerCreateWithNaturalLanguage: async (createScheduleNaturalLanguageDto: CreateScheduleNaturalLanguageDto, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'createScheduleNaturalLanguageDto' is not null or undefined
-            assertParamExists('schedulesControllerCreateWithNaturalLanguage', 'createScheduleNaturalLanguageDto', createScheduleNaturalLanguageDto)
-            const localVarPath = `/schedules/natural-language`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-            localVarHeaderParameter['Accept'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(createScheduleNaturalLanguageDto, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -1428,18 +1393,6 @@ export const SchedulesApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
-         * @param {CreateScheduleNaturalLanguageDto} createScheduleNaturalLanguageDto 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async schedulesControllerCreateWithNaturalLanguage(createScheduleNaturalLanguageDto: CreateScheduleNaturalLanguageDto, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ScheduleDto>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.schedulesControllerCreateWithNaturalLanguage(createScheduleNaturalLanguageDto, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['SchedulesApi.schedulesControllerCreateWithNaturalLanguage']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -1541,15 +1494,6 @@ export const SchedulesApiFactory = function (configuration?: Configuration, base
         },
         /**
          * 
-         * @param {CreateScheduleNaturalLanguageDto} createScheduleNaturalLanguageDto 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        schedulesControllerCreateWithNaturalLanguage(createScheduleNaturalLanguageDto: CreateScheduleNaturalLanguageDto, options?: RawAxiosRequestConfig): AxiosPromise<ScheduleDto> {
-            return localVarFp.schedulesControllerCreateWithNaturalLanguage(createScheduleNaturalLanguageDto, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -1625,16 +1569,6 @@ export class SchedulesApi extends BaseAPI {
      */
     public schedulesControllerCreate(createScheduleDto: CreateScheduleDto, options?: RawAxiosRequestConfig) {
         return SchedulesApiFp(this.configuration).schedulesControllerCreate(createScheduleDto, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * 
-     * @param {CreateScheduleNaturalLanguageDto} createScheduleNaturalLanguageDto 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public schedulesControllerCreateWithNaturalLanguage(createScheduleNaturalLanguageDto: CreateScheduleNaturalLanguageDto, options?: RawAxiosRequestConfig) {
-        return SchedulesApiFp(this.configuration).schedulesControllerCreateWithNaturalLanguage(createScheduleNaturalLanguageDto, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

@@ -120,5 +120,16 @@ export const ScheduleService = {
       console.error(`Error deleting schedule ${id}:`, error);
       throw error;
     }
+  },
+  
+
+  async getByDateRange(startDate: string, endDate: string) : Promise<ScheduleDto[]> {
+    try {
+      const response = await schedulesApi.schedulesControllerFindByDateRange(startDate, endDate);
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching schedules by date range:", error);
+      throw error;
+    }
   }
 };

@@ -8,7 +8,6 @@ docs/AppApi.md
 docs/AuthApi.md
 docs/CreateMessageDto.md
 docs/CreateScheduleDto.md
-docs/CreateScheduleNaturalLanguageDto.md
 docs/CreateTaskDto.md
 docs/CreateUserDto.md
 docs/DummyGoogleLoginDto.md

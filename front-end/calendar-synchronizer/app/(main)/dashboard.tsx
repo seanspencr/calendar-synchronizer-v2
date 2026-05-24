@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { XStack, YStack, ScrollView } from 'tamagui';
 import {
   CalendarGrid,
@@ -20,19 +20,20 @@ import { useSyncMicrosoftSchedules } from '../hooks/schedule/useSyncMicrosoftSch
 
 export default function DashboardScreen() {
   const { user } = useUser();
-
+  const [currentDate, setCurrentDate] = useState(new Date());
+  
   // Query hooks
   const { tasks, setTasks, error: tasksError, isLoading: tasksLoading, fetchTasks } = useGetTasks();
-  const { schedules, setSchedules, isLoading: schedulesLoading, error: schedulesError, fetchSchedules } = useGetSchedules();
+  const { schedules, setSchedules, isLoading: schedulesLoading, error: schedulesError, getByDateRange } = useGetSchedules(currentDate.getMonth(), currentDate.getFullYear());
   const { messages, setMessages, isError: chatIsError, isLoading: chatIsLoading } = useGetChatMessages();
 
 
   // Mutation hooks
   const { toggleTask } = useToggleTask(setTasks);
-  const { sendMessage, isTyping, error: isSendMessageError, isLoading: isSendChatLoading } = useSendChatMessage(setMessages, fetchTasks, fetchSchedules);
+  const { sendMessage, isTyping, error: isSendMessageError, isLoading: isSendChatLoading } = useSendChatMessage(setMessages, fetchTasks, () => getByDateRange(currentDate.getMonth(), currentDate.getFullYear()));
   const { update: updateTodolist, isError: updateTodolistError, isLoading: updateTodolistLoading } = useAddTodolist(setTasks)
-  const {sync : syncGoogle, isError : isSyncGoogleError, isLoading : isSyncGoogleLoading} = useSyncGoogleSchedules(fetchSchedules)
-  const {sync : syncMicrosoft, isError : isSyncMicrosoftError, isLoading : isSyncMicrosoftLoading} = useSyncMicrosoftSchedules(fetchSchedules)
+  const {sync : syncGoogle, isError : isSyncGoogleError, isLoading : isSyncGoogleLoading} = useSyncGoogleSchedules(() => getByDateRange(currentDate.getMonth(), currentDate.getFullYear()))
+  const {sync : syncMicrosoft, isError : isSyncMicrosoftError, isLoading : isSyncMicrosoftLoading} = useSyncMicrosoftSchedules(() => getByDateRange(currentDate.getMonth(), currentDate.getFullYear()))
 
 
   const userProfile: LoginResponseDto = {
@@ -52,13 +53,19 @@ export default function DashboardScreen() {
     [tasks],
   );
 
+  
+  
+  useEffect(()=>{
+    getByDateRange(currentDate.getMonth(), currentDate.getFullYear())
+  }, [currentDate])
+
   return (
     <XStack flex={1} backgroundColor="$color1">
       <NavigationRail />
 
       <YStack flex={1}>
         <ScrollView flex={1} showsVerticalScrollIndicator={false}>
-          <CalendarGrid events={schedules} />
+          <CalendarGrid currentDate={currentDate} setCurrentDate={setCurrentDate} events={schedules} />
 
           <XStack gap="$3" padding="$3" minHeight={250}>
             <TaskColumnPanel

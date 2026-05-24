@@ -3,6 +3,8 @@
  * Based on CreateTaskDto and the backend ScheduleDto schema.
  */
 
+import { RecurrenceDtoRecurrencePeriodEnum } from "@/app/api-client/api";
+
 /** Form data for creating a new task */
 export interface CreateTaskFormData {
   title: string;
@@ -22,6 +24,8 @@ export interface CreateScheduleFormData {
   start_time: string;
   end_time: string;
   schedule_provider: ScheduleProvider;
+  recurrence_interval: number;
+  recurrence_period:  RecurrenceDtoRecurrencePeriodEnum;
 }
 
 /** Which form is active in the create dialog */

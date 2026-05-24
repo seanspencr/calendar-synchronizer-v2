@@ -10,17 +10,19 @@ import { convertToUTC } from 'src/lib/timezone';
 import { schedule_provider } from 'src/generated/prisma/enums';
 import { GoogleCalendarEventsNormalized } from './dto/google-calendar-dto';
 import { AiService } from 'src/ai/ai.service';
-import { schedules } from 'src/generated/prisma/client';
+import { schedule_recurrences, schedules } from 'src/generated/prisma/client';
 import { ScheduleDto } from './dto/schedule.dto';
+import { addDays, addWeeks, addMonths, addYears } from 'date-fns';
 
+// ni supaya dia join dengan recurrences
 const scheduleInclude = { schedule_recurrences: true } as const;
 
-function toScheduleDto(s: schedules & { schedule_recurrences?: { recurrence_interval: bigint; recurrence_period: any } | null }): ScheduleDto {
+function toScheduleDto(s: schedules & { schedule_recurrences?: { recurrence_interval: number; recurrence_period: any } | null }): ScheduleDto {
   const rec = s.schedule_recurrences;
   return {
     ...s,
     recurrence: rec
-      ? { recurrence_interval: Number(rec.recurrence_interval), recurrence_period: rec.recurrence_period }
+      ? { recurrence_interval: rec.recurrence_interval, recurrence_period: rec.recurrence_period }
       : null,
   };
 }
@@ -34,12 +36,25 @@ export class SchedulesService {
 
   }
 
-  create(createScheduleDto: CreateScheduleDto): Promise<ScheduleDto> {
+  async create(createScheduleDto: CreateScheduleDto): Promise<ScheduleDto> {
     const toValidDate = (value: string | Date | null | undefined): Date | undefined => {
       if (!value) return undefined;
       const d = new Date(value);
       return isNaN(d.getTime()) ? undefined : d;
     };
+
+    let recurrence : schedule_recurrences | undefined = undefined;
+
+    if(createScheduleDto.recurrence && createScheduleDto.recurrence.recurrence_interval > 0 && createScheduleDto.recurrence.recurrence_period) {
+      console.log("Creating schedule with recurrence: ", createScheduleDto.recurrence);
+      recurrence = await this.databaseService.schedule_recurrences.create({
+        data: {
+          recurrence_interval: createScheduleDto.recurrence.recurrence_interval,
+          recurrence_period: createScheduleDto.recurrence.recurrence_period,
+          created_by: createScheduleDto.user_id,
+        }
+      })
+    }
 
     return this.databaseService.schedules.create({
       data: {
@@ -50,7 +65,8 @@ export class SchedulesService {
         created_by: createScheduleDto.user_id,
         schedule_provider: createScheduleDto.schedule_provider,
         external_event_id: createScheduleDto.external_event_id,
-        description: createScheduleDto.description
+        description: createScheduleDto.description,
+        schedule_recurrence_id: recurrence ? recurrence.id : null
       },
       include: scheduleInclude,
     }).then(toScheduleDto);
@@ -100,16 +116,67 @@ export class SchedulesService {
     return this.databaseService.schedules.findMany({
       where: {
         created_by: userId,
-        event_date: {
-          ...(minDate ? { gte: new Date(minDate) } : {}),
-          ...(maxDate ? { lte: new Date(maxDate) } : {}),
-        },
       },
       orderBy: { event_date: 'asc' },
       include: scheduleInclude,
-    }).then(rows => rows.map(toScheduleDto));
-  }
+    }).then(rows => {
+      const expanded: ScheduleDto[] = [];
 
+      const rangeStart = minDate ? new Date(minDate) : null;
+      const rangeEnd = maxDate ? new Date(maxDate) : null;
+
+      for (const row of rows) {
+        const base = toScheduleDto(row);
+        const recurrence = row.schedule_recurrences;
+
+        // If no recurrence, only include if event_date is within range
+        if (!recurrence?.recurrence_interval || !recurrence?.recurrence_period) {
+          const eventDate = new Date(row.event_date);
+          const inRange =
+            (!rangeStart || eventDate >= rangeStart) &&
+            (!rangeEnd || eventDate <= rangeEnd);
+          if (inRange) expanded.push(base);
+          continue;
+        }
+
+        const { recurrence_interval, recurrence_period } = recurrence;
+
+        // Walk from the original event_date forward, collecting hits within range
+        let current = new Date(row.event_date);
+
+        while (!rangeEnd || current <= rangeEnd) {
+          const inRange =
+            (!rangeStart || current >= rangeStart) &&
+            (!rangeEnd || current <= rangeEnd);
+
+          if (inRange) {
+            expanded.push({
+              ...base,
+              event_date: current,
+            });
+          }
+
+          // Advance
+          switch (recurrence_period) {
+            case 'DAY':   current = addDays(current, recurrence_interval);   break;
+            case 'WEEK':  current = addWeeks(current, recurrence_interval);  break;
+            case 'MONTH': current = addMonths(current, recurrence_interval); break;
+            case 'YEAR':  current = addYears(current, recurrence_interval);  break;
+            default: break;
+          }
+
+          // Safety: if no recurrence match advances, break to avoid infinite loop
+          if (!['DAY','WEEK','MONTH','YEAR'].includes(recurrence_period)) break;
+        }
+      }
+
+      expanded.sort((a, b) =>
+        new Date(a.event_date).getTime() - new Date(b.event_date).getTime()
+      );
+
+      return expanded;
+    });
+}
   findOne(id: string): Promise<ScheduleDto | null> {
     return this.databaseService.schedules.findUnique({
       where: { id },
@@ -157,6 +224,7 @@ export class SchedulesService {
         user_id: issuer.userId,
         external_event_id: event.id,
         description: event.body?.content ?? null,
+        recurrence: null, // external event ga kita ambil recurrencenya
       }
     });
 
@@ -176,6 +244,7 @@ export class SchedulesService {
         schedule_provider: schedule_provider.GOOGLE,
         event: event.summary,
         description: event.description ?? null,
+        recurrence: null, // external event ga kita ambil recurrencenya
       }
 
       if (!event.start.dateTime || !event.end.dateTime) {
