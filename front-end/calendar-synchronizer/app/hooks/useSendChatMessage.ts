@@ -12,6 +12,8 @@ import { MessageService } from '../services/messageService';
 
 export function useSendChatMessage(
   setMessages: React.Dispatch<React.SetStateAction<MessageDto[]>>,
+  refetchTasks : ()=> void,
+  refetchSchedules : ()=> void,
 ) {
   const [isTyping, setIsTyping] = useState(false);
   const [responseIndex, setResponseIndex] = useState(0);
@@ -38,6 +40,15 @@ export function useSendChatMessage(
         const botResponse: MessageDto = await MessageService.createMessage({ content: content })
         setMessages((prev) => [...prev, botResponse]);
 
+
+        if(botResponse.prompt_type){
+          if(botResponse.prompt_type === 'CREATE_SCHEDULE'){
+            refetchSchedules()
+          }else if(botResponse.prompt_type === 'CREATE_TASK' || botResponse.prompt_type === 'CREATE_TODOLIST'){
+            refetchTasks()
+          }
+        }
+        
       } catch (err: any) {
         setError(err.message)
 

@@ -5,5 +5,5 @@ export { SidebarHeader } from './SidebarHeader';
 export { SidebarTabBar, type SidebarTab } from './SidebarTabBar';
 export { TaskListPanel, TaskItem } from './TaskListPanel';
 export { TaskColumnPanel } from './TaskColumnPanel';
-export { EventListPanel } from './EventListPanel';
+export { ScheduleListPanel as EventListPanel } from './ScheduleListPanel';
 export { ChatbotPanel } from './ChatbotPanel';

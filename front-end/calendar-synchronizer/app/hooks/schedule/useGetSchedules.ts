@@ -29,5 +29,5 @@ export function useGetSchedules() {
     fetchSchedules();
   }, []);
 
-  return { schedules, setSchedules, isLoading, error };
+  return { schedules, setSchedules, isLoading, error, fetchSchedules };
 }

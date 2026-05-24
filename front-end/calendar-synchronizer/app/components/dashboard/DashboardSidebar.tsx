@@ -4,18 +4,18 @@ import Feather from '@expo/vector-icons/Feather';
 import { SidebarHeader } from './SidebarHeader';
 import { SidebarTabBar, type SidebarTab } from './SidebarTabBar';
 import { TaskListPanel } from './TaskListPanel';
-import { EventListPanel } from './EventListPanel';
+import { ScheduleListPanel } from './ScheduleListPanel';
 import { ChatbotPanel } from './ChatbotPanel';
 import { CreateDialog } from '../create-dialog';
 import type { UserProfile } from './types';
-import { ScheduleDto, TaskDto, MessageDto } from '../../api-client';
+import { ScheduleDto, TaskDto, MessageDto, LoginResponseDto } from '../../api-client';
 import { useDeleteTask } from '../../hooks/task/useDeleteTask';
 import { useDeleteSchedule } from '../../hooks/schedule/useDeleteSchedule';
 
 
 // TODO : hapus userprofile disini
 interface DashboardSidebarProps {
-  user: UserProfile;
+  user: LoginResponseDto;
   tasks: TaskDto[];
   setTasks: React.Dispatch<React.SetStateAction<TaskDto[]>>;
   setSchedules: React.Dispatch<React.SetStateAction<ScheduleDto[]>>;
@@ -24,6 +24,8 @@ interface DashboardSidebarProps {
   isChatTyping: boolean;
   onToggleTask: (id: string) => void;
   onSendChat: (content: string) => void;
+  onSyncGoogle: () => void;
+  onSyncMicrosoft: () => void;
 }
 
 /** Composite sidebar combining header, tabs, and content panels */
@@ -37,6 +39,8 @@ export function DashboardSidebar({
   setSchedules,
   onToggleTask,
   onSendChat,
+  onSyncGoogle,
+  onSyncMicrosoft
 }: DashboardSidebarProps) {
   const [activeTab, setActiveTab] = useState<SidebarTab>('tasks');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -88,7 +92,7 @@ export function DashboardSidebar({
           />
         )}
         {activeTab === 'events' && (
-          <EventListPanel events={events} onDeleteSchedule={deleteSchedule} />
+          <ScheduleListPanel events={events} onDeleteSchedule={deleteSchedule} onSyncGoogle={onSyncGoogle} onSyncMicrosoft={onSyncMicrosoft} />
         )}
         {activeTab === 'chatbot' && (
           <ChatbotPanel

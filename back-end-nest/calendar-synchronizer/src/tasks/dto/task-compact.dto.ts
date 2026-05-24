@@ -3,6 +3,7 @@ import { CreateTaskDto } from "./create-task.dto";
 import { PartialType } from "@nestjs/swagger";
 
 export class TaskCompactDto {
+    id : string
     deadline: Date | null
     description: string | null
     title: string

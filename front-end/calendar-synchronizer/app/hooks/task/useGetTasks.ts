@@ -11,7 +11,7 @@ export function useGetTasks() {
   const [isLoading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function fetch() {
+  async function fetchTasks() {
     setLoading(true);
     setError(null);
 
@@ -27,8 +27,8 @@ export function useGetTasks() {
   }
 
   useEffect(() => {
-    fetch()
+    fetchTasks()
   }, [])
 
-  return { tasks, setTasks, isLoading, error };
+  return { tasks, setTasks, isLoading, error, fetchTasks };
 }

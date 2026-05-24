@@ -1,9 +1,10 @@
 import React from 'react';
-import { XStack, YStack, Text, Avatar } from 'tamagui';
+import { XStack, YStack, Text, Avatar, Card } from 'tamagui';
 import type { UserProfile } from './types';
+import { LoginResponseDto } from '@/app/api-client/api';
 
 interface SidebarHeaderProps {
-  user: UserProfile;
+  user: LoginResponseDto;
 }
 
 /** Sidebar header showing profile picture, username, and hub label */
@@ -14,7 +15,6 @@ export function SidebarHeader({ user }: SidebarHeaderProps) {
         <Avatar.Image
           accessibilityLabel={user.username}
           src={
-            user.avatarUrl ||
             `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}&background=4a7c59&color=fff&size=128`
           }
         />
@@ -27,8 +27,9 @@ export function SidebarHeader({ user }: SidebarHeaderProps) {
         color="$color12"
         letterSpacing={0.5}
       >
-        Strategy Hub
+        {user.username}
       </Text>
+
     </YStack>
   );
 }

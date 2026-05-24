@@ -102,6 +102,7 @@ export class TasksService {
 
   public toCompactTaskDto(task: TaskDto): TaskCompactDto {
     return {
+      id: task.id,
       deadline: task.deadline,
       description: task.description,
       title: task.title,

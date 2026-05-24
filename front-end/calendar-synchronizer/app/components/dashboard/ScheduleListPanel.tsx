@@ -1,8 +1,9 @@
 import React, { useState, useCallback } from 'react';
-import { YStack, XStack, Text, ScrollView } from 'tamagui';
+import { YStack, XStack, Text, ScrollView, Button } from 'tamagui';
 import Feather from '@expo/vector-icons/Feather';
 import { useRouter } from 'expo-router';
 import { ScheduleDto } from '../../api-client';
+import { ScheduleProviderButton } from './ScheduleProviderButton';
 
 // ─── Context menu state ───────────────────────────────────────────────────────
 
@@ -79,9 +80,11 @@ function ScheduleContextMenu({
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-interface EventListPanelProps {
+interface ScheduleListPanelProps {
   events: ScheduleDto[];
   onDeleteSchedule?: (id: string) => void;
+  onSyncGoogle?: () => void;
+  onSyncMicrosoft?: () => void;
 }
 
 /** Color mapping based on schedule provider */
@@ -206,7 +209,7 @@ function EventItem({
 
 /** Scrollable list of upcoming events sorted by start time.
  *  Right-clicking any row opens a context menu with a Delete option. */
-export function EventListPanel({ events, onDeleteSchedule }: EventListPanelProps) {
+export function ScheduleListPanel({ events, onDeleteSchedule, onSyncGoogle, onSyncMicrosoft }: ScheduleListPanelProps) {
   const router = useRouter();
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
 
@@ -232,6 +235,11 @@ export function EventListPanel({ events, onDeleteSchedule }: EventListPanelProps
 
   return (
     <YStack flex={1}>
+      <YStack gap="$2" paddingHorizontal="$3" marginVertical="$3" flexDirection="column">
+        <ScheduleProviderButton provider="GOOGLE" onPress={onSyncGoogle} />
+        <ScheduleProviderButton provider="MICROSOFT" onPress={onSyncMicrosoft} />
+      </YStack>
+
       <XStack
         justifyContent="space-between"
         alignItems="center"

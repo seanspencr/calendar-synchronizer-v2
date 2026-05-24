@@ -21,13 +21,6 @@ export class SchedulesController {
     return this.schedulesService.create(createScheduleDto);
   }
 
-  @Post('/natural-language')
-  @UseGuards(AuthGuard('jwt'))
-  @ApiResponse({ type: ScheduleDto })
-  createWithNaturalLanguage(@Body() query: CreateScheduleNaturalLanguageDto, @Req() req): Promise<ScheduleDto> {
-    return this.schedulesService.createWithNaturalLanguage(query.query, req.user as AccessTokenPayload);
-  }
-
   @Post('/sync/microsoft')
   @UseGuards(AuthGuard('jwt'))
   @ApiResponse({ type: [ScheduleDto] })

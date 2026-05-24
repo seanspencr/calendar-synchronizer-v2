@@ -12,9 +12,9 @@ interface CalendarGridProps {
 
 function getEventColor(source?: string): string {
   switch (source) {
-    case 'google': return '#7a6e5d';
-    case 'microsoft': return '#5d6e7a';
-    default: return '#6e7a5d';
+    case 'GOOGLE': return '#c4ad8d';
+    case 'MICROSOFT': return '#779fbb';
+    default: return '#a5c479';
   }
 }
 

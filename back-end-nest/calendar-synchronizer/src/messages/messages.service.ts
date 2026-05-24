@@ -91,6 +91,7 @@ export class MessagesService {
             ...createMessageDto,
             user_id: userId,
             message_type: 'RESPONSE',
+            prompt_type: promptType,
             content: llmRes.responseMessage
           }
         });
@@ -130,6 +131,7 @@ export class MessagesService {
             ...createMessageDto,
             user_id: userId,
             message_type: 'RESPONSE',
+            prompt_type: promptType,
             content: llmRes.responseMessage
           }
         });
@@ -138,6 +140,7 @@ export class MessagesService {
         const currentUserTasks: TaskDto[] = (await this.taskService.findAll(userId)).filter((task) => !task.completed && !task.is_todo)
         const compactTask: TaskCompactDto[] = currentUserTasks.map((task) => this.taskService.toCompactTaskDto(task))
 
+         console.debug('task sent :', compactTask)
 
 
         llmRes = await JSON.parse(await this.aiService.queryLmForJson(
@@ -172,6 +175,8 @@ export class MessagesService {
         ));
 
         const todoListIds = (llmRes.dto as { id: string }[])
+
+        console.debug('Selected tasks for to-do list:', todoListIds)
         await this.taskService.markAsTodo(userId, todoListIds)
 
         return this.databaseService.messages.create({
@@ -179,6 +184,7 @@ export class MessagesService {
             ...createMessageDto,
             user_id: userId,
             message_type: 'RESPONSE',
+            prompt_type: promptType,
             content: llmRes.responseMessage
           }
         });
