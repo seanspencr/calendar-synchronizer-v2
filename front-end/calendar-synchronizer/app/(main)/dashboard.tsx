@@ -56,7 +56,7 @@ export default function DashboardScreen() {
   
   
   useEffect(()=>{
-    getByDateRange(currentDate.getMonth(), currentDate.getFullYear())
+    getByDateRange(currentDate.getMonth() + 1, currentDate.getFullYear())
   }, [currentDate])
 
   return (

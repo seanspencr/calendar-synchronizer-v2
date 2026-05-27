@@ -31,10 +31,9 @@ export function useGetSchedules(month: number, year: number) {
       setIsLoading(true);
 
       const schedules = await ScheduleService.getByDateRange(
-        new Date(year, month - 1, 1).toISOString(),
-        new Date(year, month, 0).toISOString()
+        new Date(year, month, 1).toISOString(),      // First day of the targeted month (e.g., May 1)
+        new Date(year, month + 1, 0).toISOString()   // Last day of the targeted month (e.g., May 31)
       );
-
       setSchedules((prev) => {
         const existingKeys = new Set(prev.map((s) => `${s.id}_${s.event_date}`));
 

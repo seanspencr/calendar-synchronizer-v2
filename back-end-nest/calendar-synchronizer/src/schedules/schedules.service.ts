@@ -37,6 +37,7 @@ export class SchedulesService {
   }
 
   async create(createScheduleDto: CreateScheduleDto): Promise<ScheduleDto> {
+    
     const toValidDate = (value: string | Date | null | undefined): Date | undefined => {
       if (!value) return undefined;
       const d = new Date(value);
