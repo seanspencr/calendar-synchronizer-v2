@@ -59,7 +59,7 @@ export class MessagesService {
     switch (promptType) {
       case 'CREATE_SCHEDULE':
 
-        if(createMessageDto.model){
+        if(createMessageDto.model && createMessageDto.model !== 'llm'){
           llmRes = await this.aiService.classifyWithNLPModel(createMessageDto.content, createMessageDto.model)
         }else{
           llmRes = await JSON.parse(await this.aiService.queryLmForJson(
@@ -73,7 +73,11 @@ export class MessagesService {
                   "event_date":  string,                 // (REQUIRED) date of the event in ISO 8601 format (YYYY-MM-DD)
                   "start_time":  string | null,          // (optional) start time in ISO 8601 format
                   "end_time":    string | null,          // (optional) end time in ISO 8601 format
-                  "description": string | null           // (optional) additional description
+                  "description": string | null,          // (optional) additional description
+                  "recurrence":  {                       // (optional) only include if the event is recurring
+                    "recurrence_interval": number,       // how often the event repeats (e.g. 1 = every period, 2 = every 2 periods)
+                    "recurrence_period":   string        // one of: "DAY" | "WEEK" | "MONTH" | "YEAR"
+                  } | null
                 },
                 "responseMessage": string                // a friendly confirmation message to show the user
               }
@@ -82,8 +86,23 @@ export class MessagesService {
               - Only include the fields listed above inside "dto" — do NOT add any extra fields
               - "event_date" is required; infer it from the user message
               - Use today's date as a reference if the user says relative terms like "tomorrow" or "next Monday" (today is ${new Date().toISOString().split('T')[0]})
+              - For "recurrence": set it to null if the event is NOT recurring. If the event IS recurring, populate it:
+                  - "recurrence_interval": default to 1 unless the user specifies otherwise (e.g. "every 2 weeks" → 2)
+                  - "recurrence_period": infer from user message:
+                      - "every day" / "daily"           → "DAY"
+                      - "every week" / "weekly"          → "WEEK"
+                      - "every month" / "monthly"        → "MONTH"
+                      - "every year" / "annually"        → "YEAR"
+                      - "every Monday" / "every Friday"  → "WEEK"
               - Do NOT include "user_id" — it will be added by the server
               - Do NOT add any text outside the JSON
+
+              Examples of recurring inputs and expected recurrence output:
+              - "remind me every day"          → { "recurrence_interval": 1, "recurrence_period": "DAY" }
+              - "set this weekly"              → { "recurrence_interval": 1, "recurrence_period": "WEEK" }
+              - "repeat every 2 weeks"         → { "recurrence_interval": 2, "recurrence_period": "WEEK" }
+              - "monthly reminder"             → { "recurrence_interval": 1, "recurrence_period": "MONTH" }
+              - "every year on my birthday"    → { "recurrence_interval": 1, "recurrence_period": "YEAR" }
 
               User message: "${createMessageDto.content}"
             `

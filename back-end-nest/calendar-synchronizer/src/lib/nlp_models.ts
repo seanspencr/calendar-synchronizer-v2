@@ -1,1 +1,1 @@
-export type NLP_MODELS = "crf" | "crf-tf-idf" | "spacy" | "naive-bayes" | "svm";
+export type NLP_MODELS = "crf" | "crf-tf-idf" | "spacy" | "naive-bayes" | "svm" | "llm";
