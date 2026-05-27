@@ -5,6 +5,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
+**model** | **object** |  | [optional] [default to undefined]
 **content** | **string** |  | [default to undefined]
 
 ## Example
@@ -13,6 +14,7 @@ Name | Type | Description | Notes
 import { CreateMessageDto } from './api';
 
 const instance: CreateMessageDto = {
+    model,
     content,
 };
 ```

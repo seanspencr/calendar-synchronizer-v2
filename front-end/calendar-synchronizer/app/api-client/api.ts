@@ -24,6 +24,7 @@ import type { RequestArgs } from './base';
 import { BASE_PATH, COLLECTION_FORMATS, BaseAPI, RequiredError, operationServerMap } from './base';
 
 export interface CreateMessageDto {
+    'model'?: object;
     'content': string;
 }
 export interface CreateScheduleDto {

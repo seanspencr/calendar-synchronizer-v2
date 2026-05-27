@@ -7,10 +7,10 @@ import { TaskListPanel } from './TaskListPanel';
 import { ScheduleListPanel } from './ScheduleListPanel';
 import { ChatbotPanel } from './ChatbotPanel';
 import { CreateDialog } from '../create-dialog';
-import type { UserProfile } from './types';
 import { ScheduleDto, TaskDto, MessageDto, LoginResponseDto } from '../../api-client';
 import { useDeleteTask } from '../../hooks/task/useDeleteTask';
 import { useDeleteSchedule } from '../../hooks/schedule/useDeleteSchedule';
+import { NLP_MODELS } from '@/app/lib/nlp_models';
 
 
 // TODO : hapus userprofile disini
@@ -23,7 +23,7 @@ interface DashboardSidebarProps {
   chatMessages: MessageDto[];
   isChatTyping: boolean;
   onToggleTask: (id: string) => void;
-  onSendChat: (content: string) => void;
+  onSendChat: (content: string, model : NLP_MODELS) => void;
   onSyncGoogle: () => void;
   onSyncMicrosoft: () => void;
 }

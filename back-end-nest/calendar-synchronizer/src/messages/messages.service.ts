@@ -26,9 +26,11 @@ export class MessagesService {
 
   async create(userId: string, createMessageDto: CreateMessageDto): Promise<messages> {
 
+    const { model, ...rest } = createMessageDto;
+
     await this.databaseService.messages.create({
       data: {
-        ...createMessageDto,
+        ...rest,
         user_id: userId
       }
     });
@@ -53,42 +55,47 @@ export class MessagesService {
     );
     const promptType: prompt_type = await JSON.parse(promptTypeResponse).promptType;
 
-
     let llmRes: LlmResponseDto;
     switch (promptType) {
       case 'CREATE_SCHEDULE':
-        llmRes = await JSON.parse(await this.aiService.queryLmForJson(
-          `
-            You are a calendar assistant. Extract the schedule details from the user message and return a JSON object.
 
-            The JSON object MUST have exactly this shape:
-            {
-              "dto": {
-                "event":       string | null,          // (optional) name/title of the event
-                "event_date":  string,                 // (REQUIRED) date of the event in ISO 8601 format (YYYY-MM-DD)
-                "start_time":  string | null,          // (optional) start time in ISO 8601 format
-                "end_time":    string | null,          // (optional) end time in ISO 8601 format
-                "description": string | null           // (optional) additional description
-              },
-              "responseMessage": string                // a friendly confirmation message to show the user
-            }
+        if(createMessageDto.model){
+          llmRes = await this.aiService.classifyWithNLPModel(createMessageDto.content, createMessageDto.model)
+        }else{
+          llmRes = await JSON.parse(await this.aiService.queryLmForJson(
+            `
+              You are a calendar assistant. Extract the schedule details from the user message and return a JSON object.
 
-            Rules:
-            - Only include the fields listed above inside "dto" — do NOT add any extra fields
-            - "event_date" is required; infer it from the user message
-            - Use today's date as a reference if the user says relative terms like "tomorrow" or "next Monday" (today is ${new Date().toISOString().split('T')[0]})
-            - Do NOT include "user_id" — it will be added by the server
-            - Do NOT add any text outside the JSON
+              The JSON object MUST have exactly this shape:
+              {
+                "dto": {
+                  "event":       string | null,          // (optional) name/title of the event
+                  "event_date":  string,                 // (REQUIRED) date of the event in ISO 8601 format (YYYY-MM-DD)
+                  "start_time":  string | null,          // (optional) start time in ISO 8601 format
+                  "end_time":    string | null,          // (optional) end time in ISO 8601 format
+                  "description": string | null           // (optional) additional description
+                },
+                "responseMessage": string                // a friendly confirmation message to show the user
+              }
 
-            User message: "${createMessageDto.content}"
-          `
-        ));
+              Rules:
+              - Only include the fields listed above inside "dto" — do NOT add any extra fields
+              - "event_date" is required; infer it from the user message
+              - Use today's date as a reference if the user says relative terms like "tomorrow" or "next Monday" (today is ${new Date().toISOString().split('T')[0]})
+              - Do NOT include "user_id" — it will be added by the server
+              - Do NOT add any text outside the JSON
+
+              User message: "${createMessageDto.content}"
+            `
+          ));
+        }
+
         (llmRes.dto as CreateScheduleDto).user_id = userId;
         await this.scheduleService.create(llmRes.dto as CreateScheduleDto);
 
         return this.databaseService.messages.create({
           data: {
-            ...createMessageDto,
+            ...rest,
             user_id: userId,
             message_type: 'RESPONSE',
             prompt_type: promptType,
@@ -124,6 +131,7 @@ export class MessagesService {
             User message: "${createMessageDto.content}"
           `
         ));
+
         await this.taskService.create(userId, llmRes.dto as CreateTaskDto);
 
         return this.databaseService.messages.create({

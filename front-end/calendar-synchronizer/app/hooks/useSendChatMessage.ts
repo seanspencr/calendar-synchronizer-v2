@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { CreateMessageDto, MessageDto } from '../api-client';
 import { MessageService } from '../services/messageService';
+import { NLP_MODELS } from '../lib/nlp_models';
 
 
 
@@ -22,7 +23,7 @@ export function useSendChatMessage(
 
 
   const sendMessage = useCallback(
-    async (content: string) => {
+    async (content: string, model : NLP_MODELS) => {
       setIsLoading(true)
       const userMsg: MessageDto = {
         id: crypto.randomUUID(),
@@ -35,9 +36,8 @@ export function useSendChatMessage(
       setMessages((prev) => [...prev, userMsg]);
       setIsTyping(true);
 
-
       try {
-        const botResponse: MessageDto = await MessageService.createMessage({ content: content })
+        const botResponse: MessageDto = await MessageService.createMessage({ content: content, model: model });
         setMessages((prev) => [...prev, botResponse]);
 
 
