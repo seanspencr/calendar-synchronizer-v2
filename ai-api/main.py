@@ -260,6 +260,7 @@ svm_model = _load_pkl("svm.pkl")
 nb_model = _load_pkl("naive_bayes.pkl")
 crf_model = _load_pkl("crf.pkl")
 crf_tfidf_model = _load_pkl("crf_tfidf.pkl")
+spacy_ner = spacy.load(MODELS_DIR / "model-best")
 
 
 # --- request/response schemas ---
@@ -316,6 +317,15 @@ def predict_crf(req: PredictRequest):
 @app.post("/predict/crf-tf-idf")
 def predict_crf_tfidf(req: PredictRequest):
     return _predict(req.text, model_crf=crf_tfidf_model)
+
+
+@app.post("/predict/spacy")
+def predict_spacy(req: PredictRequest):
+    doc = spacy_ner(req.text)
+    entities = [{"text": ent.text, "label": ent.label_} for ent in doc.ents]
+    dto = _build_schedule_dto(entities, req.text)
+    msg = _build_response_message(entities)
+    return {"dto": dto, "responseMessage": msg}
 
 
 if __name__ == "__main__":
