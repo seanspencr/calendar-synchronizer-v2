@@ -1,7 +1,8 @@
 generator client {
-  provider     = "prisma-client"
-  output       = "../generated/prisma"
-  moduleFormat = "cjs"
+  provider        = "prisma-client"
+  output          = "../generated/prisma"
+  previewFeatures = ["partialIndexes"]
+  moduleFormat    = "cjs"
 }
 
 datasource db {
@@ -13,7 +14,7 @@ datasource db {
 model schedule_recurrences {
   id                  String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   created_at          DateTime          @default(now()) @db.Timestamptz(6)
-  recurrence_interval BigInt            @default(1)
+  recurrence_interval Int               @default(1)
   recurrence_period   recurrence_period @default(WEEK)
   created_by          String            @db.Uuid
   users               users             @relation(fields: [created_by], references: [id], onDelete: Cascade)
@@ -32,23 +33,62 @@ model schedules {
   created_at             DateTime              @default(now()) @db.Timestamp(6)
   schedule_recurrence_id String?               @db.Uuid
   created_by             String                @db.Uuid
+  schedule_provider      schedule_provider     @default(LOCAL)
+  external_event_id      String?
+  description            String?
   users                  users                 @relation(fields: [created_by], references: [id], onDelete: Cascade)
   schedule_recurrences   schedule_recurrences? @relation(fields: [schedule_recurrence_id], references: [id], onDelete: Cascade)
 
+  @@unique([external_event_id, schedule_provider], map: "external_event_id_pair", where: raw("(external_event_id IS NOT NULL)"))
+  @@unique([external_event_id, schedule_provider])
   @@schema("calendar_synchronizer")
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model users {
   id                      String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  username                String?
+  username                String?                @unique
   created_at              DateTime               @default(now()) @db.Timestamptz(6)
   password                String?
-  email                   String                 @default("text::\"null\"")
+  google_email            String?                @default("")
   google_refresh_token    String?
   microsoft_refresh_token String?
+  microsoft_email         String?                @default("")
+  messages                messages[]
   schedule_recurrences    schedule_recurrences[]
   schedules               schedules[]
+  tasks                   tasks[]
+
+  @@schema("calendar_synchronizer")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model tasks {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title          String
+  parent_task_id String?   @db.Uuid
+  description    String?
+  deadline       DateTime? @db.Timestamptz(6)
+  created_at     DateTime  @default(now()) @db.Timestamptz(6)
+  user_id        String    @db.Uuid
+  completed      Boolean   @default(false)
+  is_todo        Boolean   @default(false)
+  tasks          tasks?    @relation("tasksTotasks", fields: [parent_task_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "recursive_parent_key")
+  other_tasks    tasks[]   @relation("tasksTotasks")
+  users          users     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@schema("calendar_synchronizer")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model messages {
+  id           String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  created_at   DateTime     @default(now()) @db.Timestamptz(6)
+  user_id      String       @db.Uuid
+  message_type message_type @default(PROMPT)
+  content      String
+  prompt_type  prompt_type?
+  users        users        @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
   @@schema("calendar_synchronizer")
 }
@@ -59,6 +99,31 @@ enum recurrence_period {
   WEEK
   MONTH
   YEAR
+
+  @@schema("calendar_synchronizer")
+}
+
+enum schedule_provider {
+  LOCAL
+  GOOGLE
+  MICROSOFT
+
+  @@schema("calendar_synchronizer")
+}
+
+/// This enum is commented in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+enum message_type {
+  PROMPT
+  RESPONSE
+
+  @@schema("calendar_synchronizer")
+}
+
+/// This enum is commented in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+enum prompt_type {
+  CREATE_TASK
+  CREATE_SCHEDULE
+  CREATE_TODOLIST
 
   @@schema("calendar_synchronizer")
 }

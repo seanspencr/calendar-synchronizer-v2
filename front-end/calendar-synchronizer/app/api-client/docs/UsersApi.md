@@ -11,7 +11,7 @@ All URIs are relative to *http://localhost*
 |[**usersControllerUpdate**](#userscontrollerupdate) | **PATCH** /users/{id} | |
 
 # **usersControllerCreate**
-> usersControllerCreate(createUserDto)
+> UserDto usersControllerCreate(createUserDto)
 
 
 ### Example
@@ -42,7 +42,7 @@ const { status, data } = await apiInstance.usersControllerCreate(
 
 ### Return type
 
-void (empty response body)
+**UserDto**
 
 ### Authorization
 
@@ -51,7 +51,7 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: application/json
- - **Accept**: Not defined
+ - **Accept**: application/json
 
 
 ### HTTP response details
@@ -62,7 +62,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **usersControllerFindAll**
-> usersControllerFindAll()
+> Array<UserDto> usersControllerFindAll()
 
 
 ### Example
@@ -85,7 +85,7 @@ This endpoint does not have any parameters.
 
 ### Return type
 
-void (empty response body)
+**Array<UserDto>**
 
 ### Authorization
 
@@ -94,7 +94,7 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: Not defined
- - **Accept**: Not defined
+ - **Accept**: application/json
 
 
 ### HTTP response details
@@ -105,7 +105,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **usersControllerFindOne**
-> usersControllerFindOne()
+> UserDto usersControllerFindOne()
 
 
 ### Example
@@ -135,7 +135,7 @@ const { status, data } = await apiInstance.usersControllerFindOne(
 
 ### Return type
 
-void (empty response body)
+**UserDto**
 
 ### Authorization
 
@@ -144,7 +144,7 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: Not defined
- - **Accept**: Not defined
+ - **Accept**: application/json
 
 
 ### HTTP response details
@@ -155,7 +155,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **usersControllerRemove**
-> usersControllerRemove()
+> UserDto usersControllerRemove()
 
 
 ### Example
@@ -185,7 +185,7 @@ const { status, data } = await apiInstance.usersControllerRemove(
 
 ### Return type
 
-void (empty response body)
+**UserDto**
 
 ### Authorization
 
@@ -194,7 +194,7 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: Not defined
- - **Accept**: Not defined
+ - **Accept**: application/json
 
 
 ### HTTP response details
@@ -205,7 +205,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **usersControllerUpdate**
-> usersControllerUpdate(body)
+> UserDto usersControllerUpdate(body)
 
 
 ### Example
@@ -238,7 +238,7 @@ const { status, data } = await apiInstance.usersControllerUpdate(
 
 ### Return type
 
-void (empty response body)
+**UserDto**
 
 ### Authorization
 
@@ -247,7 +247,7 @@ No authorization required
 ### HTTP request headers
 
  - **Content-Type**: application/json
- - **Accept**: Not defined
+ - **Accept**: application/json
 
 
 ### HTTP response details

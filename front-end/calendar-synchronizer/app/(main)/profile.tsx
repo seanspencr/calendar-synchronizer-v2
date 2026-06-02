@@ -1,9 +1,110 @@
-import {View, Text} from "react-native";
+import React, { useEffect } from 'react';
+import { YStack, XStack, ScrollView, Text, Spinner } from 'tamagui';
+import { useRouter } from 'expo-router';
+import { ExternalPathString } from 'expo-router';
+import { useGetProfile } from '../hooks/auth/useGetProfile';
+import { useBindGoogle } from '../hooks/auth/useBindGoogle';
+import { useBindMicrosoft } from '../hooks/auth/useBindMicrosoft';
+import { useUser } from '../context/currentUserContext';
+import {
+  ProfileAvatar,
+  DigitalEcosystemCard,
+  LogoutButton,
+} from '../components/profile';
+import { NavigationRail } from '../components/dashboard';
 
+/**
+ * Profile screen — accessible at /profile.
+ * Displays user avatar, username, connected accounts, and logout.
+ */
 export default function ProfileScreen() {
+  const router = useRouter();
+  const { logout } = useUser();
+  const { profile, setProfile, isLoading, error, fetchProfile } = useGetProfile();
+  const { isError: isGoogleBindGoogleError, bindResponse: googleBindResponse, promptAsync: googlePromptAsync } = useBindGoogle(setProfile);
+  const { isLoadingMicrosoft: isLoadingMicrosoft, bindResponse: microsoftBindResponse, errorMsg, promptAsync: microsoftPromptAsync } = useBindMicrosoft(setProfile);
+
+  /** Handle logout: clear session and navigate to login */
+  const handleLogout = async () => {
+    await logout();
+    router.replace('/');
+  };
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  // Loading state
+  if (isLoading) {
     return (
-        <View>
-            <Text>Profile Screen</Text>
-        </View>
-    )
+      <YStack
+        flex={1}
+        backgroundColor="$color1"
+        justifyContent="center"
+        alignItems="center"
+      >
+        <Spinner size="large" color="$accent8" />
+        <Text marginTop="$3" color="$color8">
+          Loading profile...
+        </Text>
+      </YStack>
+    );
+  }
+
+  // Error state
+  if (error || !profile) {
+    return (
+      <YStack
+        flex={1}
+        backgroundColor="$color1"
+        justifyContent="center"
+        alignItems="center"
+        padding="$4"
+      >
+        <Text fontSize="$5" fontWeight="700" color="$color12">
+          Profile unavailable
+        </Text>
+        <Text marginTop="$2" color="$color8" textAlign="center">
+          {error ?? 'Could not load your profile.'}
+        </Text>
+      </YStack>
+    );
+  }
+
+  return (
+    <XStack flex={1} backgroundColor="$color1">
+      <NavigationRail />
+
+      <YStack flex={1}>
+        <ScrollView
+          flex={1}
+          contentContainerStyle={{
+            padding: 24,
+            maxWidth: 800,
+            width: '100%',
+            alignSelf: 'center',
+          }}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Avatar & username */}
+          <YStack alignItems="center" marginTop="$6" marginBottom="$6">
+            <ProfileAvatar
+              username={profile.username}
+            />
+          </YStack>
+
+          {/* Digital ecosystem (Google / Microsoft bindings) */}
+          <DigitalEcosystemCard
+            googleEmail={profile.google_email}
+            microsoftEmail={profile.microsoft_email}
+            onBindGoogle={googlePromptAsync}
+            onBindMicrosoft={microsoftPromptAsync}
+          />
+
+          {/* Logout */}
+          <LogoutButton onLogout={handleLogout} />
+        </ScrollView>
+      </YStack>
+    </XStack>
+  );
 }

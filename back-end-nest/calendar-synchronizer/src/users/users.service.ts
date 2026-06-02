@@ -1,8 +1,9 @@
-import { Injectable, UnprocessableEntityException } from '@nestjs/common';
+import { ConflictException, Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import {DatabaseService} from "../database/database.service";
+import { DatabaseService } from "../database/database.service";
 import { hash_password } from 'src/lib/hash_password';
+import { schedules, users } from 'src/generated/prisma/client';
 
 @Injectable()
 export class UsersService {
@@ -11,7 +12,7 @@ export class UsersService {
     this.dbService = dbService;
   }
 
-  async create(createUserDto: CreateUserDto) {
+  async create(createUserDto: CreateUserDto): Promise<users> {
     let hashed_password = createUserDto.password ? await hash_password(createUserDto.password) : undefined;
     if (hashed_password == undefined) {
       throw new Error("Password is required");
@@ -20,46 +21,113 @@ export class UsersService {
 
     const existingUser = await this.dbService.users.findFirst({
       where: {
-        username: createUserDto.email,
+        username: createUserDto.username,
       },
     });
 
     if (existingUser) {
-      throw new UnprocessableEntityException("Email already registered, please login instead");
+      throw new UnprocessableEntityException("Username already taken, please choose another");
     }
-    return this.dbService.users.create({data : createUserDto});
+    return this.dbService.users.create({ data: createUserDto });
   }
 
-  async createOauthUser(createUserDto: CreateUserDto) {
+  async createGoogleUser(createUserDto: CreateUserDto): Promise<users> {
     const password = "null";
     createUserDto.password = password;
 
-    const existingUser = await this.dbService.users.findFirst({
-      where: {
-        username: createUserDto.email,
-      },
-    });
+    const existingUser = await this.findGoogleUser(createUserDto.google_email!);
 
     if (existingUser) {
-      throw new UnprocessableEntityException("Email already registered, please login instead");
+      throw new ConflictException("Email already registered, please login instead");
     }
-    
-    return this.dbService.users.create({data : createUserDto});
+
+    return this.dbService.users.create({ data: createUserDto });
   }
 
-  findAll() {
+  async createMicrosoftUser(createUserDto: CreateUserDto): Promise<users> {
+    const password = "null";
+    createUserDto.password = password;
+
+    const existingUser = await this.findMicrosoftUser(createUserDto.microsoft_email!);
+
+    if (existingUser) {
+      throw new ConflictException("Email already registered, please login instead");
+    }
+
+    return this.dbService.users.create({ data: createUserDto });
+  }
+
+  async findGoogleUser(googleEmail: string): Promise<users | null> {
+    console.log("Finding Google user with email: ", googleEmail);
+    return this.dbService.users.findFirst({
+      where: {
+        google_email : googleEmail
+      },
+    });
+  }
+  
+  async findMicrosoftUser(microsoftEmail: string): Promise<users | null> {
+    return this.dbService.users.findFirst({
+      where: {
+        microsoft_email : microsoftEmail
+      },
+    });
+  }
+
+  async findById(id: string): Promise<users | null> {
+    return this.dbService.users.findUnique({
+      where: {
+        id: id
+      }
+    });
+  };
+
+  async updateOauthUserRefreshToken(userid: string, provider: "google" | "microsoft", refresh_token: string): Promise<users> {
+
+    const user = await this.findById(userid);
+
+    if (!user) {
+      throw new UnprocessableEntityException("User not found");
+    }
+
+    if (provider === "google") {
+      console.log(`UserService : Updated user ${userid} with  google refresh token ${refresh_token} `)
+
+      return await this.dbService.users.update({
+        where: {
+          id: userid
+        }
+        , data: {
+          google_refresh_token: refresh_token
+        }
+      });
+    } else if (provider === "microsoft") {
+      return await this.dbService.users.update({
+        where: {
+          id: userid
+        }
+        , data: {
+          microsoft_refresh_token: refresh_token
+        }
+      });
+    }
+
+    throw new UnprocessableEntityException("Invalid provider");
+  }
+
+  findAll(): Promise<users[]> {
     return this.dbService.users.findMany();
   }
 
-  findOne(id: number) {
-    // return this.dbService.users.findUnique({where: {id}});
+  findOne(id: string): Promise<users | null> {
+    return this.dbService.users.findUnique({ where: { id } });
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    // return this.dbService.users.update({where: {id}, data: updateUserDto});
+  update(id: string, updateUserDto: UpdateUserDto): Promise<users> {
+    return this.dbService.users.update({ where: { id }, data: updateUserDto });
   }
 
-  remove(id: number) {
-    // return this.dbService.users.delete({where: {id : id}});
+  remove(id: string): Promise<users> {
+    return this.dbService.users.delete({ where: { id } });
   }
 }

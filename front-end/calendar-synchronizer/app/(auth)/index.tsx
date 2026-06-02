@@ -1,241 +1,255 @@
-import { Text, View, Input, AlertDialog, Button, useToastController } from "tamagui";
+import { Text, View, Input, Button, useToastController, YStack, XStack, Spinner } from "tamagui";
 import { useState, useEffect } from "react";
+import Feather from '@expo/vector-icons/Feather';
 import * as WebBrowser from "expo-web-browser";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Link, useRouter } from "expo-router";
+import { ExternalPathString, Link, useRouter } from "expo-router";
 import React from "react";
-import { useGoogleAuthCode } from "../hooks/useGoogleAuthCode";
-import { useMicrosoftLogin } from "../hooks/useMicrosoftLogin";
-import { useGoogleCodeLogin } from "../hooks/useGoogleCodeLogin";
-import { useLogin } from "../hooks/useLogin";
-import { pagePath } from "../lib/constants";
+import { useLogin } from "../hooks/auth/useLogin";
 import * as AuthSession from "expo-auth-session";
-import { useMicrosoftRegister } from "../hooks/useMicrosoftRegister";
+import { useMicrosoftRegister } from "../hooks/auth/useMicrosoftRegister";
+import { useGoogleRegister } from "../hooks/auth/useGoogleRegister";
+import { useUser } from "../context/currentUserContext";
+import { LoginResponseDto } from "../api-client";
+import { StorageService } from "../services/storageService";
+import { useGetProfile } from "../hooks/auth/useGetProfile";
 
 export default function Index() {
   WebBrowser.maybeCompleteAuthSession();
 
   const router = useRouter();
+  const { user, isLoading, login, setUser } = useUser();
+  const { promptAsync: microsoftPromptAsync, registerResponse: microsoftRegisterResponse } = useMicrosoftRegister();
+  const { isError, registerResponse: googleRegisterResponse, promptAsync: googlePromptAsync } = useGoogleRegister();
+  const { login: loginWithCredentials, isLoading: loginLoading, response: loginResponse, error: loginError } = useLogin();
 
-  const [userInfo, setUserInfo] = useState(null);
-  // const [calendarEvents, setCalendarEvents] = useState([]);
-
-
-  const [gooogleRequest, googleResponse, googlePromptAsync] = useGoogleAuthCode();
-  // const [microsoftRequest, microsoftResponse, microsoftPromptAsync] = useMicrosoftLogin()
-  
-  const {isLoadingMicrosoft, microsoftPromptAsync, registerResponse} = useMicrosoftRegister()
-  const getUserInfoWithGoogle = async (token : any) => {
-    //absent token
-    if (!token) return;
-    //present token
-    try {
-      const response = await fetch(
-        "https://www.googleapis.com/userinfo/v2/me",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      const user = await response.json();
-      //store user information  in Asyncstorage
-      await AsyncStorage.setItem("user", JSON.stringify(user));
-      setUserInfo(user);
-    } catch (error) {
-      console.error(
-        "Failed to fetch user data:",
-        googleResponse!.status,
-        googleResponse!.statusText
-      );
-    }
-  };
-
-  const getCalendarEvents = async (token : any) => {
-    const res = await fetch(
-      "https://www.googleapis.com/calendar/v3/calendars/primary/events",
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
-    const data = await res.json();
-    console.log("Events:", data.items);
-    setCalendarEvents(data.items);
-
-        // {
-    //   "kind":"calendar#event",
-    //   "etag":"\"3465343751906000\"",
-    //   "id":"32lj6e69abdf5q9gaut4u3e2hh",
-    //   "status":"confirmed",
-    //   "htmlLink":"https://www.google.com/calendar/event?eid=MzJsajZlNjlhYmRmNXE5Z2F1dDR1M2UyaGggc2VhbnNwZW5jZXIyODA4MDZAbQ",
-    //   "created":"2024-11-27T01:44:35.000Z",
-    //   "updated":"2024-11-27T01:44:35.953Z",
-    //   "summary":"Kelas",
-    //   "colorId":"6",
-    //   "creator":{
-    //     "email":"seanspencer280806@gmail.com",
-    //     "self":true
-    //   },
-    //   "organizer":{
-    //     "email":"seanspencer280806@gmail.com",
-    //     "self":true
-    //   },
-    //   "start":{
-    //     "dateTime":"2024-12-17T07:00:00+07:00",
-    //     "timeZone":"Asia/Jakarta"
-    //   },
-    //   "end":{
-    //     "dateTime":"2024-12-17T13:00:00+07:00",
-    //     "timeZone":"Asia/Jakarta"
-    //   },
-    //   "iCalUID":"32lj6e69abdf5q9gaut4u3e2hh@google.com",
-    //   "sequence":0,
-    //   "reminders":{
-    //     "useDefault":true
-    //   },
-    //   "eventType":"default"
-    // }
-  };
-
-  const signInWithGoogle = async () => {
-  try {
-    // Attempt to retrieve user information from AsyncStorage
-    const userJSON = await AsyncStorage.getItem("user");
-
-    if (userJSON) {
-      // If user information is found in AsyncStorage, parse it and set it in the state
-      setUserInfo(JSON.parse(userJSON));
-    } else if (googleResponse?.type === "success") {
-      // If no user information is found and the response type is "success" (assuming response is defined),
-      // call getUserInfo with the access token from the response
-      getUserInfoWithGoogle(googleResponse!.authentication.accessToken);
-    }
-
-    getCalendarEvents(googleResponse!.authentication.accessToken);
-  } catch (error) {
-    // Handle any errors that occur during AsyncStorage retrieval or other operations
-    console.error("Error retrieving user data from AsyncStorage:", error);
-  }
-};
-
-
-async function fetchCalendarMicrosoft(token : string){
-      let res = await fetch("https://graph.microsoft.com/v1.0/me/calendar/events", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      let data = await res.json();
-      console.log("Microsoft calendar events:", data);
-}
-useEffect(() => {
-  if(googleResponse == null || googleResponse == undefined) return;
-  if(gooogleRequest == null || gooogleRequest == undefined) return;
-  // signInWithGoogle();
-  console.log(googleResponse)
-  const code = googleResponse?.params?.code;
-  const codeVerifier = gooogleRequest.codeVerifier;
-  const redirectUri = gooogleRequest.redirectUri;
-  useGoogleCodeLogin(code, codeVerifier, redirectUri);
-}, [gooogleRequest, googleResponse]);
-
-//log the userInfo to see user details
-console.log("userInfo:", JSON.stringify(userInfo))
-
-
-  const API_URL = `${process.env.EXPO_PUBLIC_BACKEND_URL}:${process.env.EXPO_PUBLIC_BACKEND_PORT}`;   
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const {login, isLoading, response} = useLogin()
+  const toast = useToastController();
 
-  const toast = useToastController()
-
-  function handleLogin(){
-    try{
-      login({username : username, password : password});
-      toast.show("Login successful", { message: "You have been logged in successfully." });
-    }catch(error){
-      toast.show("Login Failed", { message: JSON.stringify(error) });
-    }
-  }
-
+  // ✅ Single effect: save to context+storage whenever ANY auth flow succeeds
   useEffect(() => {
-  if (response) {
-    toast.show("Login successful", { message: JSON.stringify(response) });
-    window.alert("Login successful: " + JSON.stringify(response));
-    console.log("Login response:", response);
-  }
-}, [response]);
-  
-  return (
-    <View>
-      <Text>
-        Login
-      </Text>
+    const response: LoginResponseDto | null = googleRegisterResponse ?? microsoftRegisterResponse ?? loginResponse;
+    if (!response) return;
 
-      {
-        userInfo && (
-          <Text>
-            userInfo: {JSON.stringify(userInfo)}
-          </Text>
-        )
+    login({
+      google_email: response.google_email,
+      microsoft_email: response.microsoft_email,
+      username: response.username,
+      userid: response.userid,
+      accessToken: response.accessToken,
+    });
+  }, [googleRegisterResponse, microsoftRegisterResponse, loginResponse]);
+
+  // ✅ Single redirect: fires whenever user becomes non-null
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = await StorageService.getAccessToken();
+
+      if (!isLoading && user && token) {
+        router.replace('/dashboard');
       }
 
-      {/* {
-        calendarEvents.length > 0 && (
-          <View style={{ marginTop: 20 }}>
-            <Text style={{ fontSize: 18, fontWeight: "bold", marginBottom: 10 }}>
-              Calendar Events:
+      // klo gaada user di context, coba fetch dlu
+      if (!user && !isLoading && token) {
+        const { profile, setProfile, isLoading, error, fetchProfile } = useGetProfile()
+        fetchProfile().then(() => {
+
+          if (error) {
+            StorageService.clearAccessToken();
+            return
+          }
+
+          if (profile) {
+            setUser({
+              google_email: profile.google_email!!,
+              microsoft_email: profile.microsoft_email!!,
+              username: profile.username,
+              userid: profile.userId,
+              accessToken: "null", //maaf  spaghetti, disini karena dia usercontext, jadi gaperlu simpen acc token
+            });
+            setProfile(profile);
+            router.replace('/dashboard');
+          }
+        })
+      }
+
+    };
+
+    checkAuth();
+  }, [user, isLoading]);
+
+  function handleLogin() {
+    if (!username || !password) {
+      toast.show("Missing fields", { message: "Please enter username and password." });
+      return;
+    }
+    loginWithCredentials({ username, password });
+  }
+
+  // Show error toasts
+  useEffect(() => {
+    if (loginError) {
+      toast.show("Login Failed", { message: loginError, duration: 3000 });
+    }
+  }, [loginError, toast]);
+
+  // Don't render login form while checking stored session
+  if (isLoading) return null;
+
+  // Already logged in — redirect effect will fire, render nothing
+  if (user) return null;
+  return (
+    <YStack
+      flex={1}
+      backgroundColor="$color2"
+      justifyContent="center"
+      alignItems="center"
+      padding="$4"
+    >
+      <YStack
+        width="100%"
+        maxWidth={400}
+        backgroundColor="$color1"
+        borderRadius="$5"
+        borderWidth={1}
+        borderColor="$color4"
+        padding="$6"
+        gap="$5"
+        shadowColor="$shadowColor"
+        shadowOffset={{ width: 0, height: 4 }}
+        shadowOpacity={0.1}
+        shadowRadius={10}
+        elevation={5}
+      >
+        <YStack alignItems="center" gap="$2" marginBottom="$2">
+          <YStack 
+            width={60} 
+            height={60} 
+            borderRadius={30} 
+            backgroundColor="$accent8" 
+            justifyContent="center" 
+            alignItems="center"
+            marginBottom="$2"
+          >
+            <Feather name="log-in" size={28} color="#fff" />
+          </YStack>
+          <Text fontSize="$7" fontWeight="800" color="$color12">
+            Welcome Back
+          </Text>
+          <Text fontSize="$3" color="$color8" textAlign="center">
+            Log in to continue managing your calendar schedules.
+          </Text>
+        </YStack>
+
+        <YStack gap="$3">
+          <YStack gap="$1.5">
+            <Text fontSize="$2" fontWeight="600" color="$color11" marginLeft="$1">
+              Username
             </Text>
-          </View>
-            // {calendarEvents.map((event) => (
-              // <View key={event.id} style={{ marginBottom: 10 }}>
-              //   <Text>{JSON.stringify(event)}</Text>
-              //   <Text style={{ fontSize: 16 }}>{event.summary}</Text>
-              //   <Text style={{ color: "#666" }}>
-              //     {new Date(event.start.dateTime).toLocaleString()} -{" "}
-              //     {new Date(event.end.dateTime).toLocaleString()}
-              //   </Text>
-              // </View>
-            // ))}
-        )
-      } */}
+            <Input
+              size="$4"
+              placeholder="Enter your username"
+              value={username}
+              onChangeText={setUsername}
+              backgroundColor="$color2"
+              borderColor="$color5"
+              autoCapitalize="none"
+              focusStyle={{ borderColor: '$accent8' }}
+            />
+          </YStack>
 
-      <Input
-        placeholder="Username"
-        value={username}
-        onChangeText={setUsername}
-      />
+          <YStack gap="$1.5">
+            <Text fontSize="$2" fontWeight="600" color="$color11" marginLeft="$1">
+              Password
+            </Text>
+            <Input
+              size="$4"
+              placeholder="Enter your password"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              backgroundColor="$color2"
+              borderColor="$color5"
+              focusStyle={{ borderColor: '$accent8' }}
+            />
+          </YStack>
+        </YStack>
 
-      <Input
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
+        <YStack gap="$3" marginTop="$2">
+          <Button
+            size="$4"
+            backgroundColor="$accent8"
+            borderRadius="$3"
+            pressStyle={{ opacity: 0.85, backgroundColor: '$accent9' }}
+            onPress={handleLogin}
+            disabled={loginLoading}
+            opacity={loginLoading ? 0.7 : 1}
+          >
+            {loginLoading ? (
+              <Spinner color="#fff" />
+            ) : (
+              <Text fontSize="$3" fontWeight="700" color="#fff">
+                Login
+              </Text>
+            )}
+          </Button>
 
-      <Button
-        onPress={handleLogin}
-      >
-        <Text>
-          Login
-        </Text>
-      </Button>
+          <XStack alignItems="center" marginVertical="$2">
+            <View flex={1} height={1} backgroundColor="$color5" />
+            <Text marginHorizontal="$3" color="$color8" fontSize="$2" fontWeight="600">
+              OR
+            </Text>
+            <View flex={1} height={1} backgroundColor="$color5" />
+          </XStack>
 
-      <View
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr 1fr",
-          width: "100%",
-          marginTop: 20,
-        }}
-      >
-        <Button onPress={()=>{handleLogin()}}>Login with credential</Button>
-        <Button onPress={()=>{googlePromptAsync()}}>register with google (rial)</Button>
-        <Button onPress={() => router.push(pagePath.fromRoot.registerScreen)}>Go to Register Screen</Button>
-        <Button onPress={() => router.push(pagePath.fromRoot.dashboard)}>Navigate to main screen</Button>
-        {/* <Button onPress={()=>{microsoftPromptAsync()}}>sign in with microsoft</Button> */}
-        <Button onPress={()=>{microsoftPromptAsync()}}>Register with microsoft</Button>
+          <Button
+            size="$4"
+            backgroundColor="$color3"
+            borderWidth={1}
+            borderColor="$color5"
+            borderRadius="$3"
+            pressStyle={{ opacity: 0.7 }}
+            onPress={() => googlePromptAsync()}
+            icon={<Feather name="globe" size={18} color="$color11" />}
+          >
+            <Text fontSize="$3" fontWeight="600" color="$color12">
+              Continue with Google
+            </Text>
+          </Button>
 
-      </View>
-      <Link href={pagePath.fromRoot.registerScreen}>Go to Register Screen</Link>
-    </View>
+          <Button
+            size="$4"
+            backgroundColor="$color3"
+            borderWidth={1}
+            borderColor="$color5"
+            borderRadius="$3"
+            pressStyle={{ opacity: 0.7 }}
+            onPress={() => microsoftPromptAsync()}
+            icon={<Feather name="mail" size={18} color="$color11" />}
+          >
+            <Text fontSize="$3" fontWeight="600" color="$color12">
+              Continue with Microsoft
+            </Text>
+          </Button>
+
+          <XStack justifyContent="center" alignItems="center" gap="$2" marginTop="$2">
+            <Text color="$color8" fontSize="$3">
+              Don't have an account?
+            </Text>
+            <Button
+              unstyled
+              pressStyle={{ opacity: 0.6 }}
+              onPress={() => router.push('/registerScreen')}
+            >
+              <Text color="$accent9" fontSize="$3" fontWeight="bold">
+                Register
+              </Text>
+            </Button>
+          </XStack>
+        </YStack>
+      </YStack>
+    </YStack>
   );
 }
