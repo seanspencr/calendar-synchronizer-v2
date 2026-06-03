@@ -9,6 +9,9 @@ import { ExternalPathString } from 'expo-router';
 
 const axiosInstance = axios.create({
     baseURL: `${process.env.EXPO_PUBLIC_BACKEND_URL}:${process.env.EXPO_PUBLIC_BACKEND_PORT}`,
+    headers: {
+        'ngrok-skip-browser-warning': 'true' // Added to skip the ngrok warning screen
+    }
 });
 
 axiosInstance.interceptors.request.use(async (config) => {
