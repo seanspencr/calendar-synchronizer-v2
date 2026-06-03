@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { AuthApi, LoginDto, LoginResponseDto } from '../../api-client/api';
 import { Configuration } from "../../api-client/configuration";
+import { AuthService } from "../../services/authService";
 
 const configuration = new Configuration({
   basePath: `${process.env.EXPO_PUBLIC_BACKEND_URL}:${process.env.EXPO_PUBLIC_BACKEND_PORT}`
@@ -20,9 +21,10 @@ export function useLogin() {
     setIsLoading(true);
     setError(null);
 
-    apiInstance.authControllerLogin(loginDto)
+
+    AuthService.login(loginDto)
       .then(res => {
-        setResponse(res.data); // ✅ context will handle saving to storage
+        setResponse(res); // ✅ context will handle saving to storage
       })
       .catch(err => {
         setError(err.message);

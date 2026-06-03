@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { AuthApi, LoginDto, LoginResponseDto, RegisterDto, RegisterResponseDto } from '../../api-client/api';
 import { Configuration } from "../../api-client/configuration";
+import { AuthService } from "@/app/services/authService";
 
 const configuration = new Configuration({
     basePath: `${process.env.EXPO_PUBLIC_BACKEND_URL}:${process.env.EXPO_PUBLIC_BACKEND_PORT}`
@@ -20,9 +21,9 @@ export function useRegister() {
         setIsLoading(true);
         setError(null);
 
-        apiInstance.authControllerRegister(registerDto)
+        AuthService.register(registerDto)
             .then(res => {
-                setResponse(res.data);
+                setResponse(res);
             })
             .catch(err => {
                 setError(err.message);
