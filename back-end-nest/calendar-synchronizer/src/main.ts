@@ -7,6 +7,11 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
 
+  app.use((req, res, next) => {
+    console.log(`[${req.method}] ${req.url} from ${req.headers.origin}`);
+    next();
+  });
+
   // somehow tanpa ini dia gmau karena preflightnya ketolak somehting cors
   app.use((req, res, next) => {
     res.header('Access-Control-Allow-Private-Network', 'true');
