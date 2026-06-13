@@ -155,7 +155,7 @@ export class MessagesService {
 
         return this.databaseService.messages.create({
           data: {
-            ...createMessageDto,
+            ...rest,
             user_id: userId,
             message_type: 'RESPONSE',
             prompt_type: promptType,
@@ -208,7 +208,7 @@ export class MessagesService {
 
         return this.databaseService.messages.create({
           data: {
-            ...createMessageDto,
+            ...rest,
             user_id: userId,
             message_type: 'RESPONSE',
             prompt_type: promptType,

@@ -1,1 +1,2 @@
-ngrok http --url=busboy-engraved-unstitch.ngrok-free.dev 3001
+cd /d "D:\Kuliah\Semester4\softeng\project\back-end-nest\calendar-synchronizer"
+npm run start
